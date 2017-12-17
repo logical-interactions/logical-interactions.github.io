@@ -34,12 +34,6 @@ html {
   fill-opacity: .125;
 }
 
-.radio-button-wrapper > span
-{
-  white-space: nowrap;
-  display: block;
-}
-
 .indicator {
   border: 3px solid #ccc;
   border-top: 3px solid #3498db;
@@ -68,10 +62,9 @@ html {
 }
 
 /**
- * Experiment UI styles
+ * experiments
  */
-
- html {
+html {
    color: #333;
  }
 
@@ -80,86 +73,27 @@ html {
  }
 
  label {
-   display: block;
+   /* display: block; */
    margin-bottom: 5px;
  }
 
  hr {
    margin: 20px 0;
  }
-
-.content-wrapper {
-  width: 800px;
-  margin: 0 auto 30px auto;
+.controls {
+  padding-bottom: 20px;
 }
-
-.button-wrapper {
-  margin: 30px 0 0 100px;
-}
-
-.button-wrapper button {
-  margin-right: 5px;
-}
-
-.question-wrapper {
-  margin-bottom: 20px;
-}
-
-.radio-button-wrapper label {
-  margin-right: 15px;
-}
-
-.task-answer-wrapper label {
-  display: inline;
-}
-
-.reward-box {
-  font-size: 0.85em;
-  border: 1px solid #333;
+.select {
+  border: none;
+  background-color: #e7e7e7;
+  color: black;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
   display: inline-block;
-  padding: 6px;
-  color: #333;
+  font-size: 16px;
 }
 
-.task-input {
-  margin-top: 20px;
-}
-
-.correct {
-  color: green;
-}
-
-.invalid {
-  color: red;
-}
-
-textarea {
-  width: 600px;
-  height: 100px;
-}
-
-.glyph-wrapper {
-  padding: 4px;
-  margin-right: 10px;
-  cursor: pointer;
-}
-
-.glyph-wrapper.disabled {
-  cursor: auto;
-}
-
-.glyph-wrapper.selected {
-  background: steelblue;
-}
-
-.glyph-wrapper.answer {
-  background: green;
-}
-
-.glyph-wrapper svg {
-  display: block;
-}
-
-video {
-  border: 1px solid #999;
+#wrapper {
+  padding: 50px;
 }

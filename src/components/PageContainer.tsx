@@ -16,6 +16,7 @@ interface PageContainerState {
 export default class PageContainer extends React.Component<undefined, PageContainerState> {
   constructor() {
     super(undefined);
+    this.onChange = this.onChange.bind(this);
     this.state = {
       bufferSize: 4,
       encoding: "POSITION", // "COLOR"
@@ -28,19 +29,33 @@ export default class PageContainer extends React.Component<undefined, PageContai
   }
 
   onChange(event: any) {
-    this.setState(event.target.id, event.target.value);
+    // hack, if can be coerced into number, coerce into number
+    let value = parseInt(event.target.value, 10);
+    value = isNaN(value) ? event.target.value : value;
+    this.setState({ [event.target.name]: value });
   }
+
+  // onChange(event: any) {
+  //   this.setState({event.target.id, event.target.value});
+  // }
   render() {
     let intro = (<p>
-
+      This page show cases the design of chronicles.
     </p>);
     let control = (
-      // TODO: some buttons
-      <div>
-        <label htmlFor="blocking">Design</label>
-        <select id="encoding" name="encoding" value={this.state.encoding} onChange={this.onChange}>
+      <div className="controls">
+        <label htmlFor="encoding">Design:  </label>
+        <select id="encoding" name="encoding" className="select" value={this.state.encoding} onChange={this.onChange}>
           <option value="POSITION">Multiples</option>
           <option value="COLOR">Overlay</option>
+        </select>
+        <label htmlFor="encoding">  Buffer Size:  </label>
+        <select id="bufferSize" name="bufferSize" className="select" value={this.state.bufferSize.toString()} onChange={this.onChange}>
+          <option value="1">1</option>
+          <option value="3">3</option>
+          <option value="6">6</option>
+          <option value="9">9</option>
+          <option value="12">12</option>
         </select>
       </div>
     );
@@ -57,6 +72,7 @@ export default class PageContainer extends React.Component<undefined, PageContai
     return (
       <div>
         {intro}
+        {control}
         {vis}
       </div>
     );

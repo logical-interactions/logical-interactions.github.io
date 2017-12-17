@@ -79,7 +79,7 @@ export default class MergedContainer extends React.Component<MergedContainerProp
       selected.push(selection);
       return {
         datasets: prevState.datasets,
-        selected: prevState.selected,
+        selected: selected,
         currentItxId: 0,
         evictedIdx: (prevState.evictedIdx + 1) % props.bufferSize,
       };

@@ -17,7 +17,7 @@ function getStockData(selection: string) {
   for (let i: number = 0; i < 5; i ++) {
     result.push({x: i + 2008, y: stock[i][offset]});
   }
-  console.log("result", result);
+  // console.log("result", result);
   return result;
 }
 
