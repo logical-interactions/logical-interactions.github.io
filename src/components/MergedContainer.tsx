@@ -19,14 +19,7 @@ interface MergedContainerProps {
 
 interface MergedContainerState {
   datasets: { [index: string]: Datum[] };
-  facets: string[];
   selected: string[];
-  eventLog: {
-    event: string,
-    selection: string,
-    itxid: number,
-    ts: number
-  }[];
   currentItxId: number;
   evictedIdx: number;
   // below are optional for multiples
@@ -46,9 +39,7 @@ export default class MergedContainer extends React.Component<MergedContainerProp
     this.processResponse = this.processResponse.bind(this);
     this.state = {
       datasets: {},
-      facets: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
       selected: [],
-      eventLog: [],
       currentItxId: 0,
       evictedIdx: -1,
     };
@@ -71,7 +62,6 @@ export default class MergedContainer extends React.Component<MergedContainerProp
   updateSelectedState(selection: string) {
     this.setState((prevState, props) => {
       let selected;
-      prevState = Object.assign({}, prevState);
       const idx = prevState.selected.indexOf(selection);
       if (idx > -1) {
         // item exists in cache, remove it for re-insertion at the end
@@ -85,11 +75,14 @@ export default class MergedContainer extends React.Component<MergedContainerProp
           delete prevState.datasets[prevState.selected[0]];
           selected = prevState.selected.slice(1);
         }
-        prevState.evictedIdx = (prevState.evictedIdx + 1) % props.bufferSize;
       }
       selected.push(selection);
-      prevState.selected = selected;
-      return prevState;
+      return {
+        datasets: prevState.datasets,
+        selected: prevState.selected,
+        currentItxId: 0,
+        evictedIdx: (prevState.evictedIdx + 1) % props.bufferSize,
+      };
     });
   }
 
@@ -102,24 +95,13 @@ export default class MergedContainer extends React.Component<MergedContainerProp
    */
   processResponse(response: any) {
     if (this._isMounted) {
-      const {taskNum, selection, data, itxid} = response;
+      const {selection, data, itxid} = response;
       this.setState(prevState => {
-        const eventLog = prevState.eventLog.slice();
-        const logRecord = {
-          event: Events[Events.render],
-          taskNum: taskNum,
-          selection: selection,
-          itxid: itxid,
-          ts: Date.now()
-        };
-        eventLog.push(logRecord);
         if (prevState.selected.indexOf(selection) > -1) {
           const datasets = Object.assign({}, prevState.datasets);
           datasets[selection] = data;
-          return { datasets, eventLog };
+          return { datasets };
         }
-        logRecord.event = Events[Events.discard];
-        return { eventLog };
       });
     }
   }
@@ -155,7 +137,6 @@ export default class MergedContainer extends React.Component<MergedContainerProp
    */
   appendNewInteraction(selection: string, isSelected: boolean, isRequesting: boolean) {
     this.setState(prevState => {
-      const eventLog = prevState.eventLog.slice();
       const currentItxId = prevState.currentItxId + 1;
       let event;
       if (isSelected) {
@@ -167,13 +148,7 @@ export default class MergedContainer extends React.Component<MergedContainerProp
       } else {
         event = Events[Events.interaction];
       }
-      eventLog.push({
-        event,
-        selection: selection,
-        ts: Date.now(),
-        itxid: currentItxId,
-      });
-      return { currentItxId, eventLog };
+      return { currentItxId };
     });
   }
 
@@ -190,7 +165,7 @@ export default class MergedContainer extends React.Component<MergedContainerProp
     let widget = <WidgetFacet
     // id={widgetId}
     bufferSize={bufferSize}
-    facets={this.state.facets}
+    facets={["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]}
     datasets={datasets}
     selected={selected}
     updateSelection={this.updateSelection}

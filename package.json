@@ -1,35 +1,42 @@
 {
-  "name": "logical-interactions-illustrations",
+  "name": "logical-interactions.github.io",
   "version": "1.0.0",
-  "description": "",
+  "description": "website for logical interactions",
   "main": "index.js",
   "scripts": {
     "start": "node_modules/.bin/webpack-dev-server",
-    "build": "node_modules/.bin/webpack -p"
+    "build": "node_modules/.bin/webpack -p",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/logical-interactions/logical-interactions.github.io.git"
   },
   "author": "",
   "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/logical-interactions/logical-interactions.github.io/issues"
+  },
+  "homepage": "https://github.com/logical-interactions/logical-interactions.github.io#readme",
   "dependencies": {
-    "@types/d3": "^4.4.1",
-    "@types/d3-scale-chromatic": "^1.0.1",
-    "@types/react": "15.0.23",
-    "@types/react-dom": "0.14.23",
-    "@types/seedrandom": "^2.4.27",
-    "d3": "^4.4.4",
-    "d3-scale-chromatic": "^1.1.0",
-    "normalize.css": "^5.0.0",
-    "react": "15.5.4",
-    "react-dom": "15.5.4"
+    "@types/d3": "^4.12.0",
+    "@types/d3-scale-chromatic": "^1.1.0",
+    "@types/react": "^16.0.31",
+    "@types/react-dom": "^16.0.3",
+    "d3": "^4.12.0",
+    "d3-scale-chromatic": "^1.1.1",
+    "normalize.css": "^7.0.0",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0"
   },
   "devDependencies": {
-    "@types/node": "^7.0.5",
-    "awesome-typescript-loader": "^3.0.0-beta.18",
-    "source-map-loader": "^0.1.6",
-    "ts-node": "^2.1.0",
-    "tslint": "^4.4.2",
-    "tslint-loader": "^3.3.0",
-    "typescript": "2.3.2",
-    "webpack": "^1.14.0",
-    "webpack-dev-server": "^1.16.2"
+    "@types/node": "^8.5.1",
+    "awesome-typescript-loader": "^3.4.1",
+    "source-map-loader": "^0.2.3",
+    "tslint": "^5.8.0",
+    "tslint-loader": "^3.5.3",
+    "typescript": "^2.6.2",
+    "webpack": "^3.10.0",
+    "webpack-dev-server": "^2.9.7"
   }
 }

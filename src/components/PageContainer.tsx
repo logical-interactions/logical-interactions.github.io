@@ -1,5 +1,4 @@
 import * as React from "react";
-import * as seedrandom from "seedrandom";
 
 import MergedContainer from "./MergedContainer";
 // import { Encoding, Widget, Events } from "../lib/chronicles";
@@ -16,7 +15,7 @@ interface PageContainerState {
 
 export default class PageContainer extends React.Component<undefined, PageContainerState> {
   constructor() {
-    super();
+    super(undefined);
     this.state = {
       bufferSize: 4,
       encoding: "POSITION", // "COLOR"
@@ -26,7 +25,7 @@ export default class PageContainer extends React.Component<undefined, PageContai
       disabled: false,
       color: "BLUE", // "MULTI"
     };
-  };
+  }
 
   onChange(event: any) {
     this.setState(event.target.id, event.target.value);
