@@ -1,0 +1,35 @@
+{
+  "name": "logical-interactions-illustrations",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node_modules/.bin/webpack-dev-server",
+    "build": "node_modules/.bin/webpack -p"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/d3": "^4.4.1",
+    "@types/d3-scale-chromatic": "^1.0.1",
+    "@types/react": "15.0.23",
+    "@types/react-dom": "0.14.23",
+    "@types/seedrandom": "^2.4.27",
+    "d3": "^4.4.4",
+    "d3-scale-chromatic": "^1.1.0",
+    "normalize.css": "^5.0.0",
+    "react": "15.5.4",
+    "react-dom": "15.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "^7.0.5",
+    "awesome-typescript-loader": "^3.0.0-beta.18",
+    "source-map-loader": "^0.1.6",
+    "ts-node": "^2.1.0",
+    "tslint": "^4.4.2",
+    "tslint-loader": "^3.3.0",
+    "typescript": "2.3.2",
+    "webpack": "^1.14.0",
+    "webpack-dev-server": "^1.16.2"
+  }
+}
