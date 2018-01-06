@@ -1,6 +1,11 @@
 import * as React from "react";
 
 import MergedContainer from "./MergedContainer";
+import Scatterplot from "./Scatterplot";
+import ZoomContainer from "./ZoomContainer";
+import { numberArray } from "../lib/stockData";
+import { getScatterData } from "../lib/data";
+
 // import { Encoding, Widget, Events } from "../lib/chronicles";
 
 interface PageContainerState {
@@ -69,11 +74,28 @@ export default class PageContainer extends React.Component<undefined, PageContai
         color={this.state.color}
         disabled={this.state.disabled}
       />);
+    let moreDesigns = (<p>
+      Asynchronous designs could be applied to other scenarios that doesn't seem "parallelizable" immediately. See the following for examples.
+    </p>);
+    let scatterData = getScatterData(numberArray);
+    let scatter = (
+      <ZoomContainer
+        bufferSize={this.state.bufferSize}
+        avgDelay={this.state.avgDelay}
+        varDelay={this.state.varDelay}
+        encoding={this.state.encoding}
+        ordered={this.state.ordered}
+        color={this.state.color}
+        dataset={scatterData}
+      />
+    );
     return (
       <div>
         {intro}
         {control}
         {vis}
+        {moreDesigns}
+        {scatter}
       </div>
     );
   }
