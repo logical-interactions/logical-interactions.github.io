@@ -2,7 +2,7 @@ import * as React from "react";
 import * as d3 from "d3";
 import Scatterplot from "./Scatterplot";
 import { Datum, getScatterData, filterZoomData } from "../lib/data";
-import { Rect } from "../lib/geometry";
+import { Rect, rectToString } from "../lib/geometry";
 
 interface ZoomContainerProps {
   avgDelay: number;
@@ -38,6 +38,7 @@ export default class ZoomContainer extends React.Component<ZoomContainerProps, Z
   }
 
   updateSelection(selection: Rect) {
+    console.log("updateSelection called", selection);
     this.setState((prevState) => {
       let selectionsNew = prevState.selections.slice();
       selectionsNew.push(selection);
@@ -62,11 +63,13 @@ export default class ZoomContainer extends React.Component<ZoomContainerProps, Z
     for (let i = 0; i < this.state.selections.length; i ++) {
       let s = this.state.selections[i];
       let data = filterZoomData(this.props.dataset, s);
+      console.log("new data for scatter", data, "with brush", s);
       scatterplots.push(
         <Scatterplot
           dataset={ data }
           selected={ s }
           selectable={ false }
+          key={rectToString(s)}
         />
       );
     }
