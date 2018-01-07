@@ -42,6 +42,13 @@ export function getScatterData(rawArray: number[]) {
   return result;
 }
 
-export function filterZoomData(data: Datum[], selection: Rect) {
-  return data.filter((d) => {return (d.x < selection.x2) && (d.x > selection.x1) && (d.y < selection.y2) && (d.y > selection.y1); });
+export function filterZoomData(originalData: Datum[], selection: Rect, key: number, avgDelay: number, varDelay: number) {
+  let data = originalData.filter((d) => {return (d.x < selection.x2) && (d.x > selection.x1) && (d.y < selection.y2) && (d.y > selection.y1); });
+  return new Promise((resolve, reject) => {
+    let delay = getRandomInt(avgDelay - varDelay, avgDelay + varDelay);
+    setTimeout(
+      () => resolve({selection: selection, data, key}),
+      delay
+    );
+  });
 }

@@ -20,6 +20,7 @@ interface ZoomContainerProps {
 interface ZoomContainerState {
   selections: Rect[];
   currentItxId: number;
+  datasets: {[index: number]: Datum[]};
 }
 
 export default class ZoomContainer extends React.Component<ZoomContainerProps, ZoomContainerState> {
@@ -31,9 +32,11 @@ export default class ZoomContainer extends React.Component<ZoomContainerProps, Z
   constructor() {
     super(undefined);
     this.updateSelection = this.updateSelection.bind(this);
+    this.processResponse = this.processResponse.bind(this);
     this.state = {
       selections: [],
-      currentItxId: 0,
+      currentItxId: -1, // must be -1, some logical dependency here
+      datasets: {}
     };
   }
 
@@ -42,15 +45,32 @@ export default class ZoomContainer extends React.Component<ZoomContainerProps, Z
     this.setState((prevState) => {
       let selectionsNew = prevState.selections.slice();
       selectionsNew.push(selection);
+      const currentItxId = prevState.currentItxId + 1;
+      this.getNewData(selection, currentItxId);
       return {
         selections: selectionsNew,
-        currentItxId: prevState.currentItxId + 1,
+        currentItxId,
       };
     });
   }
+  processResponse(response: any) {
+    const {selection, data, key} = response;
+    console.log("Zoom data received", response);
+    this.setState(prevState => {
+      const datasets = Object.assign({}, prevState.datasets);
+      datasets[key] = data;
+      console.log("current state datasets", datasets);
+      return {
+        datasets
+      };
+    });
+  }
+  getNewData(s: Rect, currentItxId: number) {
+    filterZoomData(this.props.dataset, s, currentItxId, this.props.avgDelay, this.props.varDelay)
+    .then(this.processResponse);
+  }
 
   render() {
-
     let original = (
       <Scatterplot
         dataset={this.props.dataset}
@@ -62,13 +82,22 @@ export default class ZoomContainer extends React.Component<ZoomContainerProps, Z
     let scatterplots: JSX.Element[] = [];
     for (let i = 0; i < this.state.selections.length; i ++) {
       let s = this.state.selections[i];
-      let data = filterZoomData(this.props.dataset, s);
+      //       return new Promise((resolve, reject) => {
+      //   let delay = getRandomInt(avgDelay - varDelay, avgDelay + varDelay);
+      //   setTimeout(
+      //     () => resolve({selection: selection, data, itxid}),
+      //     delay
+      //   );
+      // });
+      let data = this.state.datasets[i];
       console.log("new data for scatter", data, "with brush", s);
       scatterplots.push(
         <Scatterplot
           dataset={ data }
           selected={ s }
           selectable={ false }
+          xDomain={[s.x1, s.x2]}
+          yDomain={[s.y1, s.y2]}
           key={rectToString(s)}
         />
       );
