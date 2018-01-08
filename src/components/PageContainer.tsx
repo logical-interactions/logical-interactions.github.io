@@ -3,8 +3,9 @@ import * as React from "react";
 import MergedContainer from "./MergedContainer";
 import Scatterplot from "./Scatterplot";
 import ZoomContainer from "./ZoomContainer";
+import CrossfilterContainer from "./CrossfilterContainer";
 import { numberArray } from "../lib/stockData";
-import { getScatterData } from "../lib/data";
+import { getScatterData, getFlightData } from "../lib/data";
 
 // import { Encoding, Widget, Events } from "../lib/chronicles";
 
@@ -74,8 +75,8 @@ export default class PageContainer extends React.Component<undefined, PageContai
         color={this.state.color}
         disabled={this.state.disabled}
       />);
-    let moreDesigns = (<p>
-      Asynchronous designs could be applied to other scenarios that doesn't seem "parallelizable" immediately. See the following for examples.
+    let moreDesignsScatter = (<p>
+      Asynchronous designs could be applied to other scenarios that doesn't seem "parallelizable" immediately. See the following example of zooming on a scatter plot.
     </p>);
     let scatterData = getScatterData(numberArray);
     let scatter = (
@@ -89,13 +90,26 @@ export default class PageContainer extends React.Component<undefined, PageContai
         dataset={scatterData}
       />
     );
+    let moreDesignsCrossfilter = (<p>
+      Here is an example of crossfilter using chronicles.
+    </p>);
+    let crossfilterData = getFlightData();
+    let crossfilter = (
+      <CrossfilterContainer
+        dataset={crossfilterData}
+        avgDelay={this.state.avgDelay}
+        varDelay={this.state.varDelay}
+      />
+    );
     return (
       <div>
         {intro}
         {control}
         {vis}
-        {moreDesigns}
+        {moreDesignsScatter}
         {scatter}
+        {moreDesignsCrossfilter}
+        {crossfilter}
       </div>
     );
   }

@@ -120,7 +120,7 @@ export default class Scatterplot extends React.Component<ScatterplotProps, undef
             x={(innerWidth / 2) + marginLeft}
             textAnchor="middle"
           >
-            Year
+            x
           </text>
           <text
             className="chart-label"
@@ -129,7 +129,7 @@ export default class Scatterplot extends React.Component<ScatterplotProps, undef
             transform="rotate(-90)"
             textAnchor="middle"
           >
-            Stock price
+            y
           </text>
         </g>
       );

@@ -1,9 +1,17 @@
 import { stocks } from "./stockData";
 import { Rect } from "./geometry";
-
+import { flightData } from "./flightData";
 export interface Datum {
   x: number;
   y: number;
+}
+
+export interface XFilterDatum {
+  [index: string]: number;
+}
+
+export interface XFilterSelection {
+  [index: string]: [number, number];
 }
 
 export function getRandomInt(min: number, max: number) {
@@ -48,6 +56,49 @@ export function filterZoomData(originalData: Datum[], selection: Rect, key: numb
     let delay = getRandomInt(avgDelay - varDelay, avgDelay + varDelay);
     setTimeout(
       () => resolve({selection: selection, data, key}),
+      delay
+    );
+  });
+}
+
+// generates some random values for c
+export function getFlightData() {
+  let r: XFilterDatum[] = [];
+  for (let i = 0; i < flightData.length; i ++) {
+    let e = flightData[i];
+    const randNum = Math.round(Math.random() * 100);
+    r.push({
+      a: e.a,
+      b: e.b,
+      c: randNum
+    });
+  }
+  return r;
+}
+
+export function filterFlightData(sourceData: XFilterDatum[], s: XFilterSelection, key: number, avgDelay: number, varDelay: number) {
+  let data = sourceData.filter(e => {
+   let keys = Object.keys(s);
+   let out = 0;
+    keys.forEach((k) => {
+      console.log("filtering", e[k], s[k][1], s[k][0]);
+      if ((e[k] > s[k][1]) || (e[k] < s[k][0])) {
+        console.log("filtered out", e[k]);
+        out += 1;
+        return false;
+      }}
+    );
+    if (out === 0) {
+      return true;
+    } else {
+      return false;
+    }
+  });
+  console.log("Filtered data", data, "original is", sourceData);
+  return new Promise((resolve, reject) => {
+    let delay = getRandomInt(avgDelay - varDelay, avgDelay + varDelay);
+    setTimeout(
+      () => resolve({selection: s, data, key}),
       delay
     );
   });
