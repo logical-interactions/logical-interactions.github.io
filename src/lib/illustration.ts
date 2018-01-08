@@ -5,6 +5,7 @@ export enum Events {
   requesting, // interaction on a currently requesting item
   discard, // discarded response data
   render, // rendered response data
+  blocked,
 }
 
 export interface EventLog {

@@ -102,6 +102,16 @@ export default class SingleBufferContainer extends React.Component<SingleBufferC
 
   updateSelection(selection: string) {
     if (this.state.disabled) {
+      this.setState(prevState => {
+        let events = prevState.events.slice();
+        events.push({
+          event: Events.blocked,
+          selection: selection,
+          itxid: null,
+          ts: Date.now()
+        });
+        return {events};
+      });
       return;
     }
     getData(selection, this.props.avgDelay, this.props.varDelay, this.state.selected.length)

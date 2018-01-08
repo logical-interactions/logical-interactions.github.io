@@ -24,7 +24,7 @@ export default class EventsIllustration extends React.Component<EventsIllustrati
     width: 500,
     height: 100,
     marginBottom: 20,
-    marginLeft: 20,
+    marginLeft: 80,
     marginRight: 20,
     marginTop: 20,
     maxSteps: 3,
@@ -61,7 +61,7 @@ export default class EventsIllustration extends React.Component<EventsIllustrati
     if (events && (events.length > 0)) {
       let x = d3.scaleTime()
             .domain([events[0].ts, events[events.length - 1].ts])
-            .range([marginLeft, innerWidth]);
+            .range([marginLeft, innerWidth - 10]);
       events.forEach(e => {
         let node: JSX.Element;
         switch (e.event) {
@@ -75,7 +75,11 @@ export default class EventsIllustration extends React.Component<EventsIllustrati
           correspondenceSvg.push(line);
           break;
         case Events.discard:
-          node = <circle cx={x(e.ts)} cy={height - marginBottom - 10} r={5} fill="red"></circle>;
+          node = <text x={x(e.ts)} y={height - marginBottom - 10} fontSize={15} fill="red">X</text>;
+          break;
+        case Events.blocked:
+          node = <text x={x(e.ts)} y={marginTop} fontSize={15} fill="red">X</text>;
+          break;
         }
         eventsSvg.push(node);
       });
@@ -87,11 +91,19 @@ export default class EventsIllustration extends React.Component<EventsIllustrati
 
     return (<div>
       <svg width={this.props.width} height={this.props.height}>
-      <line x1={0} y1={marginTop} x2={innerWidth} y2={marginTop} strokeWidth={1} stroke={"black"} markerEnd="url(#triangle)"></line>
-      <line x1={0} y1={height - marginBottom} x2={innerWidth} y2={height - marginBottom} strokeWidth={1} stroke={"black"} markerEnd="url(#triangle)"></line>
-      {eventsSvg}
-      {correspondenceSvg}
-    </svg>
+        <defs>
+          <marker id="triangle" viewBox="0 0 10 10" refX="1" refY="5"
+              markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" />
+          </marker>
+        </defs>
+        <line x1={marginLeft} y1={marginTop} x2={innerWidth} y2={marginTop} strokeWidth={1} stroke={"black"} markerEnd={"url(#triangle)"}></line>
+        <text x={0} y ={marginTop} fontSize={14}>requests</text>
+        <line x1={marginLeft} y1={height - marginBottom} x2={innerWidth} y2={height - marginBottom} strokeWidth={1} stroke={"black"} markerEnd="url(#triangle)"></line>
+        <text x={0} y ={height - marginBottom} fontSize={14}>responses</text>
+        {eventsSvg}
+        {correspondenceSvg}
+      </svg>
     </div>);
   }
 
