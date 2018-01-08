@@ -74,6 +74,7 @@ export default class PageContainer extends React.Component<undefined, PageContai
   // }
   render() {
     let intro = (<div>
+      <h1>Designing with asynchrony: Chronicles of Interaction</h1>
       <p>
         Often designers of visual analytic tools (or authoring tools like Tableau) assume that latency is low, and much effort has been put into making computation more efficient.  However it's not always possible to have guaranteed "interactive latency", of less than 500ms.
       </p>
@@ -192,9 +193,6 @@ export default class PageContainer extends React.Component<undefined, PageContai
       </p>
       <br/>
       <br/>
-      <br/>
-      <br/>
-      <br/>
       <p className="banner">
         What if all the results you ever see will always be on the screen?
       </p>
@@ -269,9 +267,21 @@ export default class PageContainer extends React.Component<undefined, PageContai
       {vis}
       <p>
         We speculate that different corners in the design space will have different tradeoffs and should be adapted to different kinds of visualizations and tasks.  However a more pressing question on your mind at this point is probably... </p>
+      <br/>
+      <br/>
+      <br/>
       <p className="banner">
         How do I generalize this design?
       </p>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
     </div>);
     let moreDesignsScatter = (<div>
       <p>
