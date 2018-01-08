@@ -25,6 +25,8 @@ interface PageContainerState {
 export default class PageContainer extends React.Component<undefined, PageContainerState> {
   m1: MergedContainer;
   m2: MergedContainer;
+  m3: MergedContainer;
+  m4: MergedContainer;
   mergedContainer: MergedContainer;
   s1: SingleBufferContainer;
   s2: SingleBufferContainer;
@@ -41,7 +43,7 @@ export default class PageContainer extends React.Component<undefined, PageContai
       varDelay: 1000,
       ordered: true,
       disabled: false,
-      color: "BLUE", // "MULTI"
+      color: "MULTI", // "BLUE"
       policy: "blocking",
       invalidate: false,
     };
@@ -58,6 +60,8 @@ export default class PageContainer extends React.Component<undefined, PageContai
     // FIXME: this is kinda tedious...
     this.m1.updateSelection("Jan");
     this.m2.updateSelection("Jan");
+    this.m3.updateSelection("Jan");
+    this.m4.updateSelection("Jan");
     this.s1.updateSelection("Jan");
     this.s2.updateSelection("Jan");
     this.s3.updateSelection("Jan");
@@ -111,21 +115,29 @@ export default class PageContainer extends React.Component<undefined, PageContai
       <p>
         To start getting a sense of what it means to design with latency in mind.  Let's first take a look at a simple, <strong>blocking</strong> design that's often used in practice, for instance, in Tableau. The blocking interface prevents you from performing another interaction, if the previous interaction has not loaded.
       </p>
+      <p>
+        To give you a better sense of what is going on with regards to the interaction requests and responses, we illustrate an "interaction timeline" to the right, where on the top row you will see the "accepted" interactions in blue, and "rejected" interactions in red cross. Your interactions may be rejected because the interface is busy processing your last responese. And on the bottom row, the reveived responses of your interaction.
+      </p>
+      <p>
+        To make the set up more realistic, assign yourself a task of finding the maximum value of year 2010 across the months, or see if it ever crosses 80, or maybe even try to grasp the basic trend across the months in the year 2010.
+      </p>
     <SingleBufferContainer
       ref={c => this.s1 = c}
       policy={"blocking"}
       invalidate={false}
     />
-    <p>
-      This blocking design could be annoying if you no longer want to see the result that is being requested.  The following design allows you to intervene, and see only the most recent result.
+    <br/>
+    <br/>
+    <p className="clearleft">
+      This blocking design could be annoying if you no longer want to see the result that is being requested.  The following design allows you to intervene, and see only the most recent result.  You will see in the lower rows that your previously requested responedse are rejected, in red cross.
     </p>
     <SingleBufferContainer
       ref={c => this.s2 = c}
       policy={"newest"}
       invalidate={false}
     />
-    <p>
-      So this "non-blocking" interface is perhaps a bit better as it allows you to intervene whenever you please.  However it still is subpar because you can only see one result at a time.  What if I just want to see all of the results as fast as possible?  To understand what this means, consider the following events diagram of a series of asynchronous calls:
+      <p className="clearleft">
+      So this "non-blocking" interface is perhaps a bit better as it allows you to intervene whenever you please.  However it still is subpar because you can only see one result at a time.  What if I just want to see all of the results as fast as possible?
     </p>
     <p>
       Our initial hypothesis is that perhaps people can still make sense of results out of order, if the task is simple enough, such as seeing if a month's value crossed a line. Perhaps you can give it a try.
@@ -135,8 +147,8 @@ export default class PageContainer extends React.Component<undefined, PageContai
       policy={"async"}
       invalidate={false}
     />
-    <p>
-      We found, through an experiment on Mechanical Turk, that people were very reluctant to experience the results arriving randomly---they just waited for the previous result to arrive.  Which got us thinking... Can there be anything that helps?
+    <p className="clearleft">
+      We found, through an experiment on Mechanical Turk, that people were very reluctant to experience the results arriving randomly---they just waited for the previous result to arrive.  Which got us thinking... Can there be anything that helps?  We know that websites loads asynchronously all the time (think Facebook, Twitter, Gmail), and often we can make progress using the application without waiting for the whole thing to have loaded. Is there any ideas we can borrow from there?
     </p>
     {singleBufferControl}
     {singleBufferVis}
@@ -156,9 +168,10 @@ export default class PageContainer extends React.Component<undefined, PageContai
           <option value="8">8</option>
           <option value="12">12</option>
         </select>
-        <select id="ordered" name="ordered" className="select" value={this.state.ordered.toString()} onChange={this.onChange}>
-        <option value="true">ordered</option>
-        <option value="false">unordered</option>
+        <label htmlFor="color">  Encoding of history:  </label>
+        <select id="color" name="color" className="select" value={this.state.ordered.toString()} onChange={this.onChange}>
+        <option value="BLUE">shades of blue</option>
+        <option value="MULTI">multiple colors</option>
         </select>
       </div>
     );
@@ -175,47 +188,100 @@ export default class PageContainer extends React.Component<undefined, PageContai
       />);
 
     let chronicles = (<div>
-      <p>
-        Which is what brought us to think, what if all the results you ever see will always be on the screeen (that it's <strong>stable</strong>)? It brings the following design you see, go ahead and play with the visualization.
+      <p className="clearleft">
+      </p>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
+      <p className="banner">
+        What if all the results you ever see will always be on the screen?
+      </p>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
+      <p className="clearleft">For multiple results to be meaninful, we added some annotation to the charts, which brings the following design you see, go ahead and play with the visualization.
       </p>
       <MergedContainer
         ref={c => this.m1 = c}
-        bufferSize={20}
+        bufferSize={100}
         avgDelay={this.state.avgDelay}
         varDelay={this.state.varDelay}
-        encoding={"MULTIPLES"}
+        encoding={"POSITION"}
         ordered={false}
         color={this.state.color}
         disabled={this.state.disabled}
+        naiveImplementation={true}
+        label={true}
       />
       <p>
-        Like you hopefully have discovered (let us know if you didn't!), you didn't wait for each individual result to load, but rather interacted in parallel.  This can fit into any tasks that do not require strict order, like finding the maximum value of a month across the years, or finding out liers.
+        Hopefully you have discovered that you can interacted in parallel and make sense of the results.  We hypothesize that this effect is because the history of all the interactions creates a  <strong>stable</strong> interface that will not change randomly due to latency, as is seen in previous cases.
       </p>
       <p>
-        It turns out that this effect persists even if you dont get to see all the results --- we limited the total number of of the results you can see and ran some experiments with mechanical turk users.
+        If the key here is to use history to transform transient interactions into something stable, we proably do not need to show <i>all</i> of history---see below for an example with a limited buffer.
       </p>
       <MergedContainer
         ref={c => this.m2 = c}
-        bufferSize={20}
+        bufferSize={4}
         avgDelay={this.state.avgDelay}
         varDelay={this.state.varDelay}
-        encoding={"MULTIPLES"}
+        encoding={"POSITION"}
         ordered={false}
         color={this.state.color}
         disabled={this.state.disabled}
       />
-      <p>
-        It turns out that there is a lot you can play around with, like how to compose the multiple resulting charts, how many past results to show, whether to order the color encodings, and so on.  For a different example in the design space, see below.  You can also play with the settings in the control bar.
+      <p className="clearleft">
+        We also started thinking, if this is just visualizing history, time is essentially just another dimention to be visualized, we are not limited to using small multiples. We can overlay the charts, as follows.
+        {/* Besides the "buffer" size, It turns out that there is a lot you can play around with, like how to compose the multiple resulting charts, how many past results to show, whether to order the color encodings, and so on.  For a different example in the design space, see below.  You can also play with the settings in the control bar. */}
+      </p>
+      <MergedContainer
+        ref={c => this.m3 = c}
+        bufferSize={4}
+        avgDelay={this.state.avgDelay}
+        varDelay={this.state.varDelay}
+        encoding={"COLOR"}
+        ordered={false}
+        color={"BLUE"}
+        disabled={this.state.disabled}
+      />
+      <p className="clearleft">
+        Further more, if we just need to show correspondence between the interaction and the result, we can change how we encode interaction history --- doesn't have to be shades of the same color.
+      </p>
+      <MergedContainer
+        ref={c => this.m4 = c}
+        bufferSize={8}
+        avgDelay={this.state.avgDelay}
+        varDelay={this.state.varDelay}
+        encoding={"COLOR"}
+        ordered={false}
+        color={"MULTI"}
+        disabled={this.state.disabled}
+      />
+      <p className="clearleft">
+        Play around with the parameters of this design, which we are calling "chronicles" (as in chronicling your interactions).  If you change the buffer size to 1, it reduces to the original designs we talked about earlier.
       </p>
       {control}
       {vis}
       <p>
-        We speculate that different corners in the design space will have different tradeoffs and should be adapted to different kinds of visualizations and tasks.  However a more pressing question on your mind at this point is probably how generalizable this design is.  We hope the following examples could illustrate how to generalize the idea---just visualize short term history and the correspondence between interaction and the corresponding results!
+        We speculate that different corners in the design space will have different tradeoffs and should be adapted to different kinds of visualizations and tasks.  However a more pressing question on your mind at this point is probably... </p>
+      <p className="banner">
+        How do I generalize this design?
       </p>
     </div>);
-    let moreDesignsScatter = (<p>
-      Asynchronous designs could be applied to other scenarios that doesn't seem "parallelizable" immediately. See the following example of zooming on a scatter plot.  Everytime you interact, the corresponding interaction shows up immediately, with a small legend that is your actual interaction, so you know that your interaction is acknowledged and remind you of what the result is actually for.
-    </p>);
+    let moreDesignsScatter = (<div>
+      <p>
+        Asynchronous designs could be applied to other scenarios that doesn't seem "parallelizable" immediately.
+        We hope the following examples could illustrate ways to generalize asynchronous designs with <i>chronicles</i>---just visualize short term history and the correspondence between interaction and the corresponding results!
+      </p>
+      <p>
+        See the following example of zooming on a scatter plot.  Everytime you interact, the corresponding interaction shows up immediately, with a small legend that is your actual interaction, so you know that your interaction is acknowledged and remind you of what the result is actually for.
+      </p>
+    </div>);
     let scatterData = getScatterData(numberArray);
     let scatter = (
       <ZoomContainer

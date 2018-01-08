@@ -16,6 +16,8 @@ interface MergedContainerProps {
   color: string;
   ordered: boolean;
   disabled: boolean;
+  naiveImplementation?: boolean;
+  label?: boolean;
 }
 
 interface MergedContainerState {
@@ -33,6 +35,10 @@ interface MergedContainerState {
  */
 export default class MergedContainer extends React.Component<MergedContainerProps, MergedContainerState> {
   _isMounted: boolean;
+  static defaultProps = {
+    naiveImplementation: false,
+    label: false,
+  };
 
   constructor(props: MergedContainerProps) {
     super(props);
@@ -155,7 +161,7 @@ export default class MergedContainer extends React.Component<MergedContainerProp
   }
 
   render() {
-    const { bufferSize, ordered, color } = this.props;
+    const { bufferSize, ordered, color, naiveImplementation, label } = this.props;
     const { multipleHeight, datasets, multipleWidth, selected, evictedIdx } = this.state;
 
     let colorScale;
@@ -165,9 +171,13 @@ export default class MergedContainer extends React.Component<MergedContainerProp
       colorScale = ColorScales[color](bufferSize, evictedIdx);
     }
     let chart;
+    let widgetBufferSize = bufferSize;
+    if (naiveImplementation) {
+      widgetBufferSize = 1;
+    }
     let widget = <WidgetFacet
     // id={widgetId}
-    bufferSize={bufferSize}
+    bufferSize={widgetBufferSize}
     facets={["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]}
     datasets={datasets}
     selected={selected}
@@ -195,6 +205,7 @@ export default class MergedContainer extends React.Component<MergedContainerProp
         ordered={ordered}
         evictedIdx={evictedIdx}
         colorScale={colorScale}
+        label={label}
       />;
     }
     return (

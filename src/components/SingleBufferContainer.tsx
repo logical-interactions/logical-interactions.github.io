@@ -224,10 +224,14 @@ export default class SingleBufferContainer extends React.Component<SingleBufferC
       events={this.state.events}
       design={this.props.policy}
     />;
-    return(<div>
+    return(<div className="clearleft">
+      <div className="left">
       {widget}
       {chart}
+      </div>
+      <div className="left">
       {illustration}
+      </div>
     </div>);
   }
 }

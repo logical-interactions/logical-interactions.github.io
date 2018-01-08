@@ -142,7 +142,7 @@ export default class Chart extends React.Component<ChartProps, undefined> {
         <text
           className="chart-label"
           x={innerWidth / 2}
-          y={-8}
+          y={5}
           textAnchor="middle"
         >
           {selected[0]}
@@ -174,7 +174,6 @@ export default class Chart extends React.Component<ChartProps, undefined> {
         </g>
       );
     }
-
     return (
       <div className="chart-wrapper inline-block">
         <svg width={width} height={height}>

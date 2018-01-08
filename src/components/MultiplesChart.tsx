@@ -20,6 +20,7 @@ interface MultiplesChartProps {
   ordered?: boolean;
   evictedIdx: number;
   colorScale: (i: number) => string;
+  label?: boolean;
   reverse?: boolean;
 }
 
@@ -38,6 +39,7 @@ export default class MultiplesChart extends React.Component<MultiplesChartProps,
     multipleMarginRight: 15,
     setDomains: false,
     reverse: false,
+    label: false,
   };
 
   render() {
@@ -91,6 +93,7 @@ export default class MultiplesChart extends React.Component<MultiplesChartProps,
             yDomain={[0, 100] /* hardcoded */}
             showAxesLabels={false}
             colorScale={c}
+            showLabel={this.props.label}
           />
         );
       }
