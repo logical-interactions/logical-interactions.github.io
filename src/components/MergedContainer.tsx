@@ -39,6 +39,7 @@ export default class MergedContainer extends React.Component<MergedContainerProp
     this.processResponse = this.processResponse.bind(this);
     this.state = {
       datasets: {},
+      // to make it less awkward, always select janualary as selected
       selected: [],
       currentItxId: 0,
       evictedIdx: -1,
@@ -155,6 +156,7 @@ export default class MergedContainer extends React.Component<MergedContainerProp
   render() {
     const { bufferSize, ordered, color } = this.props;
     const { multipleHeight, datasets, multipleWidth, selected, evictedIdx } = this.state;
+
     let colorScale;
     if (ordered) {
       colorScale = ColorScales[color](bufferSize);
@@ -194,7 +196,6 @@ export default class MergedContainer extends React.Component<MergedContainerProp
         colorScale={colorScale}
       />;
     }
-
     return (
       <div>
         {widget}

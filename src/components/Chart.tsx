@@ -106,7 +106,9 @@ export default class Chart extends React.Component<ChartProps, undefined> {
 
     // map selected data to SVG path/dots
     let paths: JSX.Element[] = [];
-    for (let i = 0; i < selected.length; i++) {
+    // change made to accomodate for on the fly parameter changes
+    // changed selected.length to bufferSize
+    for (let i = 0; i < Math.min(bufferSize, selected.length); i++) {
       const s = selected[i];
       if (datasets[s] === undefined) {
         indicators.push(

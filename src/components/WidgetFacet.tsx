@@ -25,8 +25,10 @@ export default class WidgetFacet extends React.Component<WidgetProps, undefined>
   };
 
   render() {
-    const { bufferSize, datasets, facets, selected, showIndicator,
+    const { bufferSize, datasets, facets, showIndicator,
             updateSelection, colorScale } = this.props;
+    // if parameter changed on the fly, trucate selected
+    let selected = this.props.selected.slice(0, bufferSize);
     const loading = showIndicator &&
                     selected.some(s => datasets[s] === undefined);
 

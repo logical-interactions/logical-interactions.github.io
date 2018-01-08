@@ -20,6 +20,8 @@ interface PageContainerState {
 }
 
 export default class PageContainer extends React.Component<undefined, PageContainerState> {
+  mergedContainer: MergedContainer;
+
   constructor() {
     super(undefined);
     this.onChange = this.onChange.bind(this);
@@ -38,7 +40,11 @@ export default class PageContainer extends React.Component<undefined, PageContai
     // hack, if can be coerced into number, coerce into number
     let value = parseInt(event.target.value, 10);
     value = isNaN(value) ? event.target.value : value;
+    // should also reset state
     this.setState({ [event.target.name]: value });
+  }
+  componentDidMount() {
+    this.mergedContainer.updateSelection("Jan");
   }
 
   // onChange(event: any) {
@@ -58,15 +64,15 @@ export default class PageContainer extends React.Component<undefined, PageContai
         <label htmlFor="encoding">  Buffer Size:  </label>
         <select id="bufferSize" name="bufferSize" className="select" value={this.state.bufferSize.toString()} onChange={this.onChange}>
           <option value="1">1</option>
-          <option value="3">3</option>
-          <option value="6">6</option>
-          <option value="9">9</option>
+          <option value="4">4</option>
+          <option value="8">8</option>
           <option value="12">12</option>
         </select>
       </div>
     );
     let vis = (
       <MergedContainer
+        ref={c => this.mergedContainer = c}
         bufferSize={this.state.bufferSize}
         avgDelay={this.state.avgDelay}
         varDelay={this.state.varDelay}
