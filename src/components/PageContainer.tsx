@@ -69,10 +69,19 @@ export default class PageContainer extends React.Component<undefined, PageContai
   //   this.setState({event.target.id, event.target.value});
   // }
   render() {
-    let intro = (<div><p>
-      Often designers of visual analytic tools (or authoring tools like Tableau) assume that things are fast, and much effort has been put into making computation more efficient.  However it's not always possible to have guaranteed short latency, say 10 ms, or even 500ms.
-      This stringent latency requirement makes a lot of visual analtyic tools either not possible to be made, or causes visualizations created to be unpleasant to use.  What's worse is that the ways that visualizations break when there is long latency is not the same.  Since developers often treat latency as a post hoc programming patch, it's not often thought of as something to even design for.
-    </p>
+    let intro = (<div>
+      <p>
+        Often designers of visual analytic tools (or authoring tools like Tableau) assume that latency is low, and much effort has been put into making computation more efficient.  However it's not always possible to have guaranteed "interactive latency", of less than 500ms.
+      </p>
+      <p>
+        In practice, these interactive speeds are quite challenging to deliver reliably, as the 95th percentile network latency exceeds 300ms for WiFi networks even if data processing time is ignored. This requirement poses a challenge for traditional visualization tools when applied in Cloud and Big Data environments
+      </p>
+      <p>
+        Assuming short latencies causes visualizations to be not only unpleasant to use but often times lead to wrong results. Visualizations break under long latency in different and often opaque ways.
+      </p>
+      <p>
+        Hopefully by the end of this post you will be convinced that one ought to <strong>design with latency in mind</strong>, that there is a simple, clean model to capture these asynchronous behaviors, and that there is a rich design space and many benefits!
+      </p>
     </div>);
 
     let singleBufferControl = (
@@ -98,16 +107,17 @@ export default class PageContainer extends React.Component<undefined, PageContai
       policy={this.state.policy}
       invalidate={this.state.invalidate}
     />);
-    let singleBuffer = (<div><p>
-      Let's take a look at the different ways a frontend developer could program asynchronous interactions. In the following common case, after you perform an interaction that requires a long processing time, youa re not allowed to interact with anything on the screen.
-    </p>
+    let singleBuffer = (<div>
+      <p>
+        To start getting a sense of what it means to design with latency in mind.  Let's first take a look at a simple, <strong>blocking</strong> design that's often used in practice, for instance, in Tableau. The blocking interface prevents you from performing another interaction, if the previous interaction has not loaded.
+      </p>
     <SingleBufferContainer
       ref={c => this.s1 = c}
       policy={"blocking"}
       invalidate={false}
     />
     <p>
-      This is annoying, what if you changed your mind and no longer want to see the result anymore? The following design allows you to intervene, and see only the most recent result.
+      This blocking design could be annoying if you no longer want to see the result that is being requested.  The following design allows you to intervene, and see only the most recent result.
     </p>
     <SingleBufferContainer
       ref={c => this.s2 = c}
@@ -115,7 +125,10 @@ export default class PageContainer extends React.Component<undefined, PageContai
       invalidate={false}
     />
     <p>
-      OK, this is a bit better perhpas. What if I just want to see all of the results as fast as possible?  Our initial hypothesis is that perhaps people can still make sense of results out of order, if the task is simple enough, such as seeing if a month's value crossed a line. Perhaps you can give it a try.
+      So this "non-blocking" interface is perhaps a bit better as it allows you to intervene whenever you please.  However it still is subpar because you can only see one result at a time.  What if I just want to see all of the results as fast as possible?  To understand what this means, consider the following events diagram of a series of asynchronous calls:
+    </p>
+    <p>
+      Our initial hypothesis is that perhaps people can still make sense of results out of order, if the task is simple enough, such as seeing if a month's value crossed a line. Perhaps you can give it a try.
     </p>
     <SingleBufferContainer
       ref={c => this.s3 = c}

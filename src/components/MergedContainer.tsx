@@ -4,7 +4,8 @@ import Chart from "./Chart";
 import WidgetFacet from "./WidgetFacet";
 import MultiplesChart from "./MultiplesChart";
 
-import { Events, ColorScales } from "../lib/chronicles";
+import { ColorScales } from "../lib/chronicles";
+import { Events } from "../lib/illustration";
 import { Datum, getData } from "../lib/data";
 
 interface MergedContainerProps {
