@@ -41,7 +41,7 @@ export default class ZoomContainer extends React.Component<ZoomContainerProps, Z
   }
 
   updateSelection(selection: Rect) {
-    console.log("updateSelection called", selection);
+    // console.log("updateSelection called", selection);
     this.setState((prevState) => {
       let selectionsNew = prevState.selections.slice();
       selectionsNew.push(selection);
@@ -55,7 +55,7 @@ export default class ZoomContainer extends React.Component<ZoomContainerProps, Z
   }
   processResponse(response: any) {
     const {selection, data, key} = response;
-    console.log("Zoom data received", response);
+    // console.log("Zoom data received", response);
     this.setState(prevState => {
       const datasets = Object.assign({}, prevState.datasets);
       datasets[key] = data;
@@ -90,7 +90,7 @@ export default class ZoomContainer extends React.Component<ZoomContainerProps, Z
       //   );
       // });
       let data = this.state.datasets[i];
-      console.log("new data for scatter", data, "with brush", s);
+      // console.log("new data for scatter", data, "with brush", s);
       scatterplots.push(
         <Scatterplot
           dataset={ data }

@@ -96,7 +96,7 @@ export default class SingleBufferContainer extends React.Component<SingleBufferC
         events.push(e);
         return { datasets, disabled, currentDataset, events };
       });
-      console.log("Received response", data);
+      // console.log("Received response", data);
     }
   }
 
@@ -126,7 +126,7 @@ export default class SingleBufferContainer extends React.Component<SingleBufferC
         itxid: selected.length - 1,
         ts: Date.now()
       });
-      console.log("selected", selection);
+      // console.log("selected", selection);
       let disabled = false;
       if (this.props.policy === "blocking") {
         disabled = true;
@@ -221,7 +221,7 @@ export default class SingleBufferContainer extends React.Component<SingleBufferC
       colorScale={colorScale}
     />;
     let illustration = <EventsIllustration
-      events={this.state.events}
+      events={this.state.events.filter((e) => {return e.itxid !== 0; })}
       design={this.props.policy}
     />;
     return(<div className="clearleft">

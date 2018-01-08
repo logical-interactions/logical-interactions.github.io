@@ -66,19 +66,19 @@ export default class EventsIllustration extends React.Component<EventsIllustrati
         let node: JSX.Element;
         switch (e.event) {
         case Events.interaction:
-          node = <circle cx={x(e.ts)} cy={marginTop} r={5} fill="blue"></circle>;
+          node = <circle cx={x(e.ts)} key={e.ts} cy={marginTop} r={5} fill="blue"></circle>;
           break;
         case Events.render:
-          node = <circle cx={x(e.ts)} cy={height - marginBottom} r={5} fill="green"></circle>;
+          node = <circle cx={x(e.ts)} key={e.ts} cy={height - marginBottom} r={5} fill="green"></circle>;
           let itx = events.filter((e2) => {return e2.itxid === e.itxid; })[0];
-          let line = <line x1={x(itx.ts)} y1={marginTop} x2={x(e.ts)} y2={height - marginBottom} strokeWidth={1} stroke={"black"} fillOpacity={0.5}></line>;
+          let line = <line key={e.ts} x1={x(itx.ts)} y1={marginTop} x2={x(e.ts)} y2={height - marginBottom} strokeWidth={1} stroke={"black"} fillOpacity={0.5}></line>;
           correspondenceSvg.push(line);
           break;
         case Events.discard:
-          node = <text x={x(e.ts)} y={height - marginBottom - 10} fontSize={15} fill="red">X</text>;
+          node = <text key={e.ts} x={x(e.ts)} y={height - marginBottom - 10} fontSize={15} fill="red">X</text>;
           break;
         case Events.blocked:
-          node = <text x={x(e.ts)} y={marginTop} fontSize={15} fill="red">X</text>;
+          node = <text key={e.ts} x={x(e.ts)} y={marginTop} fontSize={15} fill="red">X</text>;
           break;
         }
         eventsSvg.push(node);
