@@ -1,7 +1,7 @@
 import * as d3 from "d3";
 import * as React from "react";
 
-import Indicator from "./Indicator";
+import SvgIndicator from "./SvgIndicator";
 
 interface XChartProps {
   data: number[];
@@ -47,7 +47,7 @@ export default class XChart extends React.Component<XChartProps, undefined> {
     let binRects: JSX.Element[];
     let indicator = null;
     if (!data) {
-      indicator = <Indicator loading={true} key={id.toString() + "indicator"} />;
+      indicator = <svg transform={"translate(" + innerWidth / 2 + "," + innerHeight / 2 + ")"}><SvgIndicator loading={true} key={id.toString() + "indicator"} /></svg>;
     } else {
       let domain = [d3.min(data), d3.max(data)];
       let x = d3.scaleLinear()
@@ -63,7 +63,7 @@ export default class XChart extends React.Component<XChartProps, undefined> {
       let y = d3.scaleLinear()
                   .domain([0, d3.max(binCounts, (d) => {return d.length; })])
                   .range([innerHeight, 0]);
-      console.log("Bins", binCounts);
+      // console.log("Bins", binCounts);
       binRects = binCounts.map((d, i) => <rect key={"bins_" + id + chart + "_" + i} x={xBins(d.x0)} y={innerHeight - y(d.length)} width={xBins(d.x1) - xBins(d.x0) - 1} height={y(d.length)} fill={color} fillOpacity={0.3} data-x0={d.x0} data-x1={d.x1}></rect>);
       if (this.props.selectable) {
         let brush = d3.brushX()
@@ -84,7 +84,7 @@ export default class XChart extends React.Component<XChartProps, undefined> {
     // let barWidth = innerWidth * 0.9 / bins;
     let selectionVis: JSX.Element = null;
     if (this.props.selection) {
-      selectionVis = <line x1={this.props.selection[0] * innerWidth} y1={innerHeight - 2} x2={this.props.selection[1] * innerWidth} y2={innerHeight - 2} strokeWidth={2} stroke={"black"}/>;
+      selectionVis = <line x1={this.props.selection[0] * innerWidth} y1={innerHeight + 1} x2={this.props.selection[1] * innerWidth} y2={innerHeight + 1} strokeWidth={2} stroke={"black"}/>;
     }
     return(<div className="chart-wrapper inline-block">
         <svg width={width} height={height}>
@@ -93,10 +93,8 @@ export default class XChart extends React.Component<XChartProps, undefined> {
           {binRects}
           {brushDiv}
           {selectionVis}
+          {indicator}
         </svg>
-        <div>
-        {indicator}
-        </div>
       </div>);
   }
 }

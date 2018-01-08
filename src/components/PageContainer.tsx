@@ -216,7 +216,7 @@ export default class PageContainer extends React.Component<undefined, PageContai
       />
     );
     let moreDesignsCrossfilter = (<p>
-      Here is an example of crossfilter using chronicles.  Crossfilter is a fairly complex interaction, but you see the "chronicled" version isn't so bad!
+      Here is an example of crossfilter using chronicles.  Use the top row, light green colored visualizations to interact (the generated charts cannot be interacted with).  The small black bar on the bottom indicates the specification of the brush that was used to filter the value.  As you interact, new data will be appended, in reverse order.  Crossfilter is a fairly complex interaction, but you see the "chronicled" version isn't so bad!
     </p>);
     let crossfilterData = getFlightData();
     let crossfilter = (

@@ -111,7 +111,7 @@ export default class SingleBufferContainer extends React.Component<SingleBufferC
       chartSelected = selected[selected.length - 1];
       if (policy === "blocking") {
         if (invalidate) {
-          chartData = datasets.filter((d) => { return d.selection === chartSelected; })[0]);
+          chartData = datasets.filter((d) => { return d.selection === chartSelected; })[0];
 
         } else {
           // chart datasets is what ever was there before...

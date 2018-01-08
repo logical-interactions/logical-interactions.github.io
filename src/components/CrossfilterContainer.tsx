@@ -107,6 +107,7 @@ export default class CrossfilterContainer extends React.Component<CrossfilterCon
       chart={e}
       selectable={true}
       updateSelection={this.updateSelection}
+      color={"green"}
       key={e}
       />);
     });
@@ -116,12 +117,14 @@ export default class CrossfilterContainer extends React.Component<CrossfilterCon
     // compute the bounds
     let bounds: XFilterSelection = {};
     fields.forEach(e => {
-      let nums = dataset.map((d) => { return d[e]});
+      let nums = dataset.map((d) => { return d[e]; });
       let min = d3.min(nums);
       let max = d3.max(nums);
       bounds[e] = [min, max];
     });
-    this.state.selections.forEach((element, i) => {
+    // this.state.selections.forEach((element, i) => {
+    for (let i = this.state.selections.length - 1; i > -1; i --) {
+      let element = this.state.selections[i];
       // create a set of charts
       let xfilterCharts: JSX.Element[] = [];
       // if (datasets[i]) {
@@ -145,11 +148,11 @@ export default class CrossfilterContainer extends React.Component<CrossfilterCon
             key={i.toString() + e}
           />);
         });
-        charts.push(<div>{xfilterCharts}</div>);
+        charts.push(<div key={"xfilter" + i}>{xfilterCharts}</div>);
       // } else {
       //   charts.push(<Indicator loading={true} key={i.toString() + "indicator"} />);
       // }
-    });
+    }
 
     return(<div>
       {controlCharts}

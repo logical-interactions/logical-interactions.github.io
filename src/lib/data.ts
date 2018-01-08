@@ -81,9 +81,9 @@ export function filterFlightData(sourceData: XFilterDatum[], s: XFilterSelection
    let keys = Object.keys(s);
    let out = 0;
     keys.forEach((k) => {
-      console.log("filtering", e[k], s[k][1], s[k][0]);
+      // console.log("filtering", e[k], s[k][1], s[k][0]);
       if ((e[k] > s[k][1]) || (e[k] < s[k][0])) {
-        console.log("filtered out", e[k]);
+        // console.log("filtered out", e[k]);
         out += 1;
         return false;
       }}
