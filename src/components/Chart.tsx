@@ -110,7 +110,7 @@ export default class Chart extends React.Component<ChartProps, undefined> {
     // changed selected.length to bufferSize
     for (let i = 0; i < Math.min(bufferSize, selected.length); i++) {
       const s = selected[i];
-      if (datasets[s] === undefined) {
+      if ((datasets[s] === undefined) || (datasets[s] === null)) {
         indicators.push(
           <Indicator key={"ind_" + i} loading={true} />
         );
