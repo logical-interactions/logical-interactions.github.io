@@ -12,6 +12,7 @@ interface ChartProps {
   colorOverride?: boolean;
   datasets: { [index: string]: Datum[] };
   height?: number;
+  indicatorOn?: boolean;
   marginBottom?: number;
   marginLeft?: number;
   marginRight?: number;
@@ -43,7 +44,7 @@ export default class Chart extends React.Component<ChartProps, undefined> {
   };
 
   render() {
-    const { bufferSize, datasets, selected, colorOverride, height, marginBottom,
+    const { indicatorOn, bufferSize, datasets, selected, colorOverride, height, marginBottom,
             marginLeft, marginRight, marginTop, width, colorScale } = this.props;
     let { xDomain, yDomain } = this.props;
     const innerWidth = width - marginLeft - marginRight;
@@ -115,6 +116,11 @@ export default class Chart extends React.Component<ChartProps, undefined> {
           <Indicator key={"ind_" + i} loading={true} />
         );
         continue; // if undefined, then the data is still being requested
+      }
+      if (indicatorOn) {
+        indicators.push(
+          <Indicator key={"ind_" + i} loading={true} />
+        );
       }
       const c = colorScale(selected.length - 1 - i);
 

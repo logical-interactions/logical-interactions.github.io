@@ -61,6 +61,7 @@ export default class SingleBufferContainer extends React.Component<SingleBufferC
         let disabled = false;
         return { datasets, disabled };
       });
+      console.log("Received response", data);
     }
   }
 
@@ -73,6 +74,7 @@ export default class SingleBufferContainer extends React.Component<SingleBufferC
     this.setState(prevState => {
       const selected = prevState.selected.slice();
       selected.push(selection);
+      console.log("selected", selection);
       let disabled = false;
       if (this.props.policy === "blocking") {
         disabled = true;
@@ -103,30 +105,36 @@ export default class SingleBufferContainer extends React.Component<SingleBufferC
     let chartDatasets: { [index: string]: Datum[] } = {};
     let chartSelected: string = null; // process based on selected
     let colorScale = ColorScales["BLUE"](1);
-    let chartData: Datum[];
+    let chartData: Results;
+    let indicatorOn = false;
     if (selected.length > 0) {
+      chartSelected = selected[selected.length - 1];
       if (policy === "blocking") {
         if (invalidate) {
-          chartSelected = selected[selected.length - 1];
-          chartData = this.getDataOrNull(datasets.filter((d) => { return d.selection === chartSelected; })[0]);
+          chartData = datasets.filter((d) => { return d.selection === chartSelected; })[0]);
+
         } else {
           // chart datasets is what ever was there before...
-          chartData = this.getDataOrNull(datasets[datasets.length - 1]);
-          chartSelected = this.getSelectionOrNull(datasets[datasets.length - 1]);
+          chartData = datasets[datasets.length - 1];
+          // chartSelected = this.getSelectionOrNull(datasets[datasets.length - 1]);
         }
       } else if (policy === "async") {
         // show whatever is the newest data, and newest selection
         // might not match
-        chartData =  this.getDataOrNull(datasets[datasets.length - 1]);
-        chartSelected = selected[selected.length - 1];
+        chartData =  datasets[datasets.length - 1];
       } else if (policy === "newest") {
-        chartSelected = selected[selected.length - 1];
         // this emulates caching...
-        chartData =  this.getDataOrNull(datasets.filter((d) => { return d.selection === chartSelected; })[0]);
+        chartData =  datasets.filter((d) => { return d.selection === chartSelected; })[0];
       } else {
         throw Error("policy unspecified");
       }
-      chartDatasets[chartSelected] = chartData;
+      chartDatasets[chartSelected] = this.getDataOrNull(chartData);
+      let actualSelected = this.getSelectionOrNull(chartData);
+      if ((actualSelected !== chartSelected) && (policy !== "async")) {
+        indicatorOn = true;
+      } else if ((policy === "async") && (datasets.length < selected.length)) {
+        indicatorOn = true;
+      }
     }
     let chart = <Chart
       bufferSize={1}
@@ -135,6 +143,7 @@ export default class SingleBufferContainer extends React.Component<SingleBufferC
       xDomain={[2008, 2012] /* hardcoded */}
       yDomain={[0, 100] /* hardcoded */}
       colorScale={colorScale}
+      indicatorOn={indicatorOn}
     />;
     let widget = <WidgetFacet
       bufferSize={1}

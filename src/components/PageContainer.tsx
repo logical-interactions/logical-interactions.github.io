@@ -24,7 +24,12 @@ interface PageContainerState {
 
 export default class PageContainer extends React.Component<undefined, PageContainerState> {
   m1: MergedContainer;
+  m2: MergedContainer;
   mergedContainer: MergedContainer;
+  s1: SingleBufferContainer;
+  s2: SingleBufferContainer;
+  s3: SingleBufferContainer;
+  s: SingleBufferContainer;
 
   constructor() {
     super(undefined);
@@ -52,6 +57,11 @@ export default class PageContainer extends React.Component<undefined, PageContai
   componentDidMount() {
     // FIXME: this is kinda tedious...
     this.m1.updateSelection("Jan");
+    this.m2.updateSelection("Jan");
+    this.s1.updateSelection("Jan");
+    this.s2.updateSelection("Jan");
+    this.s3.updateSelection("Jan");
+    this.s.updateSelection("Jan");
     this.mergedContainer.updateSelection("Jan");
   }
 
@@ -84,6 +94,7 @@ export default class PageContainer extends React.Component<undefined, PageContai
       </div>
     );
     let singleBufferVis = (<SingleBufferContainer
+      ref={c => this.s = c}
       policy={this.state.policy}
       invalidate={this.state.invalidate}
     />);
@@ -91,6 +102,7 @@ export default class PageContainer extends React.Component<undefined, PageContai
       Let's take a look at the different ways a frontend developer could program asynchronous interactions. In the following common case, after you perform an interaction that requires a long processing time, youa re not allowed to interact with anything on the screen.
     </p>
     <SingleBufferContainer
+      ref={c => this.s1 = c}
       policy={"blocking"}
       invalidate={false}
     />
@@ -98,6 +110,7 @@ export default class PageContainer extends React.Component<undefined, PageContai
       This is annoying, what if you changed your mind and no longer want to see the result anymore? The following design allows you to intervene, and see only the most recent result.
     </p>
     <SingleBufferContainer
+      ref={c => this.s2 = c}
       policy={"newest"}
       invalidate={false}
     />
@@ -105,6 +118,7 @@ export default class PageContainer extends React.Component<undefined, PageContai
       OK, this is a bit better perhpas. What if I just want to see all of the results as fast as possible?  Our initial hypothesis is that perhaps people can still make sense of results out of order, if the task is simple enough, such as seeing if a month's value crossed a line. Perhaps you can give it a try.
     </p>
     <SingleBufferContainer
+      ref={c => this.s3 = c}
       policy={"async"}
       invalidate={false}
     />
@@ -168,7 +182,7 @@ export default class PageContainer extends React.Component<undefined, PageContai
         It turns out that this effect persists even if you dont get to see all the results --- we limited the total number of of the results you can see and ran some experiments with mechanical turk users.
       </p>
       <MergedContainer
-        ref={c => this.m1 = c}
+        ref={c => this.m2 = c}
         bufferSize={20}
         avgDelay={this.state.avgDelay}
         varDelay={this.state.varDelay}
@@ -187,7 +201,7 @@ export default class PageContainer extends React.Component<undefined, PageContai
       </p>
     </div>);
     let moreDesignsScatter = (<p>
-      Asynchronous designs could be applied to other scenarios that doesn't seem "parallelizable" immediately. See the following example of zooming on a scatter plot.
+      Asynchronous designs could be applied to other scenarios that doesn't seem "parallelizable" immediately. See the following example of zooming on a scatter plot.  Everytime you interact, the corresponding interaction shows up immediately, with a small legend that is your actual interaction, so you know that your interaction is acknowledged and remind you of what the result is actually for.
     </p>);
     let scatterData = getScatterData(numberArray);
     let scatter = (
@@ -202,7 +216,7 @@ export default class PageContainer extends React.Component<undefined, PageContai
       />
     );
     let moreDesignsCrossfilter = (<p>
-      Here is an example of crossfilter using chronicles.
+      Here is an example of crossfilter using chronicles.  Crossfilter is a fairly complex interaction, but you see the "chronicled" version isn't so bad!
     </p>);
     let crossfilterData = getFlightData();
     let crossfilter = (

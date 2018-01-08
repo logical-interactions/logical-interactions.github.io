@@ -124,28 +124,31 @@ export default class CrossfilterContainer extends React.Component<CrossfilterCon
     this.state.selections.forEach((element, i) => {
       // create a set of charts
       let xfilterCharts: JSX.Element[] = [];
-      if (datasets[i]) {
+      // if (datasets[i]) {
         fields.forEach(e => {
-          let chartData = datasets[i].map((d) => { return d[e]; });
+          let chartData;
+          if (datasets[i]) {
+            chartData = datasets[i].map((d) => { return d[e]; });
+          }
           let selection: [number, number] = null;
           if (element[e]) {
             selection = [(element[e][0] - bounds[e][0]) / (bounds[e][1] - bounds[e][0]), (element[e][1] - bounds[e][0]) / (bounds[e][1] - bounds[e][0])];
           }
           xfilterCharts.push(<XChart
-          // take the slice of that value
-          data={chartData}
-          bins={10}
-          id={i}
-          chart={e}
-          selectable={false}
-          selection={selection}
-          key={i.toString() + e}
+            // take the slice of that value
+            data={chartData}
+            bins={10}
+            id={i}
+            chart={e}
+            selectable={false}
+            selection={selection}
+            key={i.toString() + e}
           />);
         });
         charts.push(<div>{xfilterCharts}</div>);
-      } else {
-        charts.push(<Indicator loading={true} key={i.toString() + "indicator"} />);
-      }
+      // } else {
+      //   charts.push(<Indicator loading={true} key={i.toString() + "indicator"} />);
+      // }
     });
 
     return(<div>
