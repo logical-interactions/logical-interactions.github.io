@@ -45,7 +45,8 @@ export function getScatterData(rawArray: number[]) {
   // TODO: randomize
   let result: Datum[] = [];
   for (let i = 0; i < rawArray.length - 1; i ++) {
-    result.push({x: rawArray[i], y: rawArray[i + 1] * 2 % 100});
+    result.push({x: rawArray[i], y: Math.abs(Math.round((randn_bm() * 100 + 50) * 100) / 100 % 100)});
+    result.push({x: rawArray[i], y: Math.abs(Math.round((randn_bm() * 10 + 50) * 100) / 100 % 100)});
   }
   return result;
 }

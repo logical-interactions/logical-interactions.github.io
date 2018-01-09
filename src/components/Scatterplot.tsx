@@ -38,7 +38,7 @@ export default class Scatterplot extends React.Component<ScatterplotProps, undef
     marginLeft: 45,
     marginRight: 20,
     marginTop: 20,
-    width: 400,
+    width: 300,
     annotationSize: 100,
     showLabel: false,
     showAxesLabels: true,
@@ -171,8 +171,8 @@ export default class Scatterplot extends React.Component<ScatterplotProps, undef
     if ((dataset) && (dataset.length > 0)) {
       // map selected data to SVG path/dots
       circles = dataset.map((d, i) =>
-        <circle key={"_" + i + "_dot" + sId} r="2.5" cx={x(d.x)}
-          cy={y(d.y)} fill={c}></circle>
+        <circle key={"_" + i + "_dot" + sId} r="1.5" cx={x(d.x)}
+          cy={y(d.y)} fill={c} fillOpacity={0.5}></circle>
       );
     } else {
       indicator = <Indicator
