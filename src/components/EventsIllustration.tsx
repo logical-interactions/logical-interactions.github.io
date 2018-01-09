@@ -15,11 +15,11 @@ interface EventsIllustrationProps {
   marginTop?: number;
 }
 
-interface EventsIllustrationState {
-  step: number; // blocking, async, newest only
-}
+// interface EventsIllustrationState {
+//   step: number; // blocking, async, newest only
+// }
 
-export default class EventsIllustration extends React.Component<EventsIllustrationProps, EventsIllustrationState> {
+export default class EventsIllustration extends React.Component<EventsIllustrationProps, undefined> {
   static defaultProps = {
     width: 500,
     height: 100,
@@ -32,24 +32,6 @@ export default class EventsIllustration extends React.Component<EventsIllustrati
 
   constructor() {
     super(undefined);
-    this.go = this.go.bind(this);
-    this.state = {
-      step: 0,
-    };
-  }
-
-  go(step: number) {
-    this.setState({
-      step: step
-    });
-  }
-
-  next() {
-    this.go(this.state.step + 1);
-  }
-
-  back() {
-    this.go(this.state.step - 1);
   }
 
   render() {
@@ -84,10 +66,6 @@ export default class EventsIllustration extends React.Component<EventsIllustrati
         eventsSvg.push(node);
       });
     }
-    let control = (<div>
-      <button id="next_event" onClick={this.next} disabled={this.state.step === this.props.maxSteps}>next</button>
-      <button id="next_event" onClick={this.back} disabled={this.state.step === 0}>previous</button>
-    </div>);
 
     return (<div>
       <svg width={this.props.width} height={this.props.height}>

@@ -44,6 +44,7 @@ export default class SingleBufferContainer extends React.Component<SingleBufferC
     this.processResponse = this.processResponse.bind(this);
     this.updateSelection = this.updateSelection.bind(this);
     this.renderLog = this.renderLog.bind(this);
+    this.clearEvents = this.clearEvents.bind(this);
     this.state = {
       events: [],
       selected: [],
@@ -135,6 +136,13 @@ export default class SingleBufferContainer extends React.Component<SingleBufferC
     });
   }
 
+  clearEvents() {
+    this.setState({
+      events: []
+    });
+  }
+
+
   getDataOrNull(d: Results) {
     if ((d === undefined) || (d === null)) {
       return null;
@@ -224,6 +232,7 @@ export default class SingleBufferContainer extends React.Component<SingleBufferC
       events={this.state.events.filter((e) => {return e.itxid !== 0; })}
       design={this.props.policy}
     />;
+    let clearBtn = <button onClick={this.clearEvents}>clear events</button>;
     return(<div className="clearleft">
       <div className="left">
       {widget}
@@ -231,6 +240,7 @@ export default class SingleBufferContainer extends React.Component<SingleBufferC
       </div>
       <div className="left">
       {illustration}
+      {clearBtn}
       </div>
     </div>);
   }

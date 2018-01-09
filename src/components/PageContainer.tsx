@@ -74,7 +74,7 @@ export default class PageContainer extends React.Component<undefined, PageContai
   // }
   render() {
     let intro = (<div>
-      <h1>Designing with asynchrony: Chronicles of Interaction</h1>
+      <h1>Designing with Asynchrony: Chronicles of Interaction</h1>
       <p>
         Often designers of visual analytic tools (or authoring tools like Tableau) assume that latency is low, and much effort has been put into making computation more efficient.  However it's not always possible to have guaranteed "interactive latency", of less than 500ms.
       </p>
@@ -194,7 +194,7 @@ export default class PageContainer extends React.Component<undefined, PageContai
       <br/>
       <br/>
       <p className="banner">
-        What if all the results you ever see will always be on the screen?
+        What if all the results will always be on the screen?
       </p>
       <br/>
       <br/>
@@ -260,6 +260,18 @@ export default class PageContainer extends React.Component<undefined, PageContai
         color={"MULTI"}
         disabled={this.state.disabled}
       />
+      <p className="banner">
+        Our design for supporting asynchrony has three parts: visualizing interaction history, displaying multiple visualization states corresponding to multiple interactions, and visualizing the <i>correspondence</i> between interaction requests and visualization responses, so that users can pair them up intuitively.
+      </p>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
+      <br/>
       <p className="clearleft">
         Play around with the parameters of this design, which we are calling "chronicles" (as in chronicling your interactions).  If you change the buffer size to 1, it reduces to the original designs we talked about earlier.
       </p>
