@@ -60,12 +60,13 @@ export default class XChart extends React.Component<XChartProps, undefined> {
       let binCounts = d3.histogram()
                     .domain(domain as any)
                     .thresholds(x.ticks(this.props.bins))(data);
+      // console.log("bin counts", binCounts);
       let xBins = d3.scaleLinear()
                     .domain([binCounts[0].x0, binCounts[binCounts.length - 1].x1])
                     .range([0, innerWidth]);
       let y = d3.scaleLinear()
                   .domain([0, d3.max(binCounts, (d) => {return d.length; })])
-                  .range([innerHeight, 0]);
+                  .range([0, innerHeight]);
       // console.log("Bins", binCounts);
       const aBottom = d3.axisBottom(xBins)
           .ticks(5, "d");
@@ -96,7 +97,7 @@ export default class XChart extends React.Component<XChartProps, undefined> {
     const selectionVisOffset = 30;
     if (this.props.selection) {
       selectionVis = <g>
-        <line x1={marginLeft} y1={innerHeight + selectionVisOffset + 3} x2={marginLeft + innerWidth} y2={innerHeight + selectionVisOffset + 3} strokeWidth={1} stroke={"gray"} fillOpacity={0.2}/>
+        <line x1={0} y1={innerHeight + selectionVisOffset + 3} x2={innerWidth} y2={innerHeight + selectionVisOffset + 3} strokeWidth={1} stroke={"gray"} fillOpacity={0.2}/>
         <line x1={this.props.selection[0] * innerWidth} y1={innerHeight + selectionVisOffset} x2={this.props.selection[1] * innerWidth} y2={innerHeight + selectionVisOffset} strokeWidth={6} stroke={"black"} fillOpacity={0.5}/>
       </g>;
     }

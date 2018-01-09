@@ -1,6 +1,6 @@
 import { stocks } from "./stockData";
 import { Rect } from "./geometry";
-import { flightData } from "./flightData";
+// import { flightData } from "./flightData";
 export interface Datum {
   x: number;
   y: number;
@@ -61,16 +61,25 @@ export function filterZoomData(originalData: Datum[], selection: Rect, key: numb
   });
 }
 
+// Standard Normal variate using Box-Muller transform.
+function randn_bm() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random(); // Converting [0,1) to (0,1)
+  while (v === 0) v = Math.random();
+  return Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
+}
+
 // generates some random values for c
 export function getFlightData() {
   let r: XFilterDatum[] = [];
-  for (let i = 0; i < flightData.length; i ++) {
-    let e = flightData[i];
-    const randNum = Math.round(Math.random() * 100);
+  for (let i = 0; i < 2000; i ++) {
+    const a = Math.round(randn_bm() * 100 + 100); // gaussian
+    const b = Math.round(a * (Math.random() / 2 + 0.5)); // create some correlation
+    const c = Math.round(Math.random() * 100);
     r.push({
-      a: e.a,
-      b: e.b,
-      c: randNum
+      a,
+      b,
+      c
     });
   }
   return r;
