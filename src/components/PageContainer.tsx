@@ -170,7 +170,7 @@ export default class PageContainer extends React.Component<undefined, PageContai
           <option value="12">12</option>
         </select>
         <label htmlFor="color">  Encoding of history:  </label>
-        <select id="color" name="color" className="select" value={this.state.ordered.toString()} onChange={this.onChange}>
+        <select id="color" name="color" className="select" value={this.state.color.toString()} onChange={this.onChange}>
         <option value="BLUE">shades of blue</option>
         <option value="MULTI">multiple colors</option>
         </select>
@@ -211,8 +211,8 @@ export default class PageContainer extends React.Component<undefined, PageContai
         avgDelay={this.state.avgDelay}
         varDelay={this.state.varDelay}
         encoding={"POSITION"}
-        ordered={false}
-        color={this.state.color}
+        ordered={this.state.ordered}
+        color={"BLUE"}
         disabled={this.state.disabled}
         naiveImplementation={true}
         label={true}
@@ -229,8 +229,8 @@ export default class PageContainer extends React.Component<undefined, PageContai
         avgDelay={this.state.avgDelay}
         varDelay={this.state.varDelay}
         encoding={"POSITION"}
-        ordered={false}
-        color={this.state.color}
+        ordered={this.state.ordered}
+        color={"BLUE"}
         disabled={this.state.disabled}
       />
       <p className="clearleft">
@@ -243,7 +243,7 @@ export default class PageContainer extends React.Component<undefined, PageContai
         avgDelay={this.state.avgDelay}
         varDelay={this.state.varDelay}
         encoding={"COLOR"}
-        ordered={false}
+        ordered={this.state.ordered}
         color={"BLUE"}
         disabled={this.state.disabled}
       />
@@ -256,7 +256,7 @@ export default class PageContainer extends React.Component<undefined, PageContai
         avgDelay={this.state.avgDelay}
         varDelay={this.state.varDelay}
         encoding={"COLOR"}
-        ordered={false}
+        ordered={this.state.ordered}
         color={"MULTI"}
         disabled={this.state.disabled}
       />

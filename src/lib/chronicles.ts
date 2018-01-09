@@ -38,6 +38,8 @@ export const ColorScales: Scales = {
         // this offset ensures that the color doesn't move around
         offset = (evictedIdx - i + bufferSize) % bufferSize;
       }
+      // the closer to 1, the darker
+      // so the smaller the offset, the darker
       return d3ScaleChromatic.interpolateBlues(0.8 - 0.6 * offset / (bufferSize - 1));
     };
   },

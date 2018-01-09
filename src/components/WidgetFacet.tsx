@@ -40,6 +40,7 @@ export default class WidgetFacet extends React.Component<WidgetProps, undefined>
       const style: React.CSSProperties = {};
       const idx = selected.indexOf(f);
       if (idx > -1) {
+        console.log("Selected", f, "index", idx, style.background);
         style.background = colorScale(selected.length - 1 - idx);
       }
       // if ((idx > -1) && (idx === selected.length - 1)) {
@@ -47,7 +48,7 @@ export default class WidgetFacet extends React.Component<WidgetProps, undefined>
       // }
 
       return (
-        <li key={f} className="button-widgets" style={style}
+        <li key={f + idx} className="button-widgets" style={style}
           onMouseOver={mouseover}>{f}</li>
       );
     });

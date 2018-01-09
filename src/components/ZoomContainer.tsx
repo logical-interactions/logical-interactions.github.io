@@ -80,7 +80,7 @@ export default class ZoomContainer extends React.Component<ZoomContainerProps, Z
       />
     );
     let scatterplots: JSX.Element[] = [];
-    for (let i = 0; i < this.state.selections.length; i ++) {
+    for (let i = this.state.selections.length - 1; i > -1 ; i --) {
       let s = this.state.selections[i];
       //       return new Promise((resolve, reject) => {
       //   let delay = getRandomInt(avgDelay - varDelay, avgDelay + varDelay);
