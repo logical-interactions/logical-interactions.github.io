@@ -233,7 +233,7 @@ export default class SingleBufferContainer extends React.Component<SingleBufferC
       design={this.props.policy}
     />;
     let clearBtn = <button onClick={this.clearEvents}>clear events</button>;
-    return(<div className="clearleft">
+    return(<div className="clearfix">
       <div className="left">
       {widget}
       {chart}
