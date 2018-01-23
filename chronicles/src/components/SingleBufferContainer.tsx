@@ -233,12 +233,16 @@ export default class SingleBufferContainer extends React.Component<SingleBufferC
       design={this.props.policy}
     />;
     let clearBtn = <button onClick={this.clearEvents}>clear events</button>;
+    let grayout = "";
+    if (this.state.disabled) {
+      grayout = " gray-out";
+    }
     return(<div className="clearfix">
       <div className="left">
       {widget}
       {chart}
       </div>
-      <div className="left">
+      <div className={"left " + grayout}>
       {illustration}
       {clearBtn}
       </div>

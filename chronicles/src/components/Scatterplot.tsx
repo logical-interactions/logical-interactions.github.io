@@ -33,13 +33,13 @@ interface ScatterplotProps {
 export default class Scatterplot extends React.Component<ScatterplotProps, undefined> {
   static defaultProps = {
     color: "blue",
-    height: 300,
+    height: 200,
     marginBottom: 40,
-    marginLeft: 45,
+    marginLeft: 100,
     marginRight: 20,
     marginTop: 20,
     width: 300,
-    annotationSize: 100,
+    annotationSize: 50,
     showLabel: false,
     showAxesLabels: true,
   };
@@ -125,7 +125,7 @@ export default class Scatterplot extends React.Component<ScatterplotProps, undef
           <text
             className="chart-label"
             x={-(innerHeight / 2) - marginTop}
-            y={15}
+            y={15 + 60}
             transform="rotate(-90)"
             textAnchor="middle"
           >
@@ -149,6 +149,7 @@ export default class Scatterplot extends React.Component<ScatterplotProps, undef
           let y2 = Math.max(y.invert(s[1][1]), y.invert(s[0][1]));
           let r = {x1: x1, y1: y1, x2: x2, y2: y2} as Rect;
           updateSelection(r);
+          mixpanel.track("Scatter plot brush @ " + Date.now());
           console.log("brushed", d3.brushSelection(this), "mapped", r);
         }
       });
@@ -189,7 +190,8 @@ export default class Scatterplot extends React.Component<ScatterplotProps, undef
             <g ref={(g) => d3.select(g).call(axisLeft)}></g>
             {brushDiv}
             {circles}
-            {annotation}
+            <g transform={"translate(-90, 0)"}>
+            {annotation}</g>
             {label}
           </g>
           {axesLabels}

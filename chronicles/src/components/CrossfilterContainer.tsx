@@ -10,6 +10,8 @@ interface CrossfilterContainerProps {
   avgDelay: number;
   varDelay: number;
   fields?: string[];
+  multipleHeight: number;
+  multipleWidth: number;
 }
 
 interface CrossfilterContainerState {
@@ -22,8 +24,8 @@ interface CrossfilterContainerState {
 export default class CrossfilterContainer extends React.Component<CrossfilterContainerProps, CrossfilterContainerState> {
   static defaultProps = {
     fields: ["a", "b", "c"],
-    multipleHeight: 100,
-    multipleWidth: 100,
+    multipleHeight: 60,
+    multipleWidth: 60,
   };
 
   constructor() {
@@ -145,6 +147,8 @@ export default class CrossfilterContainer extends React.Component<CrossfilterCon
             chart={e}
             selectable={false}
             selection={selection}
+            width={this.props.multipleWidth}
+            height={this.props.multipleHeight}
             key={i.toString() + e}
           />);
         });

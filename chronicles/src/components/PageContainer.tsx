@@ -291,11 +291,24 @@ export default class PageContainer extends React.Component<undefined, PageContai
         dataset={crossfilterData}
         avgDelay={this.state.avgDelay}
         varDelay={this.state.varDelay}
+        multipleHeight={80}
+        multipleWidth={100}
       />
     );
+    let tufte = (<>
+    <p className="quote">
+      Spatial parallelism takes advantage of our notable capacity to compare and reason about multiple images that appear simultaneously within our eyespan. We are able to canvass, sort, identify, reconnoiter, select, contrast, review -- ways of seeing all quickened and sharpened by the direct spatial adjacency of parallel elements.
+      Parallel images can also be distributed temporally, with one like image following another, parallel in time.</p>
+    </>);
     let implementation = (<p>
       These designs are none trivial to implement, and require a "time-centric" way to treat the application.  We will talk about that in another article.
     </p>);
+    let conclusion = (<>
+      <h2>
+      </h2>
+      <p>This technique could apply pretty generally to all UIs---most user interface can be thought of as a visualization of some information (see Bret Victor's <a href="http://worrydream.com/MagicInk/">magic ink</a>).  For instance, sometimes entering a value in a form may bring up a different popup window that takes forever to load; it would be great to have <i>chronciles</i>.
+      </p>
+      </>);
     return (
       <>
         {intro}
@@ -305,6 +318,7 @@ export default class PageContainer extends React.Component<undefined, PageContai
         {scatter}
         {moreDesignsCrossfilter}
         {crossfilter}
+        {conclusion}
       </>
     );
   }
