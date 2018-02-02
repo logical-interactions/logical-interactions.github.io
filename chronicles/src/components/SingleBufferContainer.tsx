@@ -115,7 +115,7 @@ export default class SingleBufferContainer extends React.Component<SingleBufferC
       });
       return;
     }
-    getData(selection, this.props.avgDelay, this.props.varDelay, this.state.selected.length)
+    getData(selection, this.props.avgDelay, this.props.varDelay, this.state.selected.length, -1)
       .then(this.processResponse);
     this.setState(prevState => {
       let selected = prevState.selected.slice();

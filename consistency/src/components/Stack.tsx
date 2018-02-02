@@ -1,15 +1,13 @@
 import * as React from "react";
 import * as d3 from "d3";
-// import * as d3ScaleChromatic from "d3-scale-chromatic";
 
-interface ModelProps {
+interface StackProps {
   width: number;
   height: number;
 }
 
-
 // TODO: add some rendering effects
-export default class Model extends React.Component<ModelProps, undefined> {
+export default class Stack extends React.Component<StackProps, undefined> {
 
   render() {
     let { width, height } = this.props;

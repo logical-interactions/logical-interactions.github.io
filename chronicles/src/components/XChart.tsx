@@ -18,15 +18,16 @@ interface XChartProps {
   marginTop?: number;
   width?: number;
   color?: string;
+  fixedScale?: [number, number]; // assume min and max
 }
 
 export default class XChart extends React.Component<XChartProps, undefined> {
   static defaultProps = {
     color: "blue",
-    height: 170,
-    width: 300,
+    height: 150,
+    width: 250,
     marginBottom: 70,
-    marginLeft: 45,
+    marginLeft: 25,
     marginRight: 20,
     marginTop: 20,
     indicatorOn: false,
@@ -43,8 +44,6 @@ export default class XChart extends React.Component<XChartProps, undefined> {
     const innerHeight = height - marginTop - marginBottom;
     let annotation: JSX.Element = null;
     let axisBottom: any, axisLeft: any;
-    // if (this.props.selectable) {
-    // }
     let binRects: JSX.Element[];
     let indicator = null;
 
@@ -52,6 +51,9 @@ export default class XChart extends React.Component<XChartProps, undefined> {
       indicator = <svg transform={"translate(" + innerWidth / 2 + "," + innerHeight / 2 + ")"}><SvgIndicator loading={true} key={id.toString() + "indicator"} /></svg>;
     } else {
       let domain = [d3.min(data), d3.max(data)];
+      if (this.props.fixedScale) {
+        domain = this.props.fixedScale;
+      }
 
       let x = d3.scaleLinear()
                 .domain(domain)
@@ -77,9 +79,9 @@ export default class XChart extends React.Component<XChartProps, undefined> {
       axisLeft = <g ref={(g) => d3.select(g).call(aLeft)}></g>;
       binRects = binCounts.map((d, i) => <rect key={"bins_" + id + chart + "_" + i} x={xBins(d.x0)} y={innerHeight - y(d.length)} width={xBins(d.x1) - xBins(d.x0) - 1} height={y(d.length)} fill={color} fillOpacity={0.3} data-x0={d.x0} data-x1={d.x1}></rect>);
       if (this.props.selectable) {
-        let brush = d3.brushX()
-        .extent([[0, 0], [innerWidth, innerHeight]])
-        .on("end", function() {
+        let brush = d3.brushX();
+        brush.extent([[0, 0], [innerWidth, innerHeight]]);
+        brush.on("end", function() {
           const s = d3.brushSelection(this) as [number, number];
           if (s !== null) {
             let x1 = Math.min(x.invert(s[0]), x.invert(s[1]));
@@ -89,10 +91,13 @@ export default class XChart extends React.Component<XChartProps, undefined> {
           }
         });
         brushDiv = <g ref={ g => d3.select(g).call(brush) }></g>;
+      } else if (this.props.selection) {
+        // brush.call(brush.move, this.props.selection.map(x));
+        console.log("Should set the brush", this.props.selection);
+        brushDiv = <rect fill="#777" fillOpacity="0.3" stroke="#fff" shapeRendering="crispEdges" x={this.props.selection[0] * innerWidth} y={0} width={(this.props.selection[1] - this.props.selection[0]) * innerWidth} height={innerHeight}></rect>;
       }
     }
-
-    // let barWidth = innerWidth * 0.9 / bins;
+    let barWidth = innerWidth * 0.9 / bins;
     let selectionVis: JSX.Element = null;
     const selectionVisOffset = 30;
     if (this.props.selection) {
@@ -108,7 +113,7 @@ export default class XChart extends React.Component<XChartProps, undefined> {
           {axisLeft}}
           {binRects}
           {brushDiv}
-          {selectionVis}
+          {/* {selectionVis} */}
           {indicator}
           </g>
         </svg>

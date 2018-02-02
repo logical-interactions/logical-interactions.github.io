@@ -25,6 +25,7 @@
     "@types/googlemaps": "^3.30.4",
     "@types/react": "^16.0.31",
     "@types/react-dom": "^16.0.3",
+    "@types/topojson": "^3.0.2",
     "antd": "^3.1.4",
     "d3": "^4.12.0",
     "d3-scale-chromatic": "^1.1.1",
@@ -32,7 +33,8 @@
     "normalize.css": "^7.0.0",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
-    "react-google-maps": "^9.4.5"
+    "react-google-maps": "^9.4.5",
+    "topojson": "^3.0.2"
   },
   "devDependencies": {
     "@types/node": "^8.5.1",

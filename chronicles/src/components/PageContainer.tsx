@@ -5,7 +5,7 @@ import SingleBufferContainer from "./SingleBufferContainer";
 import Scatterplot from "./Scatterplot";
 import ZoomContainer from "./ZoomContainer";
 import CrossfilterContainer from "./CrossfilterContainer";
-import { numberArray } from "../lib/stockData";
+// import Progressive from "./Progressive";
 import { getScatterData, getFlightData } from "../lib/data";
 
 // import { Encoding, Widget, Events } from "../lib/chronicles";
@@ -208,7 +208,11 @@ export default class PageContainer extends React.Component<undefined, PageContai
         Hopefully you have discovered that you can interacted in parallel and make sense of the results.  We hypothesize that this effect is because the history of all the interactions creates a  <strong>stable</strong> interface that will not change randomly due to latency, as is seen in previous cases.
       </p>
       <p>
-        If the key here is to use history to transform transient interactions into something stable, we proably do not need to show <i>all</i> of history---see below for an example with a limited buffer.
+        If the key here is to use history to transform transient interactions into something stable, we proably do not need to show <i>all</i> of history---see below for an example with a limited buffer.  In fact, there are generic, wel established visualization mechanisms that support these goals.
+      </p>
+      <p className="quote">
+          Spatial parallelism takes advantage of our notable capacity to compare and reason about multiple images that appear simultaneously within our eyespan. We are able to canvass, sort, identify, reconnoiter, select, contrast, review -- ways of seeing all quickened and sharpened by the direct spatial adjacency of parallel elements.
+          Parallel images can also be distributed temporally, with one like image following another, parallel in time.
       </p>
       <MergedContainer
         ref={c => this.m2 = c}
@@ -258,7 +262,7 @@ export default class PageContainer extends React.Component<undefined, PageContai
       <p>
         We speculate that different corners in the design space will have different tradeoffs and should be adapted to different kinds of visualizations and tasks.  However a more pressing question on your mind at this point is probably... </p>
       <h2>
-        How do I generalize this design?
+        How to generalize chronicles?
       </h2>
     </>);
     let moreDesignsScatter = (<>
@@ -270,7 +274,7 @@ export default class PageContainer extends React.Component<undefined, PageContai
         See the following example of zooming on a scatter plot.  Everytime you interact, the corresponding interaction shows up immediately, with a small legend that is your actual interaction, so you know that your interaction is acknowledged and remind you of what the result is actually for.
       </p>
     </>);
-    let scatterData = getScatterData(numberArray);
+    let scatterData = getScatterData(800);
     let scatter = (
       <ZoomContainer
         bufferSize={this.state.bufferSize}
@@ -283,30 +287,63 @@ export default class PageContainer extends React.Component<undefined, PageContai
       />
     );
     let moreDesignsCrossfilter = (<p>
-      Here is an example of crossfilter using chronicles.  Use the top row, light green colored visualizations to interact (the generated charts cannot be interacted with).  The small black bar on the bottom indicates the specification of the brush that was used to filter the value.  As you interact, new data will be appended, in reverse order.  Crossfilter is a fairly complex interaction, but you see the "chronicled" version isn't so bad!
+      Here is an example of crossfilter using chronicles.  Use the top row, light green colored visualizations to interact (the generated charts cannot be interacted with).  The small black bar on the bottom indicates the specification of the brush that was used to filter the value.  As you interact, new data will be appended, in reverse order.  Crossfilter is a fairly complex interaction, but you see the "chronicled" version isn't so bad!  The key here is ensure that the controls are <b>data independent</b>, which means that you are free to specify your interactions regardless of the loading situation. It also helps to stablize your navigation as well.
     </p>);
     let crossfilterData = getFlightData();
-    let crossfilter = (
+    let crossfilter = (<>
       <CrossfilterContainer
         dataset={crossfilterData}
         avgDelay={this.state.avgDelay}
         varDelay={this.state.varDelay}
-        multipleHeight={80}
-        multipleWidth={100}
+        multipleHeight={150}
+        multipleWidth={200}
       />
+      <p>
+        In fact, having a notebook style persistance of visualizations results can be pretty handy for comparisons.  For the future, we plan to support "clipping" interesting interaction results, so that they will not be buffered out.
+      </p>
+      </>
     );
-    let tufte = (<>
-    <p className="quote">
-      Spatial parallelism takes advantage of our notable capacity to compare and reason about multiple images that appear simultaneously within our eyespan. We are able to canvass, sort, identify, reconnoiter, select, contrast, review -- ways of seeing all quickened and sharpened by the direct spatial adjacency of parallel elements.
-      Parallel images can also be distributed temporally, with one like image following another, parallel in time.</p>
-    </>);
-    let implementation = (<p>
-      These designs are none trivial to implement, and require a "time-centric" way to treat the application.  We will talk about that in another article.
-    </p>);
     let conclusion = (<>
       <h2>
+        For generic user interfaces.
       </h2>
       <p>This technique could apply pretty generally to all UIs---most user interface can be thought of as a visualization of some information (see Bret Victor's <a href="http://worrydream.com/MagicInk/">magic ink</a>).  For instance, sometimes entering a value in a form may bring up a different popup window that takes forever to load; it would be great to have <i>chronciles</i>.
+      </p>
+      <p>
+        We definitely don't think that this is the only solution for what we call <i>slow interactions</i>, there are other techniques like progressively showing results as they update. It would look something like the following:
+      </p>
+      <MergedContainer
+        bufferSize={1}
+        avgDelay={this.state.avgDelay * 0.3}
+        varDelay={this.state.varDelay * 0.3}
+        encoding={"POSITION"}
+        ordered={true}
+        color={"BLUE"}
+        disabled={false}
+        naiveImplementation={true}
+        label={true}
+        progressive={true}
+      />
+      <p>
+        In fact, you can actually compose the two techniques together.  Chronciles is probably not going to help if the latency is longer than 30 seconds, which can happen with larger data/more complex computation, and progressive visualizations could also potentially take a while, especially if the user wants to have some threshold of error bound.  Below is an example composing the views.
+      </p>
+      <MergedContainer
+        bufferSize={4}
+        avgDelay={this.state.avgDelay * 0.3}
+        varDelay={this.state.varDelay * 0.3}
+        encoding={"POSITION"}
+        ordered={true}
+        color={"BLUE"}
+        disabled={false}
+        naiveImplementation={true}
+        label={true}
+        progressive={true}
+      />
+      <p>
+        Of course, these techniques together may make the visualization comlicated --- with animations that are external to the data itself, but an artifact of the system.  However, we are not new to working with software/hardware limits --- almost all of HCI design <i>is</i> working with some constraints. It's just that we have one more complication here.
+      </p>
+      <p>
+        Lastly, chronicles designs are none trivial to implement, and require a "time-centric" way to treat the application.  We will talk about that in another article.
       </p>
       </>);
     return (

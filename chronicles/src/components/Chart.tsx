@@ -83,10 +83,6 @@ export default class Chart extends React.Component<ChartProps, undefined> {
     //   colorScale = colorScale; // ColorScales[color](bufferSize);
     // }
 
-    // path generator
-    const line = d3.line<Datum>()
-                   .x((d) => x(d.x))
-                   .y((d) => y(d.y));
 
     // loading indicator(s)
     let indicators = [];
@@ -124,17 +120,31 @@ export default class Chart extends React.Component<ChartProps, undefined> {
       }
       const c = colorScale(selected.length - 1 - i);
 
-      // path
-      paths.push(
-        <path key={s + "_line"} fill="none" stroke={c}
-          strokeWidth="2" d={line(datasets[s])}></path>
-      );
-
-      // dots
-      Array.prototype.push.apply(paths, datasets[s].map((d, i) =>
-        <circle key={s + "_" + i + "_dot"} r="2.5" cx={x(d.x)}
-          cy={y(d.y)} fill={c}></circle>
-      ));
+      if (datasets[s][0].error) {
+        let area = d3.area<Datum>()
+                     .x((d) => { return x(d.x); } )
+                     .y0((d) => { return y(d.y - d.error); } )
+                     .y1((d) => { return y(d.y + d.error); } );
+        paths.push(
+          <path key={s + "_area"} fill="lightsteelblue" stroke={c}
+            strokeWidth="2" d={area(datasets[s])}></path>
+        );
+      } else {
+        // path generator
+        const line = d3.line<Datum>()
+                       .x((d) => x(d.x))
+                       .y((d) => y(d.y));
+        // path
+        paths.push(
+          <path key={s + "_line"} fill="none" stroke={c}
+            strokeWidth="2" d={line(datasets[s])}></path>
+        );
+        // dots
+        Array.prototype.push.apply(paths, datasets[s].map((d, i) =>
+          <circle key={s + "_" + i + "_dot"} r="2.5" cx={x(d.x)}
+            cy={y(d.y)} fill={c}></circle>
+        ));
+      }
     }
     let label;
     if (this.props.showLabel) {

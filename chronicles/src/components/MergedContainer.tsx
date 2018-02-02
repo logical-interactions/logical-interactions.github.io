@@ -18,6 +18,8 @@ interface MergedContainerProps {
   disabled: boolean;
   naiveImplementation?: boolean;
   label?: boolean;
+  progressive?: boolean;
+  maxProgressive?: number;
 }
 
 interface MergedContainerState {
@@ -28,6 +30,8 @@ interface MergedContainerState {
   // below are optional for multiples
   multipleHeight?: number;
   multipleWidth?: number;
+  // hack
+  progressiveCount?: { [index: string]: number };
 }
 
 /**
@@ -38,18 +42,23 @@ export default class MergedContainer extends React.Component<MergedContainerProp
   static defaultProps = {
     naiveImplementation: false,
     label: false,
+    progressive: false,
+    maxProgressive: 10,
   };
 
   constructor(props: MergedContainerProps) {
     super(props);
     this.updateSelection = this.updateSelection.bind(this);
     this.processResponse = this.processResponse.bind(this);
+    this.registerProgressive = this.registerProgressive.bind(this);
+    let progressiveCount = {};
     this.state = {
       datasets: {},
       // to make it less awkward, always select janualary as selected
       selected: [],
       currentItxId: 0,
       evictedIdx: -1,
+      progressiveCount
     };
   }
 
@@ -108,10 +117,30 @@ export default class MergedContainer extends React.Component<MergedContainerProp
         if (prevState.selected.indexOf(selection) > -1) {
           const datasets = Object.assign({}, prevState.datasets);
           datasets[selection] = data;
+          // since it's still in selected, as again
+          if ((this.props.progressive) && (this.state.progressiveCount[selection] < this.props.maxProgressive)) {
+            this.registerProgressive(selection);
+            // hack, react async issue
+            let count = this.state.progressiveCount[selection];
+            // console.log("COUNT", count);
+            getData(selection, this.props.avgDelay, this.props.varDelay, itxid, count)
+            .then(this.processResponse);
+          }
           return { datasets };
         }
       });
     }
+  }
+
+  registerProgressive(selection: string) {
+    this.setState(prevState => {
+      if (selection in this.state.progressiveCount) {
+        prevState.progressiveCount[selection] += 1;
+      } else {
+        prevState.progressiveCount[selection] = 1;
+      }
+      return prevState;
+    });
   }
 
   /**
@@ -122,7 +151,7 @@ export default class MergedContainer extends React.Component<MergedContainerProp
    * @param {string} selection
    */
   updateSelection(selection: string) {
-    const { currentItxId, datasets, selected } = this.state;
+    const { currentItxId, datasets, selected, progressiveCount } = this.state;
     if (this.props.disabled) {
       // no-op
       return;
@@ -134,8 +163,16 @@ export default class MergedContainer extends React.Component<MergedContainerProp
     const itxid = currentItxId + 1;
     this.appendNewInteraction(selection, isSelected, isRequesting);
     if (!isSelected) {
-      getData(selection, this.props.avgDelay, this.props.varDelay, itxid)
+      if (this.props.progressive) {
+        this.registerProgressive(selection);
+        let count = this.state.progressiveCount[selection] ?  this.state.progressiveCount[selection] : 1;
+        // console.log("COUNT", count);
+        getData(selection, this.props.avgDelay, this.props.varDelay, itxid, count)
         .then(this.processResponse);
+      } else {
+        getData(selection, this.props.avgDelay, this.props.varDelay, itxid, -1)
+        .then(this.processResponse);
+      }
     }
   }
 

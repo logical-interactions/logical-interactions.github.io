@@ -77,18 +77,20 @@ export default class Scatterplot extends React.Component<ScatterplotProps, undef
                       .ticks(10);
 
     // guide marks
-    const guides = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map(d => {
-      return (
-        <line
-          key={d}
-          x1={0}
-          x2={innerWidth}
-          y1={y(d)}
-          y2={y(d)}
-          stroke="rgb(189, 189, 189)">
-        </line>
-      );
-    });
+    // const guides = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map(d => {
+    //   if ((selected.y2 === 0) || ((d < selected.y2) && (d > selected.y1))) {
+    //     return (
+    //       <line
+    //         key={d}
+    //         x1={0}
+    //         x2={innerWidth}
+    //         y1={y(d)}
+    //         y2={y(d)}
+    //         stroke="rgb(189, 189, 189)">
+    //       </line>
+    //     );
+    //   }
+    // });
 
     let sId = rectToString(selected);
 
@@ -135,7 +137,10 @@ export default class Scatterplot extends React.Component<ScatterplotProps, undef
       );
     }
     let brush: any;
+    let brushLegend: any = null;
     // generate a brush that interacts with the chart
+    let brushDiv: JSX.Element = null;
+    let annotation: JSX.Element = null;
     if (this.props.selectable) {
       brush = d3.brush()
       .extent([[0, 0], [innerWidth, innerHeight]])
@@ -153,18 +158,15 @@ export default class Scatterplot extends React.Component<ScatterplotProps, undef
           console.log("brushed", d3.brushSelection(this), "mapped", r);
         }
       });
-    }
-    let brushDiv: JSX.Element = null;
-    let annotation: JSX.Element = null;
-    if (this.props.selectable) {
       brushDiv = <g ref={ g => d3.select(g).call(brush) }></g>;
     } else {
       // this is a result component
       // need to basically create a smaller version of the brush and the original box
       // hard code 100
+      brushLegend = <text x={0} y={innerHeight - annotationSize - 10} fontSize={12}>brush:</text>;
       annotation = (<g>
-        <rect x={0} y={innerHeight - annotationSize} height={annotationSize} width={annotationSize} fill={"yellow"} fillOpacity={0.3}></rect>
-        <rect x={selected.x1 / 100 * annotationSize} y = {innerHeight - selected.y2 / 100 * annotationSize} width={(selected.x2 - selected.x1) / 100 * annotationSize} height={(selected.y2 - selected.y1) / 100 * annotationSize} fill={"green"} fillOpacity={0.3}></rect>
+        <rect x={0} y={innerHeight - annotationSize} height={annotationSize} width={annotationSize} stroke={"black"} fill={"white"} fillOpacity={0.3}></rect>
+        <rect x={selected.x1 / 100 * annotationSize} y = {innerHeight - selected.y2 / 100 * annotationSize} width={(selected.x2 - selected.x1) / 100 * annotationSize} height={(selected.y2 - selected.y1) / 100 * annotationSize} fill={"gray"} fillOpacity={0.3}></rect>
       </g>);
     }
     let indicator: JSX.Element = null;
@@ -184,14 +186,16 @@ export default class Scatterplot extends React.Component<ScatterplotProps, undef
       <div className="chart-wrapper inline-block">
         <svg width={width} height={height}>
           <g transform={"translate(" + marginLeft + "," + marginTop + ")"}>
-            {guides}
+            {/* {guides} */}
             <g ref={(g) => d3.select(g).call(axisBottom)}
               transform={"translate(0," + innerHeight + ")"}></g>
             <g ref={(g) => d3.select(g).call(axisLeft)}></g>
-            {brushDiv}
             {circles}
+            {brushDiv}
             <g transform={"translate(-90, 0)"}>
-            {annotation}</g>
+              {brushLegend}
+              {annotation}
+            </g>
             {label}
           </g>
           {axesLabels}

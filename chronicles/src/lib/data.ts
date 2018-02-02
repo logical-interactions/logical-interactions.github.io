@@ -4,6 +4,7 @@ import { Rect } from "./geometry";
 export interface Datum {
   x: number;
   y: number;
+  error?: number;
 }
 
 export interface XFilterDatum {
@@ -30,8 +31,18 @@ function getStockData(selection: string) {
   return result;
 }
 
-export function getData(selection: string, avgDelay: number, varDelay: number, itxid: number) {
+export function getData(selection: string, avgDelay: number, varDelay: number, itxid: number, progressiveCount: number) {
   let data = getStockData(selection);
+  if (progressiveCount > 0) {
+     // map data with error info, assume max is 5, hack
+     data = data.map((d) => { return {
+      x: d.x,
+      y: d.y,
+      error: (9 - progressiveCount) * 0.1 * Math.random() * d.y,
+     };
+    });
+    // console.log("your progressive data is", data);
+  }
   return new Promise((resolve, reject) => {
     let delay = getRandomInt(avgDelay - varDelay, avgDelay + varDelay);
     setTimeout(
@@ -41,12 +52,11 @@ export function getData(selection: string, avgDelay: number, varDelay: number, i
   });
 }
 
-export function getScatterData(rawArray: number[]) {
+export function getScatterData(count: number) {
   // TODO: randomize
   let result: Datum[] = [];
-  for (let i = 0; i < rawArray.length - 1; i ++) {
-    result.push({x: rawArray[i], y: Math.abs(Math.round((randn_bm() * 100 + 50) * 100) / 100 % 100)});
-    result.push({x: rawArray[i], y: Math.abs(Math.round((randn_bm() * 10 + 50) * 100) / 100 % 100)});
+  for (let i = 0; i < count; i ++) {
+    result.push({x: getRandomInt(0, 100), y: Math.abs(Math.round((randn_bm() * 10 + 50) * 100) / 100 % 100)});
   }
   return result;
 }
@@ -86,23 +96,29 @@ export function getFlightData() {
   return r;
 }
 
-export function filterFlightData(sourceData: XFilterDatum[], s: XFilterSelection, key: number, avgDelay: number, varDelay: number) {
-  let data = sourceData.filter(e => {
-   let keys = Object.keys(s);
-   let out = 0;
-    keys.forEach((k) => {
-      // console.log("filtering", e[k], s[k][1], s[k][0]);
-      if ((e[k] > s[k][1]) || (e[k] < s[k][0])) {
-        // console.log("filtered out", e[k]);
-        out += 1;
+export function filterFlightData(sourceData: XFilterDatum[], s: XFilterSelection, key: number, allKeys: string[], avgDelay: number, varDelay: number) {
+  let keys = Object.keys(s);
+  let data: any = {};
+  allKeys.forEach((k1, i) => {
+    let subData = sourceData.filter(e => {
+      let out = 0;
+      keys.forEach((k) => {
+        if (k !== k1) {
+          if ((e[k] > s[k][1]) || (e[k] < s[k][0])) {
+            // console.log("filtered out", e[k]);
+            out += 1;
+            return false;
+          }
+        }
+      });
+      if (out === 0) {
+        return true;
+      } else {
         return false;
-      }}
-    );
-    if (out === 0) {
-      return true;
-    } else {
-      return false;
-    }
+      }
+    });
+    console.log("adding data", k1);
+    data[k1] = subData;
   });
   console.log("Filtered data", data, "original is", sourceData);
   return new Promise((resolve, reject) => {

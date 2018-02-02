@@ -18,7 +18,7 @@ interface CrossfilterContainerState {
   currentSelections: XFilterSelection;
   selections: XFilterSelection[];
   currentItxId: number;
-  datasets: {[index: number]: XFilterDatum[]};
+  datasets: {[index: number]: { [index: string]: XFilterDatum[]}};
 }
 
 export default class CrossfilterContainer extends React.Component<CrossfilterContainerProps, CrossfilterContainerState> {
@@ -56,7 +56,8 @@ export default class CrossfilterContainer extends React.Component<CrossfilterCon
     if (Object.keys(s).length === 0) {
       throw Error("selection must contain at least one valid filter");
     }
-    filterFlightData(this.props.dataset, s, currentItxId, this.props.avgDelay, this.props.varDelay)
+    filterFlightData(this.props.dataset, s, currentItxId, this.props.fields,
+      this.props.avgDelay, this.props.varDelay)
     .then(this.processResponse);
   }
 
@@ -64,7 +65,6 @@ export default class CrossfilterContainer extends React.Component<CrossfilterCon
     console.log("updateSelection called", chart, min, max);
     this.setState((prevState) => {
       let selectionsNew = prevState.selections.slice();
-      // selectionsNew.push(selection);
       const currentItxId = prevState.currentItxId + 1;
       let selection: XFilterSelection = Object.assign({}, prevState.currentSelections);
       selection[chart] = [min, max];
@@ -82,23 +82,22 @@ export default class CrossfilterContainer extends React.Component<CrossfilterCon
     const {selection, data, key} = response;
     // update state
     this.setState(prevState => {
-      this.setState(prevState => {
-        const datasets = Object.assign({}, prevState.datasets);
-        datasets[key] = data;
-        console.log("current state datasets", datasets);
-        return {
-          datasets
-        };
-      });
+      const datasets = Object.assign({}, prevState.datasets);
+      datasets[key] = data;
+      console.log("current state datasets", datasets);
+      return {
+        datasets
+      };
     });
   }
 
   render() {
     let { dataset, fields } = this.props;
     let { datasets } = this.state;
-
+    // let fixedScaleSet: {[index: string]: [number, number]} = {};
     // the control charts have the most up to date values
     let controlCharts: JSX.Element[] = [];
+    // if (this.state.selections.length === 0) {
     ["a", "b", "c"].forEach(e => {
       let chartData = dataset.map((d) => { return d[e]; });
       controlCharts.push(<XChart
@@ -109,14 +108,13 @@ export default class CrossfilterContainer extends React.Component<CrossfilterCon
       chart={e}
       selectable={true}
       updateSelection={this.updateSelection}
+      width={this.props.multipleWidth}
+      height={this.props.multipleHeight}
       color={"green"}
       key={e}
       />);
     });
     let charts: JSX.Element[] = [];
-    // get the range for each input
-    // i wonder if react is smart enough not to calc this again.
-    // compute the bounds
     let bounds: XFilterSelection = {};
     fields.forEach(e => {
       let nums = dataset.map((d) => { return d[e]; });
@@ -124,16 +122,15 @@ export default class CrossfilterContainer extends React.Component<CrossfilterCon
       let max = d3.max(nums);
       bounds[e] = [min, max];
     });
-    // this.state.selections.forEach((element, i) => {
-    for (let i = this.state.selections.length - 1; i > -1; i --) {
+    let iMax = this.state.selections.length - 1;
+    for (let i = iMax; i > -1; i --) {
       let element = this.state.selections[i];
       // create a set of charts
       let xfilterCharts: JSX.Element[] = [];
-      // if (datasets[i]) {
         fields.forEach(e => {
           let chartData;
           if (datasets[i]) {
-            chartData = datasets[i].map((d) => { return d[e]; });
+            chartData = datasets[i][e].map((d) => { return d[e]; });
           }
           let selection: [number, number] = null;
           if (element[e]) {
@@ -145,17 +142,16 @@ export default class CrossfilterContainer extends React.Component<CrossfilterCon
             bins={10}
             id={i}
             chart={e}
-            selectable={false}
+            selectable={false} // i === iMax ? true : false
+            updateSelection={this.updateSelection}
             selection={selection}
             width={this.props.multipleWidth}
             height={this.props.multipleHeight}
             key={i.toString() + e}
+            fixedScale={bounds[e]}
           />);
         });
         charts.push(<div key={"xfilter" + i}>{xfilterCharts}</div>);
-      // } else {
-      //   charts.push(<Indicator loading={true} key={i.toString() + "indicator"} />);
-      // }
     }
 
     return(<div>

@@ -40,7 +40,7 @@ export default class WidgetFacet extends React.Component<WidgetProps, undefined>
       const style: React.CSSProperties = {};
       const idx = selected.indexOf(f);
       if (idx > -1) {
-        console.log("Selected", f, "index", idx, style.background);
+        // console.log("Selected", f, "index", idx, style.background);
         style.background = colorScale(selected.length - 1 - idx);
       }
       // if ((idx > -1) && (idx === selected.length - 1)) {
