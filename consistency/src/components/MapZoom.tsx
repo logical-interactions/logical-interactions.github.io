@@ -37,44 +37,44 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     };
   }
   componentDidMount() {
-    fetch("/data/world_countries.json")
+    // "https://unpkg.com/world-atlas@1/world/110m.json") // /data/world_countries.json") http://enjalot.github.io/wwsd/data/world/world-110m.geojson")//
+    fetch("/data/world-110m.json")
     .then(response => {
       if (response.status !== 200) {
         console.log(`There was a problem: ${response.status}`);
         return;
       }
       response.json().then(worldData => {
+        console.log("got world level data", worldData);
         this.setState({
           worldData: feature(worldData, worldData.objects.countries).features,
         });
       });
     });
   }
-  projection() {
-    return geoMercator()
-      .scale(100)
-      .translate([ this.props.width / 2, this.props.height / 2 ]);
-  }
 
   render() {
-    let { center, zoom } = this.state;
-    let projection = d3.geoMercator();
+    let { center, zoom, worldData } = this.state;
     // create path variable
-    let path = d3.geoPath()
-        .projection(projection);
+    console.log("world processed data", worldData);
+    let projection = geoMercator()
+                      .scale(100)
+                      .translate([ this.props.width / 2, this.props.height / 2 ]);
+    let path = geoPath().projection(projection);
+    let pathSVG = worldData.map((d, i) => {
+      console.log(d);
+      return <path
+        key={ `path-${ i }` }
+        d={ path(d) }
+        className="country"
+        fill={ `rgba(38,50,56)` } // ,${1 / this.state.worldData.length * i}
+        stroke="#FFFFFF"
+        strokeWidth={ 0.5 }
+      />;
+    });
+    console.log("path svg", pathSVG);
     return(<svg>
-      {
-        this.state.worldData.map((d, i) => (
-          <path
-            key={ `path-${ i }` }
-            d={ geoPath().projection(this.projection())(d) }
-            className="country"
-            fill={ `rgba(38,50,56,${1 / this.state.worldData.length * i})` }
-            stroke="#FFFFFF"
-            strokeWidth={ 0.5 }
-          />
-        ))
-      }
+      { pathSVG }
     </svg>);
   }
 }
