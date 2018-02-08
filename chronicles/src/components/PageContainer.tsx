@@ -5,10 +5,7 @@ import SingleBufferContainer from "./SingleBufferContainer";
 import Scatterplot from "./Scatterplot";
 import ZoomContainer from "./ZoomContainer";
 import CrossfilterContainer from "./CrossfilterContainer";
-// import Progressive from "./Progressive";
 import { getScatterData, getFlightData } from "../lib/data";
-
-// import { Encoding, Widget, Events } from "../lib/chronicles";
 
 interface PageContainerState {
   bufferSize: number;
@@ -208,12 +205,14 @@ export default class PageContainer extends React.Component<undefined, PageContai
         Hopefully, you have discovered that you can interact in parallel and make sense of the results.  We hypothesize that this effect is because the history of all the interactions creates a  <strong>stable</strong> interface that will not change randomly due to latency, as is seen in previous cases.
       </p>
       <p>
-        If the key here is to use history to transform transient interactions into something stable, we probably do not need to show <i>all</i> of history---see below for example with a limited buffer.  In fact, there are generic, well-established visualization mechanisms that support these goals.
+        If the key here is to use history to transform transient interactions into something stable, we probably do not need to show <i>all</i> of history---see below for an example with a limited buffer.  In fact, there are generic, well-established visualization mechanisms that support these goals--- below is a quote from Tufte that grounds our proposed design.
       </p>
-      <p className="quote">
+      <div className="quote">
+        <p>
           Spatial parallelism takes advantage of our notable capacity to compare and reason about multiple images that appear simultaneously within our eyespan. We are able to canvass, sort, identify, reconnoiter, select, contrast, review -- ways of seeing all quickened and sharpened by the direct spatial adjacency of parallel elements.
-          Parallel images can also be distributed temporally, with one like image following another, parallel in time.
-      </p>
+          </p><p>
+          Parallel images can also be distributed temporally, with one like image following another, parallel in time.</p>
+      </div>
       <MergedContainer
         ref={c => this.m2 = c}
         bufferSize={4}
@@ -339,9 +338,9 @@ export default class PageContainer extends React.Component<undefined, PageContai
         label={true}
         progressive={true}
       />
-      <p>
+      {/* <p>
         Of course, these techniques together may make the visualization complicated --- with animations that are external to the data itself, but an artifact of the system.  However, we are not new to working with software/hardware limits --- almost all of HCI design <i>is</i> working with some constraints. It's just that we have one more complication here.
-      </p>
+      </p> */}
       <p>
       Lastly, chronicles designs are none trivial to implement and require a "time-centric" way to treat the application. We will talk about that in another article.
       </p>
