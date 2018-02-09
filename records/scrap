@@ -1,0 +1,13 @@
+
+  /* font-family: 'Linux Libertine'; */
+/* 
+p {
+}
+
+@font-face {
+  font-family: 'Linux Libertine'; /* normal */
+  src: url('/static/fonts/linux-libertine/LinLibertine_R.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+} */
+

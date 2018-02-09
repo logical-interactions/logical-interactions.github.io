@@ -16,6 +16,7 @@ interface MapZoomProps {
 }
 
 interface MapZoomState {
+  currentState: ;
   worldData: any[];
   center: Coords;
   zoom: number;
@@ -53,27 +54,35 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     });
   }
 
+  zoom(event: any) {
+    // double click
+    // capture the current position and zoom
+    // if the previous is loading
+    // just keep on zooming on the previous center?
+    
+  }
+
+  projection() {
+    return geoMercator()
+      .scale(100)
+      .translate([ 800 / 2, 450 / 2 ]);
+  }
+
   render() {
+    let { width, height } = this.props;
     let { center, zoom, worldData } = this.state;
-    // create path variable
-    console.log("world processed data", worldData);
-    let projection = geoMercator()
-                      .scale(100)
-                      .translate([ this.props.width / 2, this.props.height / 2 ]);
-    let path = geoPath().projection(projection);
     let pathSVG = worldData.map((d, i) => {
-      console.log(d);
       return <path
         key={ `path-${ i }` }
-        d={ path(d) }
+        d={ geoPath().projection(this.projection())(d) }
         className="country"
-        fill={ `rgba(38,50,56)` } // ,${1 / this.state.worldData.length * i}
+        fill={ `rgba(38,50,56, ${1 / this.state.worldData.length * i}`}
         stroke="#FFFFFF"
         strokeWidth={ 0.5 }
       />;
     });
     console.log("path svg", pathSVG);
-    return(<svg>
+    return(<svg width={800} height={450}>
       { pathSVG }
     </svg>);
   }
