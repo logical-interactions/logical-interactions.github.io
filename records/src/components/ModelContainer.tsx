@@ -2,7 +2,7 @@ import * as React from "react";
 
 import Model from "./Model";
 
-export default class PageContainer extends React.Component<undefined, undefined> {
+export default class ModelContainer extends React.Component<undefined, undefined> {
   render() {
   return (<>
     <h2>Life of an Interaction</h2>

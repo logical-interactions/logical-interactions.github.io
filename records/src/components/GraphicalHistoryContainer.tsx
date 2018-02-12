@@ -1,6 +1,6 @@
 import * as React from "react";
 
-export default class PageContainer extends React.Component<undefined, undefined> {
+export default class GraphicalHistoryContainer extends React.Component<undefined, undefined> {
   render() {
     return (<>
       <p style={{float: "left"}}>

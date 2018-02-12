@@ -1,7 +1,6 @@
 import * as React from "react";
 
-
-export default class PageContainer extends React.Component<undefined, undefined> {
+export default class LibraryContainer extends React.Component<undefined, undefined> {
   render() {
     return(<>
       <h2 id="r4">Introducing the Records API</h2>
