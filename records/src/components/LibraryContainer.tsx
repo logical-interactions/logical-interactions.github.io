@@ -5,6 +5,9 @@ export default class LibraryContainer extends React.Component<undefined, undefin
     return(<>
       <h2 id="r4">Introducing the Records API</h2>
       <p>
+        State management is already getting a bit tricky for fronend developers, including history is like managing state on steroids.  The example earlier with the map illustrates a principle way to implment history.  Here we provide a simple wrapper library to simplify the boilerplate logic.  Additionally, using React (naively) without optimizing (and more extensive of the inner workings of the library) would lead to a lot of wasted updates.  This library manages state independent of React and using the stricter semantics of the itneraction history can probide more efficient updates to the react state.  Besides, we also have more control over the exact asynchrony behavior, which might not be guaranteed in React.  Additionally, React's hierachical structure makes it harder to communicate effectively information between dependent interactions, and Redux's flat structure is too much in the other extreme.
+      </p>
+      <p>
         The idea is to wrap the developers' functions into the model, and then apply higher level policies <i>declaratively</i>, either predefined by our library, or by custom user functions over the history.  Much like other libraries (e.g., <a href="https://egghead.io/lessons/react-redux-implementing-store-from-scratch">Redux</a>), this is a simple idea and the code is not complex code, but nudges developers to think of their application in different ways.</p>
       <p>You can think of </p>
 

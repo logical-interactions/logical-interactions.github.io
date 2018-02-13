@@ -1,20 +1,10 @@
 import * as d3 from "d3";
 import * as React from "react";
 
+import {Rect, Datum} from "../lib/data";
 
 export function rectToString(selected: Rect) {
   return selected.x1.toString() + selected.x2.toString() + selected.y1.toString() + selected.y2.toString();
-}
-export interface Rect {
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
-}
-export interface Datum {
-  x: number;
-  y: number;
-  error?: number;
 }
 
 interface ScatterplotProps {

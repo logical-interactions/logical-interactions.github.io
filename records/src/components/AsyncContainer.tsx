@@ -1,23 +1,35 @@
 import * as React from "react";
 import * as d3 from "d3";
 
-import { MapDatum} from "../lib/data";
+import MapZoom from "./MapZoom";
+import { getMapEventData, MapSelection, MapDatum, getRandomInt} from "../lib/data";
+
+import { InteractionEntry, InteractionTypes, RequestEntry, ResponseEntry } from "../lib/history";
 
 interface AsyncContainerState {
   showExample: boolean;
+  interactionHistory: InteractionEntry[];
+  requestHistory: RequestEntry[];
+  responseHistory: ResponseEntry[];
   pop?: {[index: string]: number};
-  mapData?: MapDatum[];
+  mapData: MapDatum[];
 }
 
-import MapZoom from "./MapZoom";
 export default class AsyncContainer extends React.Component<undefined, AsyncContainerState> {
 
   constructor(props: undefined) {
     super(props);
     this.toggleExample = this.toggleExample.bind(this);
+    this.newInteraction = this.newInteraction.bind(this);
+    this.processResponse = this.processResponse.bind(this);
+    this.getMostRecentResponse = this.getMostRecentResponse.bind(this);
     this.setData = this.setData.bind(this);
     this.state = {
-      showExample: false
+      showExample: false,
+      mapData: [],
+      interactionHistory: [],
+      requestHistory: [],
+      responseHistory: [],
     };
     d3.tsv("/data/world_population.tsv", (error: any, data: any[]) => {
       let pop: {[index: string]: number} = {};
@@ -30,6 +42,7 @@ export default class AsyncContainer extends React.Component<undefined, AsyncCont
     d3.csv("/data/rand_yelp.csv", this.setData);
     d3.csv("/data/hotel_sample.csv", this.setData);
   }
+
   setData(error: any, data: any[]) {
     let mapDataRaw = data.map((d) => {
       let lat = parseInt(d.latitude, 10);
@@ -48,20 +61,75 @@ export default class AsyncContainer extends React.Component<undefined, AsyncCont
     });
     // get rid of nulls
     let mapData = mapDataRaw.filter(d => d);
-    // this.setState(prevState => {
-    //   // console.log("merged data", prevState.responseHistory[0].data);
-    //   return({
-    //     mapData,
-    //     responseHistory: prevState.responseHistory
-    //   });
-    // });
-    // console.log("responseHistory", this.state.responseHistory);
+    this.setState(prevState => {
+      Array.prototype.push.apply(prevState.mapData, mapData);
+      return({
+        mapData: prevState.mapData,
+      });
+    });
+    console.log("set Mapdata", mapData);
   }
 
   toggleExample() {
     this.setState(prevState => {
       return {showExample: !prevState.showExample};
     });
+  }
+
+  newInteraction(type: InteractionTypes, param: any) {
+    let itxid = this.state.interactionHistory.length;
+    this.setState(prevState => {
+      prevState.interactionHistory.push({
+        itxid: prevState.interactionHistory.length,
+        type,
+        timestamp: new Date(),
+        param,
+      });
+      return prevState;
+    });
+    if (type === InteractionTypes.ZOOMMAP) {
+      if (this.state.mapData) {
+        getMapEventData(this.state.mapData, itxid, param)
+        .then(this.processResponse);
+      } else {
+        setTimeout(
+          getMapEventData(this.state.mapData, itxid, param)
+          .then(this.processResponse), 300);
+      }
+    }
+    return {
+      itxid,
+      requested: true
+    };
+    // a bit tricky here how to actually find that itxid...
+    // since react can be async and the state could have mutated before this.setState is called??
+  }
+
+  processResponse(response: any) {
+    const {selection, data, itxid} = response;
+    console.log("Got response", response);
+    this.setState((prevState) => {
+      prevState.responseHistory.push({
+        itxid,
+        data
+      });
+      return {
+        responseHistory: prevState.responseHistory
+      };
+    });
+  }
+
+  getMostRecentResponse(t: InteractionTypes) {
+    console.log("fetching", t);
+    for (let i = this.state.responseHistory.length - 1; i > -1; i --) {
+      let h = this.state.responseHistory[i];
+      console.log("looking for", h.itxid);
+      if (this.state.interactionHistory[h.itxid].type === t) {
+        return h.data;
+      }
+    }
+    console.log("found none");
+    return null;
   }
 
   render() {
@@ -87,7 +155,8 @@ export default class AsyncContainer extends React.Component<undefined, AsyncCont
     if (this.state.showExample) {
       map = <MapZoom
         pop={this.state.pop}
-        mapData={this.state.mapData}
+        mapData={this.getMostRecentResponse(InteractionTypes.ZOOMMAP)}
+        newMapInteraction={this.newInteraction}
       />;
     }
 

@@ -12,7 +12,7 @@ export default class PageContainer extends React.Component<undefined, undefined>
     //   <p>Jupyter Notebooks are wildly popular, and one of the reasons is that just as real notebooks, we tend to save previous results. This can help us think better (see literature in distributed cognition).</p>
     // </>);
     return (<>
-      <h1>Stateful UX</h1>
+      <h1>History-Aware UX</h1>
       <h3 style={{textAlign: "right", lineHeight: "70%"}}>Let's Make (UI) History!</h3>
       <AsyncContainer />
     </>);

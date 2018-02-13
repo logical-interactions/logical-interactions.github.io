@@ -49,3 +49,22 @@ h2 {
     transform: scale3d(1, 1, 1);
   }
 }
+
+.indicator {
+  border: 3px solid #ccc;
+  border-top: 3px solid #3498db;
+  border-radius: 50%;
+  width: 15px;
+  height: 15px;
+  animation: spin 1s linear infinite;
+}
+
+.indicator-wrapper {
+  width: 175px;
+  height: 134px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

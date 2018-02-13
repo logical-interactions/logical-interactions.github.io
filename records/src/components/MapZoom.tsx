@@ -6,38 +6,18 @@ import { feature } from "topojson";
 import { ZoomBehavior } from "d3";
 
 import { getMapEventData, MapSelection, MapDatum, getRandomInt} from "../lib/data";
+import { InteractionTypes } from "../lib/history";
 
 interface Coords {
   lat: number;
   long: number;
 }
 
-enum InteractionTypes {
-  ZOOM,
-  BURSH
-}
-
-enum ChartTypes {
-  MAP,
-  BAR
-}
-
-interface InteractionEntry {
-
-}
-
-interface RequestEntry {
-
-}
-
-interface ResponseEntry {
-  itxid: number;
-  data: any[]; // we can parametrize this later
-}
-
 interface MapZoomProps {
   mapData: MapDatum[];
   pop: {[index: string]: number};
+  newMapInteraction: (type: InteractionTypes, params: any) => {
+    itxid: number; requested: boolean}; // get the itxId
   width?: number;
   height?: number;
   maxLatency?: number;
@@ -45,20 +25,15 @@ interface MapZoomProps {
 }
 
 interface MapZoomState {
-  itxid: number;
+  currentVersion: number;
   // currentState: ;
   worldData: any[];
   center: Coords;
-  zoomLevel: number;
+  zoomScale: number;
   zoom: any;
   zoomTransform: any;
-  selection: MapSelection;
+  // selection: MapSelection;
   // this demonstrates that it can be done with simple logs
-  currentMapVersion: number;
-  currentChartVersion: number;
-  interactionHistory: InteractionEntry[];
-  requestHistory: RequestEntry[];
-  responseHistory: ResponseEntry[];
   text?: string;
 }
 
@@ -77,37 +52,22 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
   constructor(props: MapZoomProps) {
     super(props);
     let scale0 = (props.width - 1) / 2 / Math.PI;
+    // interaction lifecyle
     this.zoomed = this.zoomed.bind(this);
-    this.processResponse = this.processResponse.bind(this);
+
     this.download = this.download.bind(this);
     this.setNames = this.setNames.bind(this);
     let zoom = d3.zoom()
               .scaleExtent([1, 8])
               .on("zoom", this.zoomed);
     this.state = {
-      itxid: 0,
+      zoomScale: 1,
+      currentVersion: -1, // not yet loaded
       center: {lat: 0, long: 0},
-      zoomLevel: 3,
-      currentMapVersion: 0,
-      currentChartVersion: -1,
-      interactionHistory: [],
-      requestHistory: [],
-      responseHistory: [{
-        itxid: 0,
-        data: []
-      }],
       worldData: [],
-      selection: {
-        latMin: -90,
-        latMax: 90,
-        longMax: 180,
-        longMin: 180,
-      },
       zoom,
       zoomTransform: null
     };
-    // todo
-    // gotData();
   }
 
 
@@ -121,7 +81,7 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
       text,
     });
     // trigger download
-    this.button.click();
+    // this.button.click();
   }
 
   componentDidUpdate() {
@@ -149,40 +109,22 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
 
     d3.select(this.svg)
       .call(this.state.zoom);
-  }
 
-  gotData(scale: number, x: number, y: number) {
-    // get the dots
-    getMapEventData(this.props.mapData, this.state.itxid, this.state.selection)
-      .then(this.processResponse);
-  }
-
-  processResponse(response: any) {
-    const {selection, data, itxid} = response;
-    console.log("response", response);
-    this.setState(prevState => {
-      prevState.responseHistory.push({
-        itxid,
-        data
-      });
-      return {
-        responseHistory: prevState.responseHistory
-      };
+    this.props.newMapInteraction(InteractionTypes.ZOOMMAP, {
+      latMin: -90,
+      latMax: 90,
+      longMax: 180,
+      longMin: 180,
     });
   }
 
   zoomed(event: any) {
-    console.log("zoom", d3.event.transform);
-    // add async
+    console.log("zoom event", d3.event);
+    // this is for immediate feedback
     this.setState({
+      zoomScale: d3.event.scale,
       zoomTransform: d3.event.transform
     });
-    // double click
-    // capture the current position and zoom
-    // if the previous is loading
-    // just keep on zooming on the previous center?
-    // console.log("doublclicked", event, event.clientX);
-    // console.log("relative offset", event.target);
   }
 
   projection() {
@@ -205,12 +147,12 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
   }
 
   render() {
-    let { width, height } = this.props;
-    let { center, zoomLevel, worldData, zoomTransform, itxid, selection, responseHistory } = this.state;
+    let { width, height, mapData } = this.props;
+    let { center, worldData, zoomTransform  } = this.state;
     const MAXPOP = 1330141295;
     // let colorScale = (0.8);
     let pathSVG = worldData.map((d, i) => {
-      let colorVal = this.props.pop[d.id] ? Math.pow(this.props.pop[d.id] / MAXPOP, 0.4) * 0.9 : 0.2;
+      let colorVal = this.props.pop[d.id] ? Math.pow(this.props.pop[d.id] / MAXPOP, 0.4) * 0.6 + 0.1 : 0.2;
       // console.log("this is what d looks like", d.id, this.props.pop[d.id]);
       return <path
         key={ `path-${i}-${d.id}` }
@@ -223,14 +165,19 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     });
     // take the most recent history, FIXME later
     let dotsSVG: JSX.Element[];
-    if (responseHistory.length > 0) {
-      dotsSVG = responseHistory[responseHistory.length - 1].data.map((d: any, i) => {
+    let spinner: JSX.Element;
+    if (mapData) {
+      console.log("have map data");
+      dotsSVG = mapData.map((d: any, i) => {
         let projection = d3.geoMercator();
         // console.log(this.projection()([d.long, d.lat])[0], this.projection());
         // console.log("simple", projection, projection(), d);
         // throw new Error("");
         return <circle cx={this.projection()([d.long, d.lat])[0]} cy={this.projection()([d.long, d.lat])[1]} r={0.5} fillOpacity={0.1} fill="red"></circle>;
       });
+    } else {
+      // place spinner
+      spinner = <div className="indicator inline-block"></div>;
     }
     // console.log("path svg", pathSVG);
     return(<div>
@@ -240,6 +187,7 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
       { dotsSVG }
       </g>
     </svg>
+    {spinner}
     <button id="downloadBtn" onClick={this.download} ref = {b => this.button = b} style={{display: "none"}}></button>
     </div>);
   }

@@ -1,5 +1,17 @@
 import * as d3 from "d3";
 
+export interface Rect {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
+export interface Datum {
+  x: number;
+  y: number;
+  error?: number;
+}
+
 export interface MapEventsData {
   // eventId,deviceId,timestamp,longitude,latitude
   // eventId: string;
@@ -34,7 +46,7 @@ export function getMapEventData(mapData: MapDatum[], itxid: number, selection: M
   }
   let delay = getRandomInt(minLatency, maxLatency);
   // FIXME filter based on selection and add determinstic details
-  // console.log("reading mapData", mapData);
+  console.log("reading mapData", mapData);
   let data = mapData;
   return new Promise((resolve, reject) => {
     setTimeout(() => resolve({
