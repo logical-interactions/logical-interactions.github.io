@@ -26,16 +26,17 @@ interface MapZoomProps {
 
 interface MapZoomState {
   currentVersion: number;
-  // currentState: ;
   worldData: any[];
   center: Coords;
   zoomScale: number;
   zoom: any;
   zoomTransform: any;
-  // selection: MapSelection;
-  // this demonstrates that it can be done with simple logs
   text?: string;
 }
+
+const SCALE = 100;
+const WIDTH = 800;
+const HEIGHT = 450;
 
 // for static: https://medium.com/@zimrick/how-to-create-pure-react-svg-maps-with-topojson-and-d3-geo-e4a6b6848a98
 // for dynamic: combined https://bl.ocks.org/iamkevinv/0a24e9126cd2fa6b283c6f2d774b69a2 (for d3 V4) and https://swizec.com/blog/two-ways-build-zoomable-dataviz-component-d3-zoom-react/swizec/7753 (for react).
@@ -51,10 +52,8 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
 
   constructor(props: MapZoomProps) {
     super(props);
-    let scale0 = (props.width - 1) / 2 / Math.PI;
     // interaction lifecyle
     this.zoomed = this.zoomed.bind(this);
-
     this.download = this.download.bind(this);
     this.setNames = this.setNames.bind(this);
     let zoom = d3.zoom()
@@ -103,7 +102,6 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
           worldData: feature(worldData, worldData.objects.countries).features,
         });
         d3.tsv("/data/world-country-names.tsv", this.setNames);
-        // console.log("got world level data", this.state.worldData);
       });
     });
 
@@ -119,7 +117,22 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
   }
 
   zoomed(event: any) {
-    console.log("zoom event", d3.event);
+    // this is for async
+    console.log("Transform", d3.event.transform);
+    // let p =  geoMercator()
+    //           .scale( SCALE * d3.event.transform.k)
+    //           .translate([WIDTH / 2 + d3.event.transform.x, HEIGHT / 2 - d3.event.transform.y]);
+    let p = this.projection();
+    let nw = p.invert([0, 0]);
+    let se = p.invert([ WIDTH, HEIGHT]);
+    let selection: MapSelection = {
+      latMin: se[1],
+      longMin: nw[0],
+      latMax: nw[1],
+      longMax: se[0]
+    };
+    console.log("selection", selection);
+    this.props.newMapInteraction(InteractionTypes.ZOOMMAP, selection);
     // this is for immediate feedback
     this.setState({
       zoomScale: d3.event.scale,
@@ -127,10 +140,29 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     });
   }
 
+  // projection() {
+  //   return geoMercator()
+  //     .scale(SCALE)
+  //     .translate([ WIDTH / 2, HEIGHT / 2 ]);
+  // }
+
   projection() {
+    let k: number;
+    let tx: number;
+    let ty: number;
+    if (d3.event && d3.event.transform) {
+      k = d3.event.transform.k;
+      tx = d3.event.transform.x;
+      ty = d3.event.transform.y;
+      // console.log("change", k, tx, ty, d3.event.transform);
+    } else {
+      k = 1;
+      tx = 0;
+      ty = 0;
+    }
     return geoMercator()
-      .scale(100)
-      .translate([ 800 / 2, 450 / 2 ]);
+      .scale( SCALE * k)
+      .translate([WIDTH / 2 + tx, HEIGHT / 2 + ty]);
   }
 
   download() {
@@ -150,39 +182,33 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     let { width, height, mapData } = this.props;
     let { center, worldData, zoomTransform  } = this.state;
     const MAXPOP = 1330141295;
-    // let colorScale = (0.8);
+    let p = this.projection();
     let pathSVG = worldData.map((d, i) => {
       let colorVal = this.props.pop[d.id] ? Math.pow(this.props.pop[d.id] / MAXPOP, 0.4) * 0.6 + 0.1 : 0.2;
-      // console.log("this is what d looks like", d.id, this.props.pop[d.id]);
       return <path
         key={ `path-${i}-${d.id}` }
-        d={ geoPath().projection(this.projection())(d) }
+        d={ geoPath().projection(p)(d) }
         className="country"
         fill={ `${d3ScaleChromatic.interpolateBlues(colorVal)}`}
         stroke="#FFFFFF"
         strokeWidth={ 0.5 }
       />;
     });
-    // take the most recent history, FIXME later
     let dotsSVG: JSX.Element[];
     let spinner: JSX.Element;
     if (mapData) {
-      console.log("have map data");
+      console.log("dots length", mapData.length);
       dotsSVG = mapData.map((d: any, i) => {
         let projection = d3.geoMercator();
-        // console.log(this.projection()([d.long, d.lat])[0], this.projection());
-        // console.log("simple", projection, projection(), d);
-        // throw new Error("");
-        return <circle cx={this.projection()([d.long, d.lat])[0]} cy={this.projection()([d.long, d.lat])[1]} r={0.5} fillOpacity={0.1} fill="red"></circle>;
+        return <circle cx={this.projection()([d.long, d.lat])[0]} cy={p([d.long, d.lat])[1]} r={0.5} fillOpacity={0.1} fill="red"></circle>;
       });
     } else {
-      // place spinner
       spinner = <div className="indicator inline-block"></div>;
     }
-    // console.log("path svg", pathSVG);
     return(<div>
       <svg width={800} height={450} ref={ svg => this.svg = svg}>
-      <g transform={zoomTransform}>
+      {/*  transform={zoomTransform} */}
+      <g>
       { pathSVG }
       { dotsSVG }
       </g>

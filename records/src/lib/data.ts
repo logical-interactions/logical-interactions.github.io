@@ -46,7 +46,7 @@ export function getMapEventData(mapData: MapDatum[], itxid: number, selection: M
   }
   let delay = getRandomInt(minLatency, maxLatency);
   // FIXME filter based on selection and add determinstic details
-  console.log("reading mapData", mapData);
+  // console.log("reading mapData", mapData);
   let data = mapData;
   return new Promise((resolve, reject) => {
     setTimeout(() => resolve({

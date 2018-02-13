@@ -13,6 +13,15 @@ interface AsyncContainerState {
   responseHistory: ResponseEntry[];
   pop?: {[index: string]: number};
   mapData: MapDatum[];
+  // the write is bound to the param.
+  writeVersions: {
+    itxId: number;
+    transform: {
+      x: number;
+      y: number;
+      k: number;
+    };
+  }[];
 }
 
 export default class AsyncContainer extends React.Component<undefined, AsyncContainerState> {
@@ -120,15 +129,12 @@ export default class AsyncContainer extends React.Component<undefined, AsyncCont
   }
 
   getMostRecentResponse(t: InteractionTypes) {
-    console.log("fetching", t);
     for (let i = this.state.responseHistory.length - 1; i > -1; i --) {
       let h = this.state.responseHistory[i];
-      console.log("looking for", h.itxid);
       if (this.state.interactionHistory[h.itxid].type === t) {
         return h.data;
       }
     }
-    console.log("found none");
     return null;
   }
 
