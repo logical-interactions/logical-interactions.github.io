@@ -5,18 +5,15 @@ import { geoMercator, geoPath } from "d3-geo";
 import { feature } from "topojson";
 import { ZoomBehavior } from "d3";
 
-import { getMapEventData, MapSelection, MapDatum, getRandomInt} from "../lib/data";
-import { InteractionTypes } from "../lib/history";
-
-interface Coords {
-  lat: number;
-  long: number;
-}
+import { getMapEventData, MapSelection, MapDatum, getRandomInt, Rect, Coords, mapBoundsToTransform } from "../lib/data";
+import { InteractionTypes, MapState, PinState, BrushState } from "../lib/history";
 
 interface MapZoomProps {
-  mapData: MapDatum[];
+  currentMapState: MapState;
+  currentPinState: PinState;
+  currentBrushState: BrushState;
   pop: {[index: string]: number};
-  newMapInteraction: (type: InteractionTypes, params: any) => {
+  newInteraction: (type: InteractionTypes, params: any, writeState?: any) => {
     itxid: number; requested: boolean}; // get the itxId
   width?: number;
   height?: number;
@@ -25,9 +22,7 @@ interface MapZoomProps {
 }
 
 interface MapZoomState {
-  currentVersion: number;
   worldData: any[];
-  center: Coords;
   zoomScale: number;
   zoom: any;
   zoomTransform: any;
@@ -61,8 +56,6 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
               .on("zoom", this.zoomed);
     this.state = {
       zoomScale: 1,
-      currentVersion: -1, // not yet loaded
-      center: {lat: 0, long: 0},
       worldData: [],
       zoom,
       zoomTransform: null
@@ -108,31 +101,33 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     d3.select(this.svg)
       .call(this.state.zoom);
 
-    this.props.newMapInteraction(InteractionTypes.ZOOMMAP, {
+    this.props.newInteraction(InteractionTypes.ZOOMMAP, {
       latMin: -90,
       latMax: 90,
       longMax: 180,
       longMin: 180,
+    }, {
+      k: 1,
+      x: 0,
+      y: 0
     });
   }
 
+
   zoomed(event: any) {
-    // this is for async
     console.log("Transform", d3.event.transform);
-    // let p =  geoMercator()
-    //           .scale( SCALE * d3.event.transform.k)
-    //           .translate([WIDTH / 2 + d3.event.transform.x, HEIGHT / 2 - d3.event.transform.y]);
-    let p = this.projection();
-    let nw = p.invert([0, 0]);
-    let se = p.invert([ WIDTH, HEIGHT]);
-    let selection: MapSelection = {
-      latMin: se[1],
-      longMin: nw[0],
-      latMax: nw[1],
-      longMax: se[0]
-    };
-    console.log("selection", selection);
-    this.props.newMapInteraction(InteractionTypes.ZOOMMAP, selection);
+    let { k, x, y} = d3.event.transform;
+    let p = geoMercator()
+              .scale( SCALE * k)
+              .translate([WIDTH / 2 + x, HEIGHT / 2 - y]);
+    // let selection = mapPixelToGeo(p, k, x, y, [0, 0], [ WIDTH, HEIGHT]);
+    // console.log("selection", selection);
+    this.props.newInteraction(InteractionTypes.ZOOMMAP, {
+      nw: p.invert([0, 0]),
+      se: p.invert([WIDTH, HEIGHT])
+    }, {
+      transform: {x, y, k}
+    });
     // this is for immediate feedback
     this.setState({
       zoomScale: d3.event.scale,
@@ -140,30 +135,6 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     });
   }
 
-  // projection() {
-  //   return geoMercator()
-  //     .scale(SCALE)
-  //     .translate([ WIDTH / 2, HEIGHT / 2 ]);
-  // }
-
-  projection() {
-    let k: number;
-    let tx: number;
-    let ty: number;
-    if (d3.event && d3.event.transform) {
-      k = d3.event.transform.k;
-      tx = d3.event.transform.x;
-      ty = d3.event.transform.y;
-      // console.log("change", k, tx, ty, d3.event.transform);
-    } else {
-      k = 1;
-      tx = 0;
-      ty = 0;
-    }
-    return geoMercator()
-      .scale( SCALE * k)
-      .translate([WIDTH / 2 + tx, HEIGHT / 2 + ty]);
-  }
 
   download() {
     let link = document.createElement("a");
@@ -179,10 +150,29 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
   }
 
   render() {
-    let { width, height, mapData } = this.props;
-    let { center, worldData, zoomTransform  } = this.state;
+    let { width, height, newInteraction, currentMapState, currentPinState, currentBrushState } = this.props;
+    let { worldData, zoomTransform  } = this.state;
+    // get the current transform (that's displayed)
+    let {k, x, y} = mapBoundsToTransform(currentMapState.selection, SCALE, WIDTH, HEIGHT);
+    let p = geoMercator()
+              .scale( SCALE * k)
+              .translate([WIDTH / 2 + x, HEIGHT / 2 + y]);
+    let brush = d3.brush()
+      .extent([[0, 0], [innerWidth, innerHeight]])
+      .on("end", function() {
+        // [[x0, y0], [x1, y1]],
+        // left top, nothwest
+        // right bottom, south east
+        const s = d3.brushSelection(this) as [[number, number], [number, number]];
+        if (s !== null) {
+          // let selection = mapPixelToGeo(p, k, x, y, s[0], s[1]);
+          let nw = p.invert(s[0]);
+          let se = p.invert(s[1]);
+          newInteraction(InteractionTypes.BURSHBAR, {nw, se});
+        }
+      });
+    let brushDiv = <g ref={ g => d3.select(g).call(brush) }></g>;
     const MAXPOP = 1330141295;
-    let p = this.projection();
     let pathSVG = worldData.map((d, i) => {
       let colorVal = this.props.pop[d.id] ? Math.pow(this.props.pop[d.id] / MAXPOP, 0.4) * 0.6 + 0.1 : 0.2;
       return <path
@@ -196,11 +186,10 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     });
     let dotsSVG: JSX.Element[];
     let spinner: JSX.Element;
-    if (mapData) {
-      console.log("dots length", mapData.length);
-      dotsSVG = mapData.map((d: any, i) => {
-        let projection = d3.geoMercator();
-        return <circle cx={this.projection()([d.long, d.lat])[0]} cy={p([d.long, d.lat])[1]} r={0.5} fillOpacity={0.1} fill="red"></circle>;
+    if (currentPinState) {
+      console.log("dots length", currentPinState.data.length);
+      dotsSVG = currentPinState.data.map((d: any, i) => {
+        return <circle cx={p([d.long, d.lat])[0]} cy={p([d.long, d.lat])[1]} r={0.5} fillOpacity={0.1} fill="red"></circle>;
       });
     } else {
       spinner = <div className="indicator inline-block"></div>;
@@ -211,6 +200,7 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
       <g>
       { pathSVG }
       { dotsSVG }
+      { brushDiv }
       </g>
     </svg>
     {spinner}

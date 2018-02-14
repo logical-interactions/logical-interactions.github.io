@@ -4,23 +4,15 @@ import * as d3 from "d3";
 import {Datum} from "../lib/data";
 
 interface ChartProps {
-  bufferSize: number;
-  children?: React.ReactChildren;
-  colorOverride?: boolean;
-  datasets: { [index: string]: Datum[] };
+  data: number[];
+  series: string[];
   height?: number;
-  indicatorOn?: boolean;
+  width?: number;
   marginBottom?: number;
   marginLeft?: number;
   marginRight?: number;
   marginTop?: number;
-  selected: string[];
-  width?: number;
-  xDomain?: [number, number];
   yDomain?: [number, number];
-  showLabel?: boolean;
-  showAxesLabels?: boolean;
-  colorScale: (i: number) => string;
 }
 
 interface ChartState {
@@ -41,6 +33,21 @@ export default class Chart extends React.Component<ChartProps, undefined> {
   };
 
   render() {
-    return(<></>);
+    let { data, width, height, series } = this.props;
+    let x = d3.scaleBand()
+              .rangeRound([0, width])
+              .padding(0.1)
+              .domain(series);
+    let y = d3.scaleLinear()
+              .rangeRound([height, 0])
+              .domain([0, d3.max(data)]);
+
+    // get y scale and x positioning
+    let bars = data.map((d, i) => <rect x={x(series[i])} y={y(d)}  width={x.bandwidth()} height={height - y(d)}></rect>);
+    return(<svg>
+      <g ref={(g) => d3.select(g).call(d3.axisBottom(x))}></g>
+      {bars}
+      <g ref={(g) => d3.select(g).call(d3.axisLeft(y))}></g>
+    </svg>);
   }
 }

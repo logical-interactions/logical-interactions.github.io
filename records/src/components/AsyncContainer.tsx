@@ -2,9 +2,10 @@ import * as React from "react";
 import * as d3 from "d3";
 
 import MapZoom from "./MapZoom";
-import { getMapEventData, MapSelection, MapDatum, getRandomInt} from "../lib/data";
+import Chart from "./Chart";
 
-import { InteractionEntry, InteractionTypes, RequestEntry, ResponseEntry } from "../lib/history";
+import { getMapEventData, MapSelection, MapDatum, getRandomInt, getBrushData } from "../lib/data";
+import { InteractionEntry, InteractionTypes, RequestEntry, ResponseEntry, MapState } from "../lib/history";
 
 interface AsyncContainerState {
   showExample: boolean;
@@ -13,15 +14,6 @@ interface AsyncContainerState {
   responseHistory: ResponseEntry[];
   pop?: {[index: string]: number};
   mapData: MapDatum[];
-  // the write is bound to the param.
-  writeVersions: {
-    itxId: number;
-    transform: {
-      x: number;
-      y: number;
-      k: number;
-    };
-  }[];
 }
 
 export default class AsyncContainer extends React.Component<undefined, AsyncContainerState> {
@@ -85,7 +77,7 @@ export default class AsyncContainer extends React.Component<undefined, AsyncCont
     });
   }
 
-  newInteraction(type: InteractionTypes, param: any) {
+  newInteraction(type: InteractionTypes, param: any, writeState?: any) {
     let itxid = this.state.interactionHistory.length;
     this.setState(prevState => {
       prevState.interactionHistory.push({
@@ -93,10 +85,12 @@ export default class AsyncContainer extends React.Component<undefined, AsyncCont
         type,
         timestamp: new Date(),
         param,
+        writeState
       });
       return prevState;
     });
     if (type === InteractionTypes.ZOOMMAP) {
+      console.log("zoom", itxid);
       if (this.state.mapData) {
         getMapEventData(this.state.mapData, itxid, param)
         .then(this.processResponse);
@@ -105,6 +99,13 @@ export default class AsyncContainer extends React.Component<undefined, AsyncCont
           getMapEventData(this.state.mapData, itxid, param)
           .then(this.processResponse), 300);
       }
+    } else {
+      // must be brush
+      console.log("brush", itxid);
+      // fetch data for barchart
+      // fake some determinstic values...
+      getBrushData(itxid, param)
+        .then(this.processResponse);
     }
     return {
       itxid,
@@ -128,17 +129,29 @@ export default class AsyncContainer extends React.Component<undefined, AsyncCont
     });
   }
 
+  getMostRecentInteraction(t: InteractionTypes) {
+    // get the most recent of t
+    for (let i = this.state.interactionHistory.length - 1; i > -1; i--) {
+      let itx = this.state.interactionHistory[i];
+      if (itx.type === t) {
+        return itx;
+      }
+    }
+    return null;
+  }
+
   getMostRecentResponse(t: InteractionTypes) {
     for (let i = this.state.responseHistory.length - 1; i > -1; i --) {
       let h = this.state.responseHistory[i];
       if (this.state.interactionHistory[h.itxid].type === t) {
-        return h.data;
+        return h;
       }
     }
     return null;
   }
 
   render() {
+    const SERIES = ["jeans", "t-shirt", "coat", "shoes"];
     let examples = (<>
       <h2>Bad Async Interactions In the Wild</h2>
       <h3>The hard to read</h3>
@@ -159,11 +172,32 @@ export default class AsyncContainer extends React.Component<undefined, AsyncCont
     </>);
     let map: JSX.Element;
     if (this.state.showExample) {
-      map = <MapZoom
+      let zoomItx = this.getMostRecentInteraction(InteractionTypes.ZOOMMAP);
+      let brushItx = this.getMostRecentInteraction(InteractionTypes.BURSHBAR);
+      let pin = this.getMostRecentResponse(InteractionTypes.ZOOMMAP);
+      map = <>
+      <MapZoom
         pop={this.state.pop}
-        mapData={this.getMostRecentResponse(InteractionTypes.ZOOMMAP)}
-        newMapInteraction={this.newInteraction}
-      />;
+        currentMapState={{
+          itxId: zoomItx.itxid,
+          selection: zoomItx.param
+        }}
+        currentPinState={{
+          itxId: pin.itxid,
+          data: pin.data
+        }}
+        currentBrushState={{
+          itxId: brushItx.itxid,
+          selection: brushItx.param
+        }}
+        newInteraction={this.newInteraction}
+      />
+      <Chart
+        data={this.getMostRecentResponse(InteractionTypes.BURSHBAR).data}
+        series={SERIES}
+      />
+      </>;
+
     }
 
     let consistency = (<>
