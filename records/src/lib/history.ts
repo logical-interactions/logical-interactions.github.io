@@ -6,11 +6,11 @@ export enum InteractionTypes {
 }
 
 export interface InteractionEntry {
-  itxid: number;
+  itxId: number;
   type: InteractionTypes;
   timestamp: Date;
-  param: any;
-  writeState: any;
+  param: MapSelection;
+  writeState?: any;
 }
 
 export interface MapState {
@@ -33,7 +33,7 @@ export interface PinState {
 
 export interface BrushState {
   itxId: number;
-  selection: Rect;
+  selection: MapSelection;
 }
 
 export interface RequestEntry {

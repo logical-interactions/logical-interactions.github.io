@@ -4,7 +4,7 @@ import * as d3 from "d3";
 import MapZoom from "./MapZoom";
 import Chart from "./Chart";
 
-import { getMapEventData, MapSelection, MapDatum, getRandomInt, getBrushData } from "../lib/data";
+import { getMapEventData, MapSelection, MapDatum, getRandomInt, getBrushData, Coords } from "../lib/data";
 import { InteractionEntry, InteractionTypes, RequestEntry, ResponseEntry, MapState } from "../lib/history";
 
 interface AsyncContainerState {
@@ -25,10 +25,19 @@ export default class AsyncContainer extends React.Component<undefined, AsyncCont
     this.processResponse = this.processResponse.bind(this);
     this.getMostRecentResponse = this.getMostRecentResponse.bind(this);
     this.setData = this.setData.bind(this);
+    let initItx = {
+      itxId: 0,
+      type: InteractionTypes.ZOOMMAP,
+      timestamp: new Date(),
+      param: {
+        nw: [-180, 90] as Coords,
+        se: [180, -90] as Coords,
+      }
+    };
     this.state = {
-      showExample: false,
+      showExample: true,
       mapData: [],
-      interactionHistory: [],
+      interactionHistory: [initItx],
       requestHistory: [],
       responseHistory: [],
     };
@@ -71,6 +80,11 @@ export default class AsyncContainer extends React.Component<undefined, AsyncCont
     console.log("set Mapdata", mapData);
   }
 
+  // componentDidMount() {
+  //   // set this up so there is access
+  //   this.newInteraction();
+  // }
+
   toggleExample() {
     this.setState(prevState => {
       return {showExample: !prevState.showExample};
@@ -81,7 +95,7 @@ export default class AsyncContainer extends React.Component<undefined, AsyncCont
     let itxid = this.state.interactionHistory.length;
     this.setState(prevState => {
       prevState.interactionHistory.push({
-        itxid: prevState.interactionHistory.length,
+        itxId: prevState.interactionHistory.length,
         type,
         timestamp: new Date(),
         param,
@@ -175,27 +189,33 @@ export default class AsyncContainer extends React.Component<undefined, AsyncCont
       let zoomItx = this.getMostRecentInteraction(InteractionTypes.ZOOMMAP);
       let brushItx = this.getMostRecentInteraction(InteractionTypes.BURSHBAR);
       let pin = this.getMostRecentResponse(InteractionTypes.ZOOMMAP);
+      let brushState = brushItx ? {
+        itxId: brushItx.itxId,
+        selection: brushItx.param
+      } : null;
+      let pinState = pin ? {
+        itxId: pin.itxid,
+        data: pin.data
+      } : null;
+      let chartItx = this.getMostRecentResponse(InteractionTypes.BURSHBAR);
+      let chart: JSX.Element;
+      if (chartItx) {
+        chart = <Chart
+          data={chartItx.data}
+          series={SERIES}
+        />;
+      }
       map = <>
-      <MapZoom
-        pop={this.state.pop}
-        currentMapState={{
-          itxId: zoomItx.itxid,
-          selection: zoomItx.param
-        }}
-        currentPinState={{
-          itxId: pin.itxid,
-          data: pin.data
-        }}
-        currentBrushState={{
-          itxId: brushItx.itxid,
-          selection: brushItx.param
-        }}
-        newInteraction={this.newInteraction}
-      />
-      <Chart
-        data={this.getMostRecentResponse(InteractionTypes.BURSHBAR).data}
-        series={SERIES}
-      />
+        <MapZoom
+          pop={this.state.pop}
+          currentMapState={{
+            itxId: zoomItx.itxId,
+            selection: zoomItx.param
+          }}
+          currentPinState={pinState}
+          currentBrushState={brushState}
+          newInteraction={this.newInteraction}
+        />
       </>;
 
     }

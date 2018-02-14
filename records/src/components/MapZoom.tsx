@@ -10,8 +10,8 @@ import { InteractionTypes, MapState, PinState, BrushState } from "../lib/history
 
 interface MapZoomProps {
   currentMapState: MapState;
-  currentPinState: PinState;
-  currentBrushState: BrushState;
+  currentPinState: PinState | null;
+  currentBrushState: BrushState | null;
   pop: {[index: string]: number};
   newInteraction: (type: InteractionTypes, params: any, writeState?: any) => {
     itxid: number; requested: boolean}; // get the itxId
@@ -62,7 +62,6 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     };
   }
 
-
   setNames(error: any, data: any[]) {
     // let dict: {[index: string]: string} = {};
     let text = this.state.text;
@@ -100,17 +99,6 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
 
     d3.select(this.svg)
       .call(this.state.zoom);
-
-    this.props.newInteraction(InteractionTypes.ZOOMMAP, {
-      latMin: -90,
-      latMax: 90,
-      longMax: 180,
-      longMin: 180,
-    }, {
-      k: 1,
-      x: 0,
-      y: 0
-    });
   }
 
 
@@ -118,7 +106,7 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     console.log("Transform", d3.event.transform);
     let { k, x, y} = d3.event.transform;
     let p = geoMercator()
-              .scale( SCALE * k)
+              .scale(SCALE * k)
               .translate([WIDTH / 2 + x, HEIGHT / 2 - y]);
     // let selection = mapPixelToGeo(p, k, x, y, [0, 0], [ WIDTH, HEIGHT]);
     // console.log("selection", selection);

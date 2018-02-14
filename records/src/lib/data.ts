@@ -55,6 +55,9 @@ export type Coords = [number, number];
 // }
 
 export function mapBoundsToTransform(s: MapSelection, SCALE: number, WIDTH: number, HEIGHT: number) {
+  if (!s) {
+    throw new Error("Selection is null");
+  }
   let p1 = geoMercator()
             .scale( SCALE)
             .translate([WIDTH / 2, HEIGHT / 2]);
