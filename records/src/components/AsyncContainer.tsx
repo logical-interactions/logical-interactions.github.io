@@ -30,8 +30,8 @@ export default class AsyncContainer extends React.Component<undefined, AsyncCont
       type: InteractionTypes.ZOOMMAP,
       timestamp: new Date(),
       param: {
-        nw: [-180, 90] as Coords,
-        se: [180, -90] as Coords,
+        nw: [-173, 77] as Coords,
+        se: [163, -43] as Coords,
       }
     };
     this.state = {
@@ -77,7 +77,7 @@ export default class AsyncContainer extends React.Component<undefined, AsyncCont
         mapData: prevState.mapData,
       });
     });
-    console.log("set Mapdata", mapData);
+    // console.log("set Mapdata", mapData);
   }
 
   // componentDidMount() {
@@ -217,7 +217,6 @@ export default class AsyncContainer extends React.Component<undefined, AsyncCont
           newInteraction={this.newInteraction}
         />
       </>;
-
     }
 
     let consistency = (<>

@@ -13,15 +13,17 @@ export interface InteractionEntry {
   writeState?: any;
 }
 
+export interface Transform {
+  y: number;
+  x: number;
+  k: number;
+}
+
 export interface MapState {
   // since the world map data is available globally there is no need to record it here
   itxId: number;
   selection: MapSelection;
-  // transform: {
-  //   y: number;
-  //   x: number;
-  //   k: number;
-  // };
+
 }
 
 export interface PinState {

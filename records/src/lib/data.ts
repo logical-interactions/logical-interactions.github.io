@@ -13,6 +13,13 @@ export interface Datum {
   error?: number;
 }
 
+export function approxEqual(a: number, b: number) {
+  if (Math.abs(a - b) > Math.abs(a * 0.01)) {
+    console.log("big diff", a, b);
+  }
+  return Math.abs(a - b) > Math.abs(a * 0.2);
+}
+
 export type MapEventsData = Coords;
 // {
 //   // eventId,deviceId,timestamp,longitude,latitude
@@ -59,7 +66,7 @@ export function mapBoundsToTransform(s: MapSelection, SCALE: number, WIDTH: numb
     throw new Error("Selection is null");
   }
   let p1 = geoMercator()
-            .scale( SCALE)
+            .scale(SCALE)
             .translate([WIDTH / 2, HEIGHT / 2]);
   let pnw = p1(s.nw);
   let pse = p1(s.se);
@@ -67,11 +74,12 @@ export function mapBoundsToTransform(s: MapSelection, SCALE: number, WIDTH: numb
   let dy = pse[1] - pnw[1];
   // reproject
   let k = 1 / Math.max(dx / WIDTH, dy / HEIGHT);
-  p1.scale(SCALE * k);
-  pnw = p1(s.nw);
-  pse = p1(s.se);
+  let p2 = geoMercator().scale(SCALE * k).translate([WIDTH / 2, HEIGHT / 2]);
+  pnw = p2(s.nw);
+  pse = p2(s.se);
   let x = (pnw[0] + pse[0]) / 2;
   let y = (pnw[1] + pse[1]) / 2;
+  // console.log("nw", s.nw, "sw", s.se, "input", SCALE, WIDTH, HEIGHT, "pnw", pnw, "pse", pse, "ratios", "transforms", k, x, y);
   return {
     x,
     y,
