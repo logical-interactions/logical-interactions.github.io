@@ -87,10 +87,7 @@ export function mapBoundsToTransform(s: MapSelection, SCALE: number, WIDTH: numb
   };
 }
 
-export interface MapDatum {
-  lat: number;
-  long: number;
-}
+export type MapDatum = [number, number];
 
 export function getRandomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -106,7 +103,7 @@ export function getMapEventData(mapData: MapDatum[], itxid: number, s: MapSelect
   let delay = getRandomInt(minLatency, maxLatency);
   // FIXME filter based on selection and add determinstic details
   // console.log("reading mapData", mapData);
-  let data = mapData.filter(d => (d.lat < s.nw[1]) && (d.lat > s.se[1]) && (d.long < s.se[0]) && (d.long > s.nw[0]));
+  let data = mapData.filter(d => (d[0] < s.nw[1]) && (d[0] > s.se[1]) && (d[0] < s.se[0]) && (d[1] > s.nw[0]));
   return new Promise((resolve, reject) => {
     setTimeout(() => resolve({
       s,

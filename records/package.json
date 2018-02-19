@@ -26,6 +26,8 @@
     "@types/react": "^16.0.31",
     "@types/react-dom": "^16.0.3",
     "@types/topojson": "^3.0.2",
+    "@types/sql.js": "0.0.29",
+    "sql.js": "^0.4.0",
     "antd": "^3.1.4",
     "d3": "^4.12.0",
     "d3-scale-chromatic": "^1.1.1",

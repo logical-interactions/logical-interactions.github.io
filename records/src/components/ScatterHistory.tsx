@@ -2,6 +2,7 @@ import * as d3 from "d3";
 import * as React from "react";
 
 import {Rect, Datum} from "../lib/data";
+import { bindDefault } from "../lib/helper";
 
 export function rectToString(selected: Rect) {
   return selected.x1.toString() + selected.x2.toString() + selected.y1.toString() + selected.y2.toString();
@@ -26,28 +27,28 @@ interface ScatterplotProps {
   annotationSize?: number;
 }
 
+const defaultProps = {
+  color: "blue",
+  height: 200,
+  marginBottom: 40,
+  marginLeft: 100,
+  marginRight: 20,
+  marginTop: 20,
+  width: 300,
+  annotationSize: 50,
+  showLabel: false,
+  showAxesLabels: true,
+};
+
 /**
  * Represents an SVG chart. The chart uses the selected data from props to
  * render the appropriate path(s). d3 is used to generate axes and scales.
  */
-export default class Scatterplot extends React.Component<ScatterplotProps, undefined> {
-  static defaultProps = {
-    color: "blue",
-    height: 200,
-    marginBottom: 40,
-    marginLeft: 100,
-    marginRight: 20,
-    marginTop: 20,
-    width: 300,
-    annotationSize: 50,
-    showLabel: false,
-    showAxesLabels: true,
-  };
-
-  render() {
+export const Scatterplot = (props: ScatterplotProps) => {
+    props = bindDefault(props, defaultProps);
     const { dataset, selected, height, marginBottom, annotationSize,
-            marginLeft, marginRight, marginTop, width, color, updateSelection } = this.props;
-    let { xDomain, yDomain } = this.props;
+            marginLeft, marginRight, marginTop, width, color, updateSelection } = props;
+    let { xDomain, yDomain } = props;
     const innerWidth = width - marginLeft - marginRight;
     const innerHeight = height - marginTop - marginBottom;
     // set the scales
@@ -182,5 +183,4 @@ export default class Scatterplot extends React.Component<ScatterplotProps, undef
         {indicator}
       </div>
     );
-  }
-}
+};
