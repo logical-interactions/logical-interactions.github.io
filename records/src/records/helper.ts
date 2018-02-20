@@ -1,8 +1,16 @@
-export function () {
-  let 
-  return function setMapStateTemp(itxId: number, long: number, lat: number){
+export function genSetMapStateTemp() {
+  let values: any[] = [];
+  function resetMapStateTemp() {
+    values = [];
+  }
+  function setMapStateTemp(itxId: number, long: number, lat: number) {
     // this needs to mutate some global thing
-  };
+    values.push([long, lat]);
+  }
+  function getMapStateValue() {
+    return values;
+  }
+  return {resetMapStateTemp, setMapStateTemp, getMapStateValue};
 }
 
 export function readFileSync(filename: string): string {

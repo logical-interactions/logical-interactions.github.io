@@ -2,7 +2,7 @@
 
 -- also grid this so that it snaps to position
 
-CREATE TRIGGER processMapInteractions AFTER INSERT ON mapInteraction
+CREATE TRIGGER processMapInteractions AFTER INSERT ON mapInteractions
   BEGIN
     INSERT INTO mapRequests
       SELECT
@@ -10,8 +10,10 @@ CREATE TRIGGER processMapInteractions AFTER INSERT ON mapInteraction
         timeNow() AS ts
       FROM (SELECT MAX(ts) AS ts
       FROM mapRequests) AS m
-      WHERE NEW.ts > m.ts + 100
-  END
+      WHERE NEW.ts > m.ts + 100;
+      -- also update the map state so that there is responsive feedback
+    SELECT setMapBounds(NEW.itxId, NEW.latMin, NEW.latMax, NEW.longMin, NEW.longMax);
+  END;
 
 -- we trigger the request
 CREATE TRIGGER processMapRequests AFTER INSERT ON mapRequests
@@ -22,17 +24,19 @@ CREATE TRIGGER processMapRequests AFTER INSERT ON mapRequests
         NEW.itxId as itxId,
         timeNow() AS ts, 
         pinResponses.dataId AS dataId
-    FROM pinResponses
-      INNER JOIN mapRequests ON itxId,
-      JOIN (
-        SELECT params.latMin
-        FROM mapRequests AS params,
-        WHERE params.itxId = NEW.itxId) AS vals 
-      ON
-        vals.latMin = mapRequests.latMin 
-        AND vals.latMax = mapRequests.latMax 
-        AND vals.longMax = mapRequests.longMax 
-        AND vals.longMin = mapRequests.longMin;
+      FROM pinResponses
+        JOIN (
+          SELECT itx.itxId
+          FROM mapInteractions AS newItx
+          JOIN mapInteractions AS itx
+            ON newItx.latMin = itx.latMin 
+            AND newItx.latMax = itx.latMax 
+            AND newItx.longMax = itx.longMax 
+            AND newItx.longMin = itx.longMin
+          WHERE newItx.itxId = NEW.itxId
+            AND itx.itxId != NEW.itxId
+          ) AS matched 
+        ON pinResponses.itxId = matched.itxId;
     -- now if that insersion DIDN'T happen
     -- https://stackoverflow.com/questions/19337029/insert-if-not-exists-statement-in-sqlite this is cool
     SELECT queryPin(NEW.itxId, mapInteractions.latMin, mapInteractions.latMax, mapInteractions.longMin, mapInteractions.longMax)
@@ -44,17 +48,19 @@ CREATE TRIGGER processMapRequests AFTER INSERT ON mapRequests
     -- FROM (SELECT MAX(itxId) AS itxId FROM pinResponses) AS pin 
     -- JOIN (SELECT MAX(itxId) AS itxId FROM mapRequests) AS map 
     --   ON pin.itxId < map.itxId
-  END
+  END;
 
 -- now update the states
-
 CREATE TRIGGER updateMapState AFTER INSERT ON pinResponses
   BEGIN
+    -- all this because we don't have aggregate...
+    SELECT resetMapStateTemp();
     SELECT setMapStateTemp(NEW.itxId, long, lat)
     FROM pinData
-    WHERE pinData = NEW.dataId;
-    SELECT setMapState();
-  END
+    WHERE pinData.dataId = NEW.dataId;
+    -- fun, funcs can be composed!
+    SELECT setMapState(NEW.itxId, getMapStateValue());
+  END;
 
 -- think about how we can do even smarter partial edits
 -- https://bl.ocks.org/mbostock/3783604

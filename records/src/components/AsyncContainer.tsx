@@ -7,8 +7,7 @@ import Chart from "./Chart";
 import { MapSelection, MapDatum, getRandomInt, getBrushData, Coords } from "../lib/data";
 import { InteractionEntry, InteractionTypes, RequestEntry, ResponseEntry, MapState } from "../lib/history";
 
-// import { db } from "../records/setup";
-import { insertInteractionStmt } from "../records/setup";
+import { db, setupTriggers, insertInteractionStmt } from "../records/setup";
 
 interface AsyncContainerState {
   showExample: boolean;
@@ -20,9 +19,6 @@ export default class AsyncContainer extends React.Component<undefined, AsyncCont
   constructor(props: undefined) {
     super(props);
     this.toggleExample = this.toggleExample.bind(this);
-    // this.newInteraction = this.newInteraction.bind(this);
-    // this.processResponse = this.processResponse.bind(this);
-    // this.getMostRecentResponse = this.getMostRecentResponse.bind(this);
     this.state = {
       showExample: true,
     };
@@ -35,7 +31,9 @@ export default class AsyncContainer extends React.Component<undefined, AsyncCont
     });
   }
 
+  // so this mounts only when all children have mounted, great!
   componentDidMount() {
+    setupTriggers();
     // set this up so there is access
     let nw = [-173, 77];
     let se = [163, -43];
@@ -47,27 +45,6 @@ export default class AsyncContainer extends React.Component<undefined, AsyncCont
       return {showExample: !prevState.showExample};
     });
   }
-
-  // getMostRecentInteraction(t: InteractionTypes) {
-  //   // get the most recent of t
-  //   for (let i = this.state.interactionHistory.length - 1; i > -1; i--) {
-  //     let itx = this.state.interactionHistory[i];
-  //     if (itx.type === t) {
-  //       return itx;
-  //     }
-  //   }
-  //   return null;
-  // }
-
-  // getMostRecentResponse(t: InteractionTypes) {
-  //   for (let i = this.state.responseHistory.length - 1; i > -1; i --) {
-  //     let h = this.state.responseHistory[i];
-  //     if (this.state.interactionHistory[h.itxid].type === t) {
-  //       return h;
-  //     }
-  //   }
-  //   return null;
-  // }
 
   render() {
     const SERIES = ["jeans", "t-shirt", "coat", "shoes"];
@@ -89,39 +66,6 @@ export default class AsyncContainer extends React.Component<undefined, AsyncCont
         Even though to the computer you are clicking on the object it has rendered, humans have roughly <b>200 miliseconds</b> delay between deciding in the head and actually executing the click.  How to fix this kind of errors? It is clear that we cannot predict the future. However the developer must have a way of knowing the past version that the user was interacting with.
       </p>
     </>);
-    // let map: JSX.Element;
-    // if (this.state.showExample) {
-    //   // let zoomItx = this.getMostRecentInteraction(InteractionTypes.ZOOMMAP);
-    //   // let brushItx = this.getMostRecentInteraction(InteractionTypes.BURSHBAR);
-    //   // let pin = this.getMostRecentResponse(InteractionTypes.ZOOMMAP);
-    //   // let chartItx = this.getMostRecentResponse(InteractionTypes.BURSHBAR);
-    //   let brushState = brushItx ? {
-    //     itxId: brushItx.itxId,
-    //     selection: brushItx.param
-    //   } : null;
-    //   let pinState = pin ? {
-    //     itxId: pin.itxid,
-    //     data: pin.data
-    //   } : null;
-    //   let chart: JSX.Element;
-    //   if (chartItx) {
-    //     chart = <Chart
-    //       data={chartItx.data}
-    //       series={SERIES}
-    //     />;
-    //   }
-    //   map = <>
-    //     <MapZoom
-    //       pop={this.state.pop}
-    //       currentMapState={{
-    //         itxId: zoomItx.itxId,
-    //         selection: zoomItx.param
-    //       }}
-    //       currentPinState={pinState}
-    //       currentBrushState={brushState}
-    //     />
-    //   </>;
-    // }
 
     let consistency = (<>
       <h2>Consistency: Taming the Wild</h2>

@@ -4,11 +4,9 @@ import * as d3ScaleChromatic from "d3-scale-chromatic";
 import { geoMercator, geoPath } from "d3-geo";
 import { feature } from "topojson";
 
-import { db } from "../records/setup";
+import { db, insertInteractionStmt } from "../records/setup";
 import { getMapEventData, MapSelection, MapDatum, getRandomInt, Rect, Coords, mapBoundsToTransform, approxEqual } from "../lib/data";
 import { InteractionTypes, MapState, PinState, BrushState, Transform } from "../lib/history";
-
-import { insertInteractionStmt } from "../records/setup";
 
 interface MapZoomProps {
   population: {[index: string]: number};
@@ -20,13 +18,14 @@ interface MapZoomProps {
 }
 
 interface MapZoomState {
-  mapBounds: MapState;
   brush: BrushState;
+  mapBounds: MapState;
   shiftDown: boolean;
   pins: PinState;
   worldData: any[];
 }
 
+const MAXPOP = 1330141295;
 const SCALE = 1 << 6;
 const WIDTH = 800;
 const HEIGHT = 450;
@@ -45,6 +44,10 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
   constructor(props: MapZoomProps) {
     super(props);
     this.setMapState = this.setMapState.bind(this);
+    this.setMapBounds = this.setMapBounds.bind(this);
+    console.log("setting UDF setMapState");
+    db.create_function("setMapState", this.setMapState);
+    db.create_function("setMapBounds", this.setMapBounds);
     this.state = {
       shiftDown: false,
       pins: null,
@@ -67,27 +70,66 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     }
   }
 
-  setMapState() {
-    let pinState: PinState
+  setMapState(itxId: number, data: MapDatum[]) {
     this.setState({
-      pins,
+      pins: {itxId, data}
     });
   }
+  setMapBounds(itxId: number, latMin: number, latMax: number, longMin: number, longMax: number) {
+    let selection = {
+      nw: [longMin, latMax] as Coords,
+      se: [longMax, latMin] as Coords
+    };
+    this.setState({
+      mapBounds: {
+        itxId, selection
+      }
+    });
+  }
+
+  shouldComponentUpdate(_: MapZoomProps, nextState: MapZoomState) {
+    // props shouldn't change
+    // if change is world data, don't do anything yet
+    if ((!this.state.worldData) && (nextState.worldData)) {
+      return false;
+    }
+  }
+
+  // update the canvas after...?
+  componentDidUpdate() {
+    const canvas = this.refs.canvas as HTMLCanvasElement;
+    const ctx = canvas.getContext("2d");
+    if ((this.state.mapBounds) && (this.state.worldData)) {
+      let t = mapBoundsToTransform(this.state.mapBounds.selection, SCALE, WIDTH, HEIGHT);
+      console.log("transformation for render", t);
+      let p = this.getTranslatedMapping(t);
+      let path = geoPath()
+                  .projection(p)
+                  .context(ctx);
+      this.state.worldData.forEach((d, i) => {
+        let colorVal = this.props.population[d.id] ? Math.pow(this.props.population[d.id] / MAXPOP, 0.4) * 0.6 + 0.1 : 0.2;
+        ctx.fillStyle = d3ScaleChromatic.interpolateBlues(colorVal);
+        ctx.beginPath();
+        path(d);
+        ctx.fill();
+      });
+    }
+  }
+
   componentDidMount() {
     window.addEventListener("keydown", this.handleKeyDown);
     window.addEventListener("keyup", this.handleKeyUp);
     // creates a handle to update this component
-    db.create_function("setMapState", this.setMapState);
-    // "https://unpkg.com/world-atlas@1/world/110m.json") // /data/world_countries.json") http://enjalot.github.io/wwsd/data/world/world-110m.geojson")//
     fetch("/data/world.json")
     .then(response => {
       if (response.status !== 200) {
         console.log(`There was a problem: ${response.status}`);
         return;
       }
-      response.json().then(worldData => {
+      response.json().then(worldDataRaw => {
+        let worldData = feature(worldDataRaw, worldDataRaw.objects.countries).features;
         this.setState({
-          worldData: feature(worldData, worldData.objects.countries).features,
+          worldData,
         });
       });
     });
@@ -118,56 +160,29 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
 
     // // restore
     // canvas.getContext('2d').drawImage(buffer, 0, 0);
-    let { width, height, currentMapState, currentPinState, currentBrushState } = this.props;
-    let { worldData, shiftDown } = this.state;
-    let t = mapBoundsToTransform(currentMapState.selection, SCALE, WIDTH, HEIGHT);
-    console.log("transformation for render", t);
-    let p = this.getTranslatedMapping(t);
+    let { width, height } = this.props;
+    let { worldData, shiftDown, pins, brush } = this.state;
     let brushDiv: JSX.Element;
-    if (shiftDown) {
-      let brush = d3.brush()
-                    .extent([[0, 0], [innerWidth, innerHeight]])
-                    .on("end", function() {
-                      const s = d3.brushSelection(this) as [[number, number], [number, number]];
-                      if (s !== null) {
-                        let nw = p.invert(s[0]);
-                        let se = p.invert(s[1]);
-                        insertInteractionStmt.run([+new Date(), ...nw, ...se]);
-                      }
-                    });
-      brushDiv = <g ref={ g => d3.select(g).call(brush) }></g>;
-    }
-    const MAXPOP = 1330141295;
-    let pathSVG = worldData.map((d, i) => {
-      let colorVal = this.props.population[d.id] ? Math.pow(this.props.population[d.id] / MAXPOP, 0.4) * 0.6 + 0.1 : 0.2;
-      return <path
-        key={ `path-${i}-${d.id}` }
-        d={ geoPath().projection(p)(d) }
-        className="country"
-        fill={ `${d3ScaleChromatic.interpolateBlues(colorVal)}`}
-        stroke="#FFFFFF"
-        strokeWidth={ 0.5 }
-      />;
-    });
-    let dotsSVG: JSX.Element[];
-    let spinner: JSX.Element;
-    if (currentPinState) {
-      dotsSVG = currentPinState.data.map((d: any, i) => {
-        return <circle cx={p([d.long, d.lat])[0]} cy={p([d.long, d.lat])[1]} r={0.5} fillOpacity={0.1} fill="red"></circle>;
-      });
-    } else {
-      spinner = <div className="indicator inline-block"></div>;
+    if (this.state.mapBounds) {
+      let t = mapBoundsToTransform(this.state.mapBounds.selection, SCALE, WIDTH, HEIGHT);
+      console.log("transformation for render", t);
+      let p = this.getTranslatedMapping(t);
+      if (shiftDown) {
+        let brush = d3.brush()
+                      .extent([[0, 0], [innerWidth, innerHeight]])
+                      .on("end", function() {
+                        const s = d3.brushSelection(this) as [[number, number], [number, number]];
+                        if (s !== null) {
+                          let nw = p.invert(s[0]);
+                          let se = p.invert(s[1]);
+                          insertInteractionStmt.run([+new Date(), ...nw, ...se]);
+                        }
+                      });
+        brushDiv = <g ref={ g => d3.select(g).call(brush) }></g>;
+      }
     }
     return(<div>
-      <svg width={800} height={450} ref={ svg => this.svg = svg}>
-      {/*  transform={zoomTransform} */}
-      <g>
-      { pathSVG }
-      { dotsSVG }
-      { brushDiv }
-      </g>
-    </svg>
-    {spinner}
+    <canvas ref="canvas" width={640} height={425} />
     <button id="downloadBtn" onClick={this.zoomIn} ref = {b => this.button = b}>IN</button>
     <button id="downloadBtn" onClick={this.zoomOut} ref = {b => this.button = b}>OUT</button>
     </div>);

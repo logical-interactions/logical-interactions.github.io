@@ -3,12 +3,11 @@ CREATE TABLE mapInteractions (itxId INTEGER PRIMARY KEY, ts INTEGER, latMin INTE
 
 CREATE TABLE mapRequests (itxId INTEGER, ts INTEGER);
 
-
--- see https://sqlite.org/foreignkeys.html
-CREATE TABLE pinResponses (itxId INTEGER, ts INTEGER, FOREIGN KEY(dataId) REFERENCES pinData (dataId));
-
 -- many pin could map to the same pinData
 CREATE TABLE pinData (dataId INTEGER PRIMARY KEY, long INTEGER, lat INTEGER);
+
+-- see https://sqlite.org/foreignkeys.html
+CREATE TABLE pinResponses (itxId INTEGER, ts INTEGER, dataId INTEGER, FOREIGN KEY(dataId) REFERENCES pinData(dataId));
 
 CREATE TABLE barResponese (itxId INTEGER, ts INTEGER, x TEXT, y INTEGER);
 
