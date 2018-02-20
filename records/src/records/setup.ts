@@ -41,7 +41,16 @@ function timeNow() {
   return new Date();
 }
 
-let UDFs: any[] = [timeNow, resetMapStateTemp, setMapStateTemp, getMapStateValue];
+export function log(msg: string, source: string) {
+  console.log(`[${source}] ${msg}`);
+  return 1;
+}
+
+function queryPin(itxId: number, latMin: number, latMax: number, longMin: number, longMax: number) {
+  getMapEventData(pins, itxId, {nw: [longMin, latMax], se: [longMax, latMin]}).then(processResponse);
+}
+
+let UDFs: any[] = [timeNow, resetMapStateTemp, setMapStateTemp, getMapStateValue, queryPin, log];
 UDFs.forEach((f) => {
   db.create_function(f.name, f);
 });
@@ -57,10 +66,6 @@ function processResponse(response: any) {
     insertPin.run(d);
   });
   db.exec("COMMIT;");
-}
-
-function queryPin(itxId: number, latMin: number, latMax: number, longMin: number, longMax: number) {
-  getMapEventData(pins, itxId, {nw: [longMin, latMax], se: [longMax, latMin]}).then(processResponse);
 }
 
 export function tryDB(query: string) {

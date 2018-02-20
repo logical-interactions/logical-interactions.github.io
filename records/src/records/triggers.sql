@@ -12,6 +12,7 @@ CREATE TRIGGER processMapInteractions AFTER INSERT ON mapInteractions
       FROM mapRequests) AS m
       WHERE NEW.ts > m.ts + 100;
       -- also update the map state so that there is responsive feedback
+    SELECT log(NEW.itxId || ' ' || NEW.latMin || ' ' || NEW.latMax || ' ' || NEW.longMin || ' ' || NEW.longMax, "processMapInteractions");
     SELECT setMapBounds(NEW.itxId, NEW.latMin, NEW.latMax, NEW.longMin, NEW.longMax);
   END;
 

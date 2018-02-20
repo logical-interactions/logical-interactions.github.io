@@ -87,14 +87,6 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     });
   }
 
-  shouldComponentUpdate(_: MapZoomProps, nextState: MapZoomState) {
-    // props shouldn't change
-    // if change is world data, don't do anything yet
-    if ((!this.state.worldData) && (nextState.worldData)) {
-      return false;
-    }
-  }
-
   // update the canvas after...?
   componentDidUpdate() {
     const canvas = this.refs.canvas as HTMLCanvasElement;
@@ -113,6 +105,7 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
         path(d);
         ctx.fill();
       });
+      console.log("canvas should have been udapted");
     }
   }
 
@@ -182,7 +175,7 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
       }
     }
     return(<div>
-    <canvas ref="canvas" width={640} height={425} />
+    <canvas ref="canvas" width={WIDTH} height={HEIGHT} />
     <button id="downloadBtn" onClick={this.zoomIn} ref = {b => this.button = b}>IN</button>
     <button id="downloadBtn" onClick={this.zoomOut} ref = {b => this.button = b}>OUT</button>
     </div>);
