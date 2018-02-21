@@ -47,6 +47,7 @@ export function log(msg: string, source: string) {
 }
 
 function queryPin(itxId: number, latMin: number, latMax: number, longMin: number, longMax: number) {
+  console.log("sending request for", itxId, latMin, latMax, longMin, longMax);
   getMapEventData(pins, itxId, {nw: [longMin, latMax], se: [longMax, latMin]}).then(processResponse);
 }
 
@@ -60,6 +61,7 @@ let insertPin = db.prepare("INSERT INTO pinData (long, lat) VALUES (?, ?)");
 export const insertInteractionStmt = db.prepare("INSERT INTO mapInteractions (ts, longMin, latMax, longMax, latMin) VALUES (?, ?, ?, ?, ?)");
 
 function processResponse(response: any) {
+  console.log("received response", response);
   const {selection, data, itxid} = response;
   db.exec("BEGIN TRANSACTION;");
   data.forEach((d: any) => {

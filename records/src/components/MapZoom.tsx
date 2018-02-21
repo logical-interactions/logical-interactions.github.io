@@ -4,6 +4,7 @@ import * as d3ScaleChromatic from "d3-scale-chromatic";
 import { geoMercator, geoPath } from "d3-geo";
 import { feature } from "topojson";
 
+import { getMiddleHalf, getOuterBox } from "../lib/helper";
 import { db, insertInteractionStmt } from "../records/setup";
 import { getMapEventData, MapSelection, MapDatum, getRandomInt, Rect, Coords, mapBoundsToTransform, approxEqual } from "../lib/data";
 import { InteractionTypes, MapState, PinState, BrushState, Transform } from "../lib/history";
@@ -57,18 +58,18 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     };
   }
 
-  handleKeyDown(event: any) {
-    if (event.shiftKey) {
-      console.log("shift is pressed");
-      this.setState({shiftDown: true});
-    }
-  }
+  // handleKeyDown(event: any) {
+  //   if (event.shiftKey) {
+  //     console.log("shift is pressed");
+  //     this.setState({shiftDown: true});
+  //   }
+  // }
 
-  handleKeyUp(event: any) {
-    if (event.shiftKey) {
-      this.setState({shiftDown: false});
-    }
-  }
+  // handleKeyUp(event: any) {
+  //   if (event.shiftKey) {
+  //     this.setState({shiftDown: false});
+  //   }
+  // }
 
   setMapState(itxId: number, data: MapDatum[]) {
     this.setState({
@@ -87,11 +88,22 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     });
   }
 
-  // update the canvas after...?
+  // to avoid redundant react updates, should just have one component responsible for one thing.
+  // before components were overloaded with layout etc, try to separate it.
   componentDidUpdate() {
     const canvas = this.refs.canvas as HTMLCanvasElement;
     const ctx = canvas.getContext("2d");
     if ((this.state.mapBounds) && (this.state.worldData)) {
+      ctx.clearRect(0, 0, WIDTH, HEIGHT);
+      // clear the map
+      // TODO: use fancy buffer to make things even faster!
+      // var buffer = document.createElement('canvas');
+      // buffer.width = canvas.width;
+      // buffer.height = canvas.height;
+      // // save
+      // buffer.getContext('2d').drawImage(canvas, 0, 0);
+      // // restore
+      // canvas.getContext('2d').drawImage(buffer, 0, 0);
       let t = mapBoundsToTransform(this.state.mapBounds.selection, SCALE, WIDTH, HEIGHT);
       console.log("transformation for render", t);
       let p = this.getTranslatedMapping(t);
@@ -105,13 +117,13 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
         path(d);
         ctx.fill();
       });
-      console.log("canvas should have been udapted");
+      // console.log("canvas should have been udapted");
     }
   }
 
   componentDidMount() {
-    window.addEventListener("keydown", this.handleKeyDown);
-    window.addEventListener("keyup", this.handleKeyUp);
+    // window.addEventListener("keydown", this.handleKeyDown);
+    // window.addEventListener("keyup", this.handleKeyUp);
     // creates a handle to update this component
     fetch("/data/world.json")
     .then(response => {
@@ -128,12 +140,33 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     });
   }
 
-  zoomOut(event: any) {
-    // db.prepare();
+  pan(itxType: string) {
+    // are interactions intents or fixed?
+    return (event: any) => {
+      // set current state to something else
+      console.log("Not yet implemented");
+    };
   }
 
-  zoomIn(event: any) {
-
+  // the logic of zoom is to take the middle half of the screen
+  zoom(itxType: string) {
+    switch (itxType) {
+      case "in":
+        return (event: any) => {
+          let {nw, se} = getMiddleHalf(this.state.mapBounds.selection);
+          insertInteractionStmt.run([+new Date(), ...nw, ...se]);
+          // read the current state and then set it
+          // we can send this to the server as next and resolve there.
+          // TO experiment
+        };
+      case "out":
+        return (event: any) => {
+          let {nw, se} = getOuterBox(this.state.mapBounds.selection);
+          insertInteractionStmt.run([+new Date(), ...nw, ...se]);
+        };
+      default:
+        throw new Error("zoom must be in or out");
+    }
   }
 
   getTranslatedMapping(t: Transform) {
@@ -142,42 +175,35 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
             .translate([WIDTH - t.x, HEIGHT - t.y]);
   }
   render() {
-    // setup
-    // var buffer = document.createElement('canvas');
-    // buffer.width = canvas.width;
-    // buffer.height = canvas.height;
-
-
-    // // save
-    // buffer.getContext('2d').drawImage(canvas, 0, 0);
-
-    // // restore
-    // canvas.getContext('2d').drawImage(buffer, 0, 0);
     let { width, height } = this.props;
-    let { worldData, shiftDown, pins, brush } = this.state;
+    let { worldData, pins, brush } = this.state;
     let brushDiv: JSX.Element;
     if (this.state.mapBounds) {
       let t = mapBoundsToTransform(this.state.mapBounds.selection, SCALE, WIDTH, HEIGHT);
-      console.log("transformation for render", t);
+      // console.log("transformation for render", t);
       let p = this.getTranslatedMapping(t);
-      if (shiftDown) {
-        let brush = d3.brush()
-                      .extent([[0, 0], [innerWidth, innerHeight]])
-                      .on("end", function() {
-                        const s = d3.brushSelection(this) as [[number, number], [number, number]];
-                        if (s !== null) {
-                          let nw = p.invert(s[0]);
-                          let se = p.invert(s[1]);
-                          insertInteractionStmt.run([+new Date(), ...nw, ...se]);
-                        }
-                      });
-        brushDiv = <g ref={ g => d3.select(g).call(brush) }></g>;
-      }
+      // if (shiftDown) {
+      let brush = d3.brush()
+                    .extent([[0, 0], [innerWidth, innerHeight]])
+                    .on("end", function() {
+                      const s = d3.brushSelection(this) as [[number, number], [number, number]];
+                      if (s !== null) {
+                        let nw = p.invert(s[0]);
+                        let se = p.invert(s[1]);
+                        insertInteractionStmt.run([+new Date(), ...nw, ...se]);
+                      }
+                    });
+      brushDiv = <g ref={ g => d3.select(g).call(brush) }></g>;
+      // }
     }
     return(<div>
     <canvas ref="canvas" width={WIDTH} height={HEIGHT} />
-    <button id="downloadBtn" onClick={this.zoomIn} ref = {b => this.button = b}>IN</button>
-    <button id="downloadBtn" onClick={this.zoomOut} ref = {b => this.button = b}>OUT</button>
+    <button onClick={this.zoom("in")}>IN</button>
+    <button onClick={this.zoom("out")}>OUT</button>
+    <button onClick={this.pan("left")}>LEFT</button>
+    <button onClick={this.pan("right")}>RIGHT</button>
+    <button onClick={this.pan("up")}>UP</button>
+    <button onClick={this.pan("down")}>DOWN</button>
     </div>);
   }
 }
