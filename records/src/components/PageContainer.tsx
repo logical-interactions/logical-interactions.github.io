@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import AsyncContainer from "./AsyncContainer";
-
+import Test from "./Test";
   // let applications = (<>
   //   <h2>Throttling and Caching</h2>
   //   <h2>Undo/Redo, Logging</h2>
@@ -13,4 +13,5 @@ export const PageContainer = () => (<>
   <h1>History-Aware UX</h1>
   <h3 style={{textAlign: "right", lineHeight: "70%"}}>Let's Make (UI) History!</h3>
   <AsyncContainer />
+  {/* <Test /> */}
 </>);

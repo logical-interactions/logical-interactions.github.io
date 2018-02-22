@@ -4,7 +4,7 @@ import * as d3ScaleChromatic from "d3-scale-chromatic";
 import { geoMercator, geoPath } from "d3-geo";
 import { feature } from "topojson";
 
-import { getMiddleHalf, getOuterBox } from "../lib/helper";
+import { checkBounds, interactionHelper } from "../lib/helper";
 import { db, insertInteractionStmt } from "../records/setup";
 import { getMapEventData, MapSelection, MapDatum, getRandomInt, Rect, Coords, mapBoundsToTransform, approxEqual } from "../lib/data";
 import { InteractionTypes, MapState, PinState, BrushState, Transform } from "../lib/history";
@@ -23,6 +23,7 @@ interface MapZoomState {
   mapBounds: MapState;
   shiftDown: boolean;
   pins: PinState;
+  controlsDisabled: {[index: string]: boolean};
   worldData: any[];
 }
 
@@ -46,7 +47,7 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     super(props);
     this.setMapState = this.setMapState.bind(this);
     this.setMapBounds = this.setMapBounds.bind(this);
-    console.log("setting UDF setMapState");
+    this.interact = this.interact.bind(this);
     db.create_function("setMapState", this.setMapState);
     db.create_function("setMapBounds", this.setMapBounds);
     this.state = {
@@ -54,28 +55,25 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
       pins: null,
       brush: null,
       mapBounds: null,
+      controlsDisabled: {
+        "in": false,
+        "out": false,
+        "left": false,
+        "right": false,
+        "up": false,
+        "down": false,
+        "brush": false,
+      },
       worldData: [],
     };
   }
-
-  // handleKeyDown(event: any) {
-  //   if (event.shiftKey) {
-  //     console.log("shift is pressed");
-  //     this.setState({shiftDown: true});
-  //   }
-  // }
-
-  // handleKeyUp(event: any) {
-  //   if (event.shiftKey) {
-  //     this.setState({shiftDown: false});
-  //   }
-  // }
 
   setMapState(itxId: number, data: MapDatum[]) {
     this.setState({
       pins: {itxId, data}
     });
   }
+
   setMapBounds(itxId: number, latMin: number, latMax: number, longMin: number, longMax: number) {
     let selection = {
       nw: [longMin, latMax] as Coords,
@@ -140,33 +138,16 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     });
   }
 
-  pan(itxType: string) {
-    // are interactions intents or fixed?
-    return (event: any) => {
-      // set current state to something else
-      console.log("Not yet implemented");
+  interact(itxType: string) {
+    return() => {
+      let {nw, se} = interactionHelper(this.state.mapBounds.selection, itxType);
+      let controlsDisabledOld = Object.assign({}, this.state.controlsDisabled);
+      let controlsDisabled = checkBounds(controlsDisabledOld, nw as Coords, se as Coords);
+      if (JSON.stringify(controlsDisabled) !== JSON.stringify(this.state.controlsDisabled)) {
+        this.setState({controlsDisabled});
+      }
+      insertInteractionStmt.run([+new Date(), ...nw, ...se]);
     };
-  }
-
-  // the logic of zoom is to take the middle half of the screen
-  zoom(itxType: string) {
-    switch (itxType) {
-      case "in":
-        return (event: any) => {
-          let {nw, se} = getMiddleHalf(this.state.mapBounds.selection);
-          insertInteractionStmt.run([+new Date(), ...nw, ...se]);
-          // read the current state and then set it
-          // we can send this to the server as next and resolve there.
-          // TO experiment
-        };
-      case "out":
-        return (event: any) => {
-          let {nw, se} = getOuterBox(this.state.mapBounds.selection);
-          insertInteractionStmt.run([+new Date(), ...nw, ...se]);
-        };
-      default:
-        throw new Error("zoom must be in or out");
-    }
   }
 
   getTranslatedMapping(t: Transform) {
@@ -174,15 +155,15 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
             .scale(SCALE * t.k)
             .translate([WIDTH - t.x, HEIGHT - t.y]);
   }
+
   render() {
     let { width, height } = this.props;
-    let { worldData, pins, brush } = this.state;
+    let { worldData, pins, brush, controlsDisabled } = this.state;
     let brushDiv: JSX.Element;
     if (this.state.mapBounds) {
       let t = mapBoundsToTransform(this.state.mapBounds.selection, SCALE, WIDTH, HEIGHT);
       // console.log("transformation for render", t);
       let p = this.getTranslatedMapping(t);
-      // if (shiftDown) {
       let brush = d3.brush()
                     .extent([[0, 0], [innerWidth, innerHeight]])
                     .on("end", function() {
@@ -194,16 +175,11 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
                       }
                     });
       brushDiv = <g ref={ g => d3.select(g).call(brush) }></g>;
-      // }
     }
+    let controls = ["in", "out", "left", "right", "up", "down"].map((c) => <button onClick={this.interact(c)} disabled={controlsDisabled[c]}>{c}</button>);
     return(<div>
     <canvas ref="canvas" width={WIDTH} height={HEIGHT} />
-    <button onClick={this.zoom("in")}>IN</button>
-    <button onClick={this.zoom("out")}>OUT</button>
-    <button onClick={this.pan("left")}>LEFT</button>
-    <button onClick={this.pan("right")}>RIGHT</button>
-    <button onClick={this.pan("up")}>UP</button>
-    <button onClick={this.pan("down")}>DOWN</button>
+    {controls}
     </div>);
   }
 }

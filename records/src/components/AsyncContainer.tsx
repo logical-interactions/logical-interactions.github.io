@@ -4,9 +4,9 @@ import * as d3 from "d3";
 import MapZoom from "./MapZoom";
 import Chart from "./Chart";
 
+import { NW, SE } from "../lib/helper";
 import { MapSelection, MapDatum, getRandomInt, getBrushData, Coords } from "../lib/data";
 import { InteractionEntry, InteractionTypes, RequestEntry, ResponseEntry, MapState } from "../lib/history";
-
 import { db, setupTriggers, insertInteractionStmt } from "../records/setup";
 
 interface AsyncContainerState {
@@ -35,9 +35,7 @@ export default class AsyncContainer extends React.Component<undefined, AsyncCont
   componentDidMount() {
     setupTriggers();
     // set this up so there is access
-    let nw = [-173, 77];
-    let se = [163, -43];
-    insertInteractionStmt.run([+new Date(), ...nw, ...se]);
+    insertInteractionStmt.run([+new Date(), ...NW, ...SE]);
   }
 
   toggleExample() {

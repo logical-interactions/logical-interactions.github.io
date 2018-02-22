@@ -80,6 +80,9 @@ export function mapBoundsToTransform(s: MapSelection, SCALE: number, WIDTH: numb
   let x = (pnw[0] + pse[0]) / 2;
   let y = (pnw[1] + pse[1]) / 2;
   // console.log("nw", s.nw, "sw", s.se, "input", SCALE, WIDTH, HEIGHT, "pnw", pnw, "pse", pse, "ratios", "transforms", k, x, y);
+  if (isNaN(x) || isNaN(y) || isNaN(k)) {
+    throw new Error("Transformations are invalid");
+  }
   return {
     x,
     y,
