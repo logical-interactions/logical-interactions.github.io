@@ -2,7 +2,7 @@ import * as sql from "sql.js";
 import * as d3 from "d3";
 import { Database } from "sql.js";
 
-import { genSetMapStateTemp, readFileSync } from "./helper";
+import { genSetMapStateTemp, readFileSync } from "../lib/helper";
 import { pins } from "../data/pins";
 import { getMapEventData } from "../lib/data";
 
@@ -35,7 +35,13 @@ export function setupTriggers() {
   _executeFile("triggers");
 }
 
-let {resetMapStateTemp, setMapStateTemp, getMapStateValue} = genSetMapStateTemp();
+export function setupCanvas(ctx: CanvasRenderingContext2D) {
+  let {resetMapStateTemp, setMapStateTemp, getMapStateValue} = genSetMapStateTemp(ctx);
+  [resetMapStateTemp, setMapStateTemp, getMapStateValue].forEach((f) => {
+    db.create_function(f.name, f);
+  });
+}
+
 
 function timeNow() {
   return +new Date();
@@ -51,12 +57,14 @@ function queryPin(itxId: number, latMin: number, latMax: number, longMin: number
   getMapEventData(pins, itxId, {nw: [longMin, latMax], se: [longMax, latMin]}).then(processResponse);
 }
 
-let UDFs: any[] = [timeNow, resetMapStateTemp, setMapStateTemp, getMapStateValue, queryPin, log];
+let UDFs: any[] = [timeNow, queryPin, log];
 UDFs.forEach((f) => {
   db.create_function(f.name, f);
 });
 
-let insertPin = db.prepare("INSERT INTO pinData (long, lat) VALUES (?, ?)");
+let insertPin = db.prepare("INSERT INTO pinData (itxId, long, lat) VALUES (?, ?, ?)");
+
+let insertPinResponse = db.prepare("INSERT INTO pinResponses (itxId, ts) VALUES (?, ?)");
 
 export const undoQuery = `
   SELECT log('started', 'undo');
@@ -83,11 +91,15 @@ export const insertInteractionStmt = db.prepare("INSERT INTO mapInteractions (ts
 
 function processResponse(response: any) {
   console.log("received response", response);
-  const {selection, data, itxid} = response;
+  const {selection, data, itxId} = response;
   db.exec("BEGIN TRANSACTION;");
+  // also want to insert into pinResponse to indicate that we have values...
+  // if it's here, it must be that the dataId is the same as interaction Id, that is, the same query was issued.
   data.forEach((d: any) => {
+    d.unshift(itxId);
     insertPin.run(d);
   });
+  insertPinResponse.run([itxId, +new Date()]);
   db.exec("COMMIT;");
 }
 
@@ -103,7 +115,7 @@ export function tryDB(query: string) {
 function d(sql: string) {
   let r = db.exec(sql);
   if (r.length > 0) {
-    console.log(JSON.stringify(r[0].values).replace(/\],\[/g, "\n").replace("[[", "").replace("]]", ""));
+    console.log(JSON.stringify(r[0].values).replace(/\],\[/g, "\n").replace("[[", "").replace("]]", "").replace(/,/g, "\t"));
   } else {
     console.log("NO RESULT");
   }

@@ -1,6 +1,10 @@
 import * as d3 from "d3";
 import { geoMercator } from "d3-geo";
 
+export const SCALE = 1 << 6;
+export const WIDTH = 800;
+export const HEIGHT = 450;
+
 export interface Rect {
   x1: number;
   y1: number;
@@ -98,7 +102,7 @@ export function getRandomInt(min: number, max: number) {
 
 // let mapData: MapEventsData[];
 // load the data
-export function getMapEventData(mapData: MapDatum[], itxid: number, s: MapSelection, maxLatency?: number, minLatency?: number) {
+export function getMapEventData(mapData: MapDatum[], itxId: number, s: MapSelection, maxLatency?: number, minLatency?: number) {
   if (!maxLatency) {
     maxLatency = 4000;
     minLatency = 1000;
@@ -111,7 +115,7 @@ export function getMapEventData(mapData: MapDatum[], itxid: number, s: MapSelect
     setTimeout(() => resolve({
       s,
       data,
-      itxid,
+      itxId,
     }), delay);
   });
 }

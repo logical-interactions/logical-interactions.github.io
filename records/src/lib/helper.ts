@@ -1,5 +1,66 @@
 import { Coords, MapSelection } from "./data";
 
+import * as d3 from "d3";
+import { geoMercator, geoPath } from "d3-geo";
+
+import { mapBoundsToTransform, SCALE, WIDTH, HEIGHT } from "../lib/data";
+import { Transform } from "../lib/history";
+
+export function getTranslatedMapping(t: Transform) {
+  return geoMercator()
+          .scale(SCALE * t.k)
+          .translate([WIDTH - t.x, HEIGHT - t.y]);
+}
+
+// pass in the geo setup, and the canvas
+export function genSetMapStateTemp(ctx: CanvasRenderingContext2D) {
+  let p: d3.GeoProjection = null;
+  function resetMapStateTemp(latMin: number, latMax: number, longMin: number, longMax: number) {
+    let s = {
+      nw: [longMin, latMax] as Coords,
+      se: [longMax, latMin] as Coords
+    };
+    let t = mapBoundsToTransform(s, SCALE, WIDTH, HEIGHT);
+    p = getTranslatedMapping(t);
+    // hard code for now
+    ctx.fillStyle = "red";
+  }
+  function setMapStateTemp(long: number, lat: number) {
+    // this needs to mutate some global thing
+    console.log("insert", lat, long);
+    ctx.beginPath();
+    ctx.arc(p([long, lat])[0], p([long, lat])[1], 2, 0, 2 * Math.PI);
+    ctx.fill();
+  }
+  function getMapStateValue() {
+    // indicate done
+    // TODO: stop spinner
+    console.log("done");
+  }
+  return {resetMapStateTemp, setMapStateTemp, getMapStateValue};
+}
+
+export function readFileSync(filename: string): string {
+  let request = new XMLHttpRequest();
+  request.open("GET", filename, false);  // `false` makes the request synchronous
+  request.send(null);
+  if (request.status === 200) {
+    return request.responseText;
+  } else {
+    return "";
+  }
+}
+
+export function readFileAsync(filename: string): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", filename, true);
+    xhr.onload = () => resolve(xhr.responseText);
+    xhr.onerror = () => reject(xhr.statusText);
+    xhr.send();
+  });
+}
+
 export const NW = [-173, 77];
 export const SE = [163, -43];
 

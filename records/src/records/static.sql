@@ -4,10 +4,14 @@ CREATE TABLE mapInteractions (itxId INTEGER PRIMARY KEY, ts INTEGER, latMin INTE
 CREATE TABLE mapRequests (itxId INTEGER, ts INTEGER);
 
 -- many pin could map to the same pinData
-CREATE TABLE pinData (dataId INTEGER PRIMARY KEY, long INTEGER, lat INTEGER);
+-- overloading this itxId
+CREATE TABLE pinData (itxId INTEGER, long INTEGER, lat INTEGER);
 
 -- see https://sqlite.org/foreignkeys.html
-CREATE TABLE pinResponses (itxId INTEGER, ts INTEGER, dataId INTEGER, FOREIGN KEY(dataId) REFERENCES pinData(dataId));
+-- cannot really use FOREIGN KEY(dataId) REFERENCES pinData(itxId)
+-- since it's not unique...
+-- if dataId is null, then it's referencing it self
+CREATE TABLE pinResponses (itxId INTEGER, ts INTEGER, dataId INTEGER);
 
 CREATE TABLE barResponese (itxId INTEGER, ts INTEGER, x TEXT, y INTEGER);
 

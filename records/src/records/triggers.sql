@@ -8,7 +8,7 @@ CREATE TRIGGER processMapInteractions AFTER INSERT ON mapInteractions
       SELECT
         NEW.itxId AS itxId,
         timeNow() AS ts
-      FROM (SELECT MAX(ts) AS ts
+      FROM (SELECT COALESCE(MAX(ts), 0) AS ts
       FROM mapRequests) AS m
       WHERE NEW.ts > m.ts + 100;
       -- also update the map state so that there is responsive feedback
@@ -19,12 +19,13 @@ CREATE TRIGGER processMapInteractions AFTER INSERT ON mapInteractions
 -- we trigger the request
 CREATE TRIGGER processMapRequests AFTER INSERT ON mapRequests
   BEGIN
+    SELECT log(NEW.itxId, "processMapRequests");
     -- check the cache, which is the pinResponses
     INSERT INTO pinResponses
       SELECT
         NEW.itxId as itxId,
         timeNow() AS ts, 
-        pinResponses.dataId AS dataId
+        pinResponses.itxId AS dataId
       FROM pinResponses
         JOIN (
           SELECT itx.itxId
@@ -51,16 +52,17 @@ CREATE TRIGGER processMapRequests AFTER INSERT ON mapRequests
     --   ON pin.itxId < map.itxId
   END;
 
--- now update the states
 CREATE TRIGGER updateMapState AFTER INSERT ON pinResponses
   BEGIN
-    -- all this because we don't have aggregate...
-    SELECT resetMapStateTemp();
-    SELECT setMapStateTemp(NEW.itxId, long, lat)
+    -- TODO: resolve logic
+    SELECT resetMapStateTemp(latMin, latMax, longMin, longMax)
+    FROM mapInteractions
+    ORDER BY itxId DESC LIMIT 1;
+    SELECT setMapStateTemp(long, lat)
     FROM pinData
-    WHERE pinData.dataId = NEW.dataId;
+    WHERE pinData.itxId = COALESCE(NEW.dataId, NEW.itxId);
     -- fun, funcs can be composed!
-    SELECT setMapState(NEW.itxId, getMapStateValue());
+    SELECT getMapStateValue();
   END;
 
 -- think about how we can do even smarter partial edits

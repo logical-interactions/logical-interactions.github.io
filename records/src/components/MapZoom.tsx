@@ -4,9 +4,9 @@ import * as d3ScaleChromatic from "d3-scale-chromatic";
 import { geoMercator, geoPath } from "d3-geo";
 import { feature } from "topojson";
 
-import { checkBounds, interactionHelper } from "../lib/helper";
-import { db, insertInteractionStmt, undoQuery } from "../records/setup";
-import { getMapEventData, MapSelection, MapDatum, getRandomInt, Rect, Coords, mapBoundsToTransform, approxEqual } from "../lib/data";
+import { checkBounds, interactionHelper, getTranslatedMapping } from "../lib/helper";
+import { db, insertInteractionStmt, undoQuery, setupCanvas } from "../records/setup";
+import { getMapEventData, MapSelection, MapDatum, getRandomInt, Rect, Coords, mapBoundsToTransform, approxEqual, SCALE, WIDTH, HEIGHT } from "../lib/data";
 import { InteractionTypes, MapState, PinState, BrushState, Transform } from "../lib/history";
 
 interface MapZoomProps {
@@ -22,15 +22,12 @@ interface MapZoomState {
   brush: BrushState;
   mapBounds: MapState;
   shiftDown: boolean;
-  pins: PinState;
+  // pins: PinState;
   controlsDisabled: {[index: string]: boolean};
   worldData: any[];
 }
 
 const MAXPOP = 1330141295;
-const SCALE = 1 << 6;
-const WIDTH = 800;
-const HEIGHT = 450;
 
 export default class MapZoom extends React.Component<MapZoomProps, MapZoomState> {
   svg: SVGElement;
@@ -45,14 +42,14 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
 
   constructor(props: MapZoomProps) {
     super(props);
-    this.setMapState = this.setMapState.bind(this);
+    // this.setMapState = this.setMapState.bind(this);
     this.setMapBounds = this.setMapBounds.bind(this);
     this.interact = this.interact.bind(this);
-    db.create_function("setMapState", this.setMapState);
+    // db.create_function("setMapState", this.setMapState);
     db.create_function("setMapBounds", this.setMapBounds);
     this.state = {
       shiftDown: false,
-      pins: null,
+      // pins: null,
       brush: null,
       mapBounds: null,
       controlsDisabled: {
@@ -68,11 +65,12 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     };
   }
 
-  setMapState(itxId: number, data: MapDatum[]) {
-    this.setState({
-      pins: {itxId, data}
-    });
-  }
+  // setMapState(itxId: number, data: MapDatum[]) {
+  //   console.log("setting map state", itxId, data);
+  //   this.setState({
+  //     pins: {itxId, data}
+  //   });
+  // }
 
   setMapBounds(itxId: number, latMin: number, latMax: number, longMin: number, longMax: number) {
     let selection = {
@@ -104,7 +102,7 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
       // canvas.getContext('2d').drawImage(buffer, 0, 0);
       let t = mapBoundsToTransform(this.state.mapBounds.selection, SCALE, WIDTH, HEIGHT);
       console.log("transformation for render", t);
-      let p = this.getTranslatedMapping(t);
+      let p = getTranslatedMapping(t);
       let path = geoPath()
                   .projection(p)
                   .context(ctx);
@@ -128,6 +126,11 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
   }
 
   componentDidMount() {
+    const canvas = this.refs.canvas as HTMLCanvasElement;
+    const ctx = canvas.getContext("2d");
+    setupCanvas(ctx);
+    // now pass this canvas reference to draw dots on!
+    // db.create_function("setMapState", this.setMapState);
     window.addEventListener("keydown", this.handleKeyDown);
     // window.addEventListener("keyup", this.handleKeyUp);
     // creates a handle to update this component
@@ -160,20 +163,14 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     };
   }
 
-  getTranslatedMapping(t: Transform) {
-    return geoMercator()
-            .scale(SCALE * t.k)
-            .translate([WIDTH - t.x, HEIGHT - t.y]);
-  }
-
   render() {
     let { width, height } = this.props;
-    let { worldData, pins, brush, controlsDisabled } = this.state;
+    let { brush, controlsDisabled } = this.state;
     let brushDiv: JSX.Element;
     if (this.state.mapBounds) {
       let t = mapBoundsToTransform(this.state.mapBounds.selection, SCALE, WIDTH, HEIGHT);
       // console.log("transformation for render", t);
-      let p = this.getTranslatedMapping(t);
+      let p = getTranslatedMapping(t);
       let brush = d3.brush()
                     .extent([[0, 0], [innerWidth, innerHeight]])
                     .on("end", function() {
