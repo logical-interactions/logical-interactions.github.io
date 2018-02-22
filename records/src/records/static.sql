@@ -1,5 +1,5 @@
 -- all interactions so far will be zooms or panning
-CREATE TABLE mapInteractions (itxId INTEGER PRIMARY KEY, ts INTEGER, latMin INTEGER, latMax INTEGER, longMin INTEGER, longMax INTEGER);
+CREATE TABLE mapInteractions (itxId INTEGER PRIMARY KEY, ts INTEGER, latMin INTEGER, latMax INTEGER, longMin INTEGER, longMax INTEGER, undoed INTEGER DEFAULT 0);
 
 CREATE TABLE mapRequests (itxId INTEGER, ts INTEGER);
 

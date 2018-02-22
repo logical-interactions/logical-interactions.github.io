@@ -5,7 +5,7 @@ import { geoMercator, geoPath } from "d3-geo";
 import { feature } from "topojson";
 
 import { checkBounds, interactionHelper } from "../lib/helper";
-import { db, insertInteractionStmt } from "../records/setup";
+import { db, insertInteractionStmt, undoQuery } from "../records/setup";
 import { getMapEventData, MapSelection, MapDatum, getRandomInt, Rect, Coords, mapBoundsToTransform, approxEqual } from "../lib/data";
 import { InteractionTypes, MapState, PinState, BrushState, Transform } from "../lib/history";
 
@@ -119,8 +119,16 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     }
   }
 
+
+  handleKeyDown(event: any) {
+    // Cmd+Z
+    if ((event.metaKey) && (event.keyCode === 90)) {
+      db.run(undoQuery);
+    }
+  }
+
   componentDidMount() {
-    // window.addEventListener("keydown", this.handleKeyDown);
+    window.addEventListener("keydown", this.handleKeyDown);
     // window.addEventListener("keyup", this.handleKeyUp);
     // creates a handle to update this component
     fetch("/data/world.json")
@@ -137,6 +145,8 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
       });
     });
   }
+
+  // so our undo redo logic will by similar to others (checked with Sublime), where a branch is lost from the linear path forward (much like how copy paste's clip board copy is gone after a second copy)
 
   interact(itxType: string) {
     return() => {

@@ -38,7 +38,7 @@ export function setupTriggers() {
 let {resetMapStateTemp, setMapStateTemp, getMapStateValue} = genSetMapStateTemp();
 
 function timeNow() {
-  return new Date();
+  return +new Date();
 }
 
 export function log(msg: string, source: string) {
@@ -57,6 +57,27 @@ UDFs.forEach((f) => {
 });
 
 let insertPin = db.prepare("INSERT INTO pinData (long, lat) VALUES (?, ?)");
+
+export const undoQuery = `
+  SELECT log('started', 'undo');
+  UPDATE mapInteractions
+    SET undoed = 1 WHERE itxId IN (SELECT itxId FROM mapInteractions ORDER BY itxId DESC LIMIT 1);
+  INSERT INTO mapInteractions (ts, latMin, latMax, longMin, longMax, undoed)
+    SELECT timeNow(), latMin, latMax, longMin, longMax, 2
+    FROM mapInteractions
+    WHERE undoed = 0
+    ORDER BY itxId DESC LIMIT 1;
+  UPDATE mapInteractions
+    SET undoed = 1
+    WHERE itxId IN (
+      SELECT itxId
+      FROM mapInteractions
+      WHERE undoed = 0
+      ORDER BY itxId DESC LIMIT 1);
+  -- then set it back to 1
+  UPDATE mapInteractions
+    SET undoed = 0 WHERE undoed = 2;
+`;
 
 export const insertInteractionStmt = db.prepare("INSERT INTO mapInteractions (ts, longMin, latMax, longMax, latMin) VALUES (?, ?, ?, ?, ?)");
 
@@ -77,3 +98,14 @@ export function tryDB(query: string) {
     console.log(`%cDB execution error for query ${query}, ${e}`, "background: red");
   }
 }
+
+// for console debugging
+function d(sql: string) {
+  let r = db.exec(sql);
+  if (r.length > 0) {
+    console.log(JSON.stringify(r[0].values).replace(/\],\[/g, "\n").replace("[[", "").replace("]]", ""));
+  } else {
+    console.log("NO RESULT");
+  }
+}
+(<any>window).d = d;
