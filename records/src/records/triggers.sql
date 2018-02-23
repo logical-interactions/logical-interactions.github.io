@@ -2,7 +2,7 @@
 
 -- also grid this so that it snaps to position
 
-CREATE TRIGGER processMapInteractions AFTER INSERT ON mapInteractions
+CREATE TRIGGER processNavItx AFTER INSERT ON mapInteractions
   BEGIN
     INSERT INTO mapRequests
       SELECT
@@ -12,8 +12,49 @@ CREATE TRIGGER processMapInteractions AFTER INSERT ON mapInteractions
       FROM mapRequests) AS m
       WHERE NEW.ts > m.ts + 100;
       -- also update the map state so that there is responsive feedback
-    SELECT log(NEW.itxId || ' ' || NEW.latMin || ' ' || NEW.latMax || ' ' || NEW.longMin || ' ' || NEW.longMax, "processMapInteractions");
-    SELECT setMapBounds(NEW.itxId, NEW.latMin, NEW.latMax, NEW.longMin, NEW.longMax);
+    SELECT log(NEW.itxId || ' ' || NEW.latMin || ' ' || NEW.latMax || ' ' || NEW.longMin || ' ' || NEW.longMax, "processNavItx");
+    SELECT setMapBounds(NEW.latMin, NEW.latMax, NEW.longMin, NEW.longMax);
+  END;
+
+CREATE TRIGGER processBrushItx AFTER INSERT ON brushItx
+  -- now we need to start listening on the countries
+  BEGIN
+    INSERT INTO mapRequests
+      SELECT
+        NEW.itxId AS itxId,
+        timeNow() AS ts
+      FROM (SELECT COALESCE(MAX(ts), 0) AS ts
+      FROM mapRequests) AS m
+      WHERE NEW.ts > m.ts + 100;
+      -- also update the map state so that there is responsive feedback
+    SELECT log(NEW.itxId || ' ' || NEW.latMin || ' ' || NEW.latMax || ' ' || NEW.longMin || ' ' || NEW.longMax, "processBrushItx");
+    UPDATE currentBrushItx SET itxId = NEW.itxId;
+    SELECT drawBrush(NEW.latMin, NEW.latMax, NEW.longMin, NEW.longMax);
+  END;
+
+-- not sure if this works, needs debuggin'
+CREATE TRIGGER processbBrushItxItems AFTER INSERT ON brushItxItems
+  BEGIN
+    UPDATE brushItxItems
+      SET brushItxItems.itxId = currentBrushItx.itxId
+      WHERE 
+        brushItxItems.ts = NEW.ts 
+        AND brushItxItems.country = NEW.country
+    -- see if the result is cached
+    -- render immediately if it is
+    -- calculate all the countries matching so far and update chart
+    SELECT AVG(Q1), AVG(Q2), AVG(Q3), AVG(Q4)
+    FROM countryData
+    JOIN brushItxItems ON countryData.country = brushItxItems.country
+    WHERE brushItxItems.itxId = currentBrushItx.itxId;
+    -- if not
+    SELECT getBrushData(brushItx.itxId, NEW.country)
+    FROM brushItx
+    JOIN currentBrushItx ON 
+      brushItx.itxId = currentBrushItx.itxId
+    WHERE NEW.country NOT IN (
+      SELECT country FROM countryData
+    );
   END;
 
 -- we trigger the request

@@ -1,0 +1,3 @@
+-- conceptually views, but for performance, we are gonna do tables...
+
+CREATE TABLE currentBrushItx (itxId INTEGER);

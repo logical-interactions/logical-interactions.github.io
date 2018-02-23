@@ -19,12 +19,6 @@ export interface Transform {
   k: number;
 }
 
-export interface MapState {
-  // since the world map data is available globally there is no need to record it here
-  itxId: number;
-  selection: MapSelection;
-
-}
 
 export interface PinState {
    // basically the pins!

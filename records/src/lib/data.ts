@@ -1,9 +1,14 @@
 import * as d3 from "d3";
 import { geoMercator } from "d3-geo";
 
+
 export const SCALE = 1 << 6;
 export const WIDTH = 800;
 export const HEIGHT = 450;
+
+const maxLatency = 4000;
+const minLatency = 1000;
+const dataLength = 4;
 
 export interface Rect {
   x1: number;
@@ -25,45 +30,13 @@ export function approxEqual(a: number, b: number) {
 }
 
 export type MapEventsData = Coords;
-// {
-//   // eventId,deviceId,timestamp,longitude,latitude
-//   // eventId: string;
-//   // deviceId: string;
-//   // timestamp: string;
-//   long: number;
-//   lat: number;
-// }
 
 export interface MapSelection {
   nw: Coords;
   se: Coords;
-  // latMin: number;
-  // longMin: number;
-  // latMax: number;
-  // longMax: number;
 }
-
 // by D3 standards...
-// [longitude, latitude]
 export type Coords = [number, number];
-// {
-//   lat: number;
-//   long: number;
-// }
-
-// export function mapPixelToGeo(p: d3.GeoProjection, k: number, x: number, y: number, nwP: [number, number], seP: [number, number]) {
-//   let nw = p.invert(nwP);
-//   let se = p.invert(seP);
-//   let selection: MapSelection = {
-//     nw,
-//     se
-//   };
-//   // latMin: se[1],
-//   // longMin: nw[0],
-//   // latMax: nw[1],
-//   // longMax: se[0]
-//   return selection;
-// }
 
 export function mapBoundsToTransform(s: MapSelection, SCALE: number, WIDTH: number, HEIGHT: number) {
   if (!s) {
@@ -102,11 +75,7 @@ export function getRandomInt(min: number, max: number) {
 
 // let mapData: MapEventsData[];
 // load the data
-export function getMapEventData(mapData: MapDatum[], itxId: number, s: MapSelection, maxLatency?: number, minLatency?: number) {
-  if (!maxLatency) {
-    maxLatency = 4000;
-    minLatency = 1000;
-  }
+export function getMapEventData(mapData: MapDatum[], itxId: number, s: MapSelection) {
   let delay = getRandomInt(minLatency, maxLatency);
   // FIXME filter based on selection and add determinstic details
   // console.log("reading mapData", mapData);
@@ -120,18 +89,18 @@ export function getMapEventData(mapData: MapDatum[], itxId: number, s: MapSelect
   });
 }
 
-export function getBrushData(itxid: number, param: MapSelection, maxLatency?: number, minLatency?: number) {
-  if (!maxLatency) {
-    maxLatency = 4000;
-    minLatency = 1000;
+export function getBrushData(itxid: number, country: string) {
+  // make it slightly longer than the other
+  let delay = getRandomInt(minLatency, maxLatency) * 2;
+  // fake data make up a bar chart based on the param
+  let data: number[] = Array(dataLength).fill(4);
+  for (let i = 0; i < country.length; i ++) {
+    data[i % dataLength] += country.charCodeAt(i);
   }
-  let delay = getRandomInt(minLatency, maxLatency);
-  // fake  // make up a bar chart based on the param
-  let data = param.nw.concat(param.se).map((d) => Math.round(Math.abs(d) * 100));
   return new Promise((resolve, reject) => {
     setTimeout(() => resolve({
-      param,
       data,
+      country,
       itxid,
     }), delay);
   });

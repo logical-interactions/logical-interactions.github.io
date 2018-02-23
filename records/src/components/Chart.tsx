@@ -1,10 +1,10 @@
 import * as React from "react";
 import * as d3 from "d3";
 
-import {Datum} from "../lib/data";
+import { db } from "../records/setup";
+import { Datum } from "../lib/data";
 
 interface ChartProps {
-  data: number[];
   series: string[];
   height?: number;
   width?: number;
@@ -16,10 +16,10 @@ interface ChartProps {
 }
 
 interface ChartState {
-  currentVersion: number;
+  data: number[];
 }
 
-export default class Chart extends React.Component<ChartProps, undefined> {
+export default class Chart extends React.Component<ChartProps, ChartState> {
   static defaultProps = {
     colorOverride: false,
     height: 300,
@@ -32,8 +32,25 @@ export default class Chart extends React.Component<ChartProps, undefined> {
     showAxesLabels: true,
   };
 
+  constructor(props: ChartProps) {
+    super(props);
+    this.setChartDataState = this.setChartDataState.bind(this);
+    this.state = {
+      data: null,
+    };
+  }
+
+  componentDidMount() {
+    db.create_function("setChartDataState", this.setChartDataState);
+  }
+
+  setChartDataState(q1: number, q2: number, q3: number, q4: number) {
+    this.setState({data: [q1, q2, q3, q4]});
+  }
+
   render() {
-    let { data, width, height, series } = this.props;
+    let { width, height, series } = this.props;
+    let { data } = this.state;
     let x = d3.scaleBand()
               .rangeRound([0, width])
               .padding(0.1)

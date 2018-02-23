@@ -6,8 +6,7 @@ import Chart from "./Chart";
 
 import { NW, SE } from "../lib/helper";
 import { MapSelection, MapDatum, getRandomInt, getBrushData, Coords } from "../lib/data";
-import { InteractionEntry, InteractionTypes, RequestEntry, ResponseEntry, MapState } from "../lib/history";
-import { db, setupTriggers, insertInteractionStmt } from "../records/setup";
+import { db, setupTriggers, insertNavItxStmt } from "../records/setup";
 
 interface AsyncContainerState {
   showExample: boolean;
@@ -35,7 +34,7 @@ export default class AsyncContainer extends React.Component<undefined, AsyncCont
   componentDidMount() {
     setupTriggers();
     // set this up so there is access
-    insertInteractionStmt.run([+new Date(), ...NW, ...SE]);
+    insertNavItxStmt.run([+new Date(), ...NW, ...SE]);
   }
 
   toggleExample() {
@@ -65,23 +64,22 @@ export default class AsyncContainer extends React.Component<undefined, AsyncCont
       </p>
     </>);
 
-    let consistency = (<>
+    return (<>
       <h2>Consistency: Taming the Wild</h2>
       <p>
         that we can design <i>with</i> asynchrony.  Currently, the most common practice is to block so that the response and requests are aligned in time, but one could also imagine many other designs where the correspondence is not serialized and matched through other means.
       </p>
       <h3>A Visualization Example</h3>
       <p>
-        While there are consistency models in databases, it doesn't directly translate to the UI (we <a href="http://people.eecs.berkeley.edu/~yifanwu/assets/devil.pdf">tried</a>!).  Let's take a look at an example</p>
-        {<MapZoom
-          population={this.state.pop}
-        />}
-        <button onClick={this.toggleExample}>Example</button>
+        While there are consistency models in databases, it doesn't directly translate to the UI (we <a href="http://people.eecs.berkeley.edu/~yifanwu/assets/devil.pdf">tried</a>!).  Let's take a look at an example
+      </p>
+      <MapZoom
+        population={this.state.pop}
+      />
+      <Chart
+        series={["Q1", "Q2", "Q3", "Q4"]}
+      />
       <h3>A Control Example</h3>
-    </>);
-
-    return (<>
-      {consistency}
     </>);
   }
 }

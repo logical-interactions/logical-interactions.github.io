@@ -9,6 +9,7 @@
             true,
             "spaces"
         ],
+        "ordered-imports": true,
         "no-duplicate-variable": true,
         "no-eval": true,
         "no-trailing-whitespace": true,

@@ -5,9 +5,9 @@ import { geoMercator, geoPath } from "d3-geo";
 import { feature } from "topojson";
 
 import { checkBounds, interactionHelper, getTranslatedMapping } from "../lib/helper";
-import { db, insertInteractionStmt, undoQuery, setupCanvas } from "../records/setup";
+import { db, insertNavItxStmt, insertBrushItxStmt, undoQuery, setupCanvas } from "../records/setup";
 import { getMapEventData, MapSelection, MapDatum, getRandomInt, Rect, Coords, mapBoundsToTransform, approxEqual, SCALE, WIDTH, HEIGHT } from "../lib/data";
-import { InteractionTypes, MapState, PinState, BrushState, Transform } from "../lib/history";
+import { InteractionTypes, PinState, BrushState, Transform } from "../lib/history";
 
 interface MapZoomProps {
   population: {[index: string]: number};
@@ -19,8 +19,9 @@ interface MapZoomProps {
 }
 
 interface MapZoomState {
-  brush: BrushState;
-  mapBounds: MapState;
+  // brushItxId: number;
+  // navItxId: number;
+  navSelection: MapSelection;
   shiftDown: boolean;
   // pins: PinState;
   controlsDisabled: {[index: string]: boolean};
@@ -49,9 +50,7 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     db.create_function("setMapBounds", this.setMapBounds);
     this.state = {
       shiftDown: false,
-      // pins: null,
-      brush: null,
-      mapBounds: null,
+      navSelection: null,
       controlsDisabled: {
         "in": false,
         "out": false,
@@ -65,6 +64,14 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     };
   }
 
+  // brushItxId: number;
+  // navItxId: number;
+  // setBrushItxId(brushItxId: number) {
+
+  // }
+  // when the results show up
+  // render the countries and the barcharts
+  // no need to check if the state of the brush is still the same if we bind on data space
   // setMapState(itxId: number, data: MapDatum[]) {
   //   console.log("setting map state", itxId, data);
   //   this.setState({
@@ -72,15 +79,13 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
   //   });
   // }
 
-  setMapBounds(itxId: number, latMin: number, latMax: number, longMin: number, longMax: number) {
-    let selection = {
+  setMapBounds(latMin: number, latMax: number, longMin: number, longMax: number) {
+    let navSelection = {
       nw: [longMin, latMax] as Coords,
       se: [longMax, latMin] as Coords
     };
     this.setState({
-      mapBounds: {
-        itxId, selection
-      }
+      navSelection
     });
   }
 
@@ -89,7 +94,7 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
   componentDidUpdate() {
     const canvas = this.refs.canvas as HTMLCanvasElement;
     const ctx = canvas.getContext("2d");
-    if ((this.state.mapBounds) && (this.state.worldData)) {
+    if ((this.state.navSelection) && (this.state.worldData)) {
       ctx.clearRect(0, 0, WIDTH, HEIGHT);
       // clear the map
       // TODO: use fancy buffer to make things even faster!
@@ -100,7 +105,7 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
       // buffer.getContext('2d').drawImage(canvas, 0, 0);
       // // restore
       // canvas.getContext('2d').drawImage(buffer, 0, 0);
-      let t = mapBoundsToTransform(this.state.mapBounds.selection, SCALE, WIDTH, HEIGHT);
+      let t = mapBoundsToTransform(this.state.navSelection, SCALE, WIDTH, HEIGHT);
       console.log("transformation for render", t);
       let p = getTranslatedMapping(t);
       let path = geoPath()
@@ -153,23 +158,25 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
 
   interact(itxType: string) {
     return() => {
-      let {nw, se} = interactionHelper(this.state.mapBounds.selection, itxType);
+      let {nw, se} = interactionHelper(this.state.navSelection, itxType);
       let controlsDisabledOld = Object.assign({}, this.state.controlsDisabled);
       let controlsDisabled = checkBounds(controlsDisabledOld, nw as Coords, se as Coords);
       if (JSON.stringify(controlsDisabled) !== JSON.stringify(this.state.controlsDisabled)) {
         this.setState({controlsDisabled});
       }
-      insertInteractionStmt.run([+new Date(), ...nw, ...se]);
+      insertNavItxStmt.run([+new Date(), ...nw, ...se]);
     };
   }
 
   render() {
     let { width, height } = this.props;
-    let { brush, controlsDisabled } = this.state;
+    let { controlsDisabled } = this.state;
     let brushDiv: JSX.Element;
-    if (this.state.mapBounds) {
-      let t = mapBoundsToTransform(this.state.mapBounds.selection, SCALE, WIDTH, HEIGHT);
+    if (this.state.navSelection) {
+      let t = mapBoundsToTransform(this.state.navSelection, SCALE, WIDTH, HEIGHT);
       // console.log("transformation for render", t);
+      // makes more sense to use svg since the brush wouldn't cause a canvas redraw
+      // this is really better than the SQL all in approach.
       let p = getTranslatedMapping(t);
       let brush = d3.brush()
                     .extent([[0, 0], [innerWidth, innerHeight]])
@@ -178,15 +185,20 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
                       if (s !== null) {
                         let nw = p.invert(s[0]);
                         let se = p.invert(s[1]);
-                        insertInteractionStmt.run([+new Date(), ...nw, ...se]);
+                        insertBrushItxStmt.run([+new Date(), ...nw, ...se]);
                       }
                     });
       brushDiv = <g ref={ g => d3.select(g).call(brush) }></g>;
     }
     let controls = ["in", "out", "left", "right", "up", "down"].map((c) => <button onClick={this.interact(c)} disabled={controlsDisabled[c]}>{c}</button>);
-    return(<div>
-    <canvas ref="canvas" width={WIDTH} height={HEIGHT} />
-    {controls}
-    </div>);
+    return(<>
+      {controls}
+      <div style={{position: "relative", height: HEIGHT, width: WIDTH}}>
+        <canvas style={{position: "absolute"}} ref="canvas" width={WIDTH} height={HEIGHT} />
+        <svg style={{position: "absolute"}} width={WIDTH} height={HEIGHT}>
+          {brushDiv}
+        </svg>
+      </div>
+    </>);
   }
 }

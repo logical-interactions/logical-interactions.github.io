@@ -13,7 +13,11 @@ export function getTranslatedMapping(t: Transform) {
 }
 
 // pass in the geo setup, and the canvas
+// need to set a _lock_ on the current map position
+// OR, render the lat long information everysingle time there is a tuple entry???
 export function genSetMapStateTemp(ctx: CanvasRenderingContext2D) {
+  // this is the share state..
+  // check with someone if mixing these is ok??
   let p: d3.GeoProjection = null;
   function resetMapStateTemp(latMin: number, latMax: number, longMin: number, longMax: number) {
     let s = {
@@ -27,17 +31,23 @@ export function genSetMapStateTemp(ctx: CanvasRenderingContext2D) {
   }
   function setMapStateTemp(long: number, lat: number) {
     // this needs to mutate some global thing
-    console.log("insert", lat, long);
+    // console.log("insert", lat, long);
     ctx.beginPath();
     ctx.arc(p([long, lat])[0], p([long, lat])[1], 2, 0, 2 * Math.PI);
     ctx.fill();
+  }
+  function drawBrush(latMin: number, latMax: number, longMin: number, longMax: number) {
+    ctx.fillStyle = "rgba(255, 255, 0, 0.5)";
+    let nw = p([longMin, latMax]);
+    let se = p([longMax, latMin]);
+    ctx.fillRect(nw[0], nw[1], se[0] - nw[0], nw[1] - se[1]);
   }
   function getMapStateValue() {
     // indicate done
     // TODO: stop spinner
     console.log("done");
   }
-  return {resetMapStateTemp, setMapStateTemp, getMapStateValue};
+  return [resetMapStateTemp, setMapStateTemp, getMapStateValue, drawBrush];
 }
 
 export function readFileSync(filename: string): string {
