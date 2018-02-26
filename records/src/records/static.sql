@@ -16,7 +16,8 @@ CREATE TABLE mapInteractions (itxId INTEGER PRIMARY KEY, ts INTEGER, latMin INTE
 CREATE TABLE brushItx(itxId INTEGER PRIMARY KEY, ts INTEGER, mapItxId INTEGER);
 
 -- this is streamed in
-CREATE TABLE brushItxItems (itxId INTEGER, ts INTEGER, country TEXT);
+-- assume that this will be clipped to some reasonable boundary
+CREATE TABLE brushItxItems (itxId INTEGER, ts INTEGER, latMin INTEGER, latMax INTEGER, longMin INTEGER, longMax INTEGER);
 
 -- can look up itxType to get the request type? but might not always be the case that there is a 1:1 mapping
 -- split for now...
@@ -27,9 +28,9 @@ CREATE TABLE brushRequests (itxId INTEGER, ts INTEGER);
 
 -- many pin could map to the same pinData
 -- overloading this itxId
-CREATE TABLE pinData (itxId INTEGER, long INTEGER, lat INTEGER);
+CREATE TABLE pinData (itxId INTEGER, userId TEXT, long INTEGER, lat INTEGER);
 
-CREATE TABLE countryData (country INTEGER, Q1 INTEGER, Q2 INTEGER, Q3 INTEGER, Q4 INTEGER);
+CREATE TABLE userData (userId TEXT, Q1 INTEGER, Q2 INTEGER, Q3 INTEGER, Q4 INTEGER);
 
 -- see https://sqlite.org/foreignkeys.html
 -- cannot really use FOREIGN KEY(dataId) REFERENCES pinData(itxId)
@@ -38,12 +39,9 @@ CREATE TABLE countryData (country INTEGER, Q1 INTEGER, Q2 INTEGER, Q3 INTEGER, Q
 CREATE TABLE pinResponses (itxId INTEGER, ts INTEGER, dataId INTEGER);
 CREATE TABLE pinRender(itxId INTEGER, ts INTEGER);
 
-CREATE TABLE barResponese (itxId INTEGER, ts INTEGER, x TEXT, y INTEGER);
-CREATE TABLE barRender(itxId INTEGER, ts INTEGER);
+-- CREATE TABLE barRender(itxId INTEGER, ts INTEGER);
 
 -- states
 CREATE TABLE mapState(itxId INTEGER, ts INTEGER, latMin INTEGER, latMax INTEGER, longMin INTEGER, longMax INTEGER);
 
 CREATE TABLE pinState(itxId INTEGER, ts INTEGER, lat INTEGER, long INTEGER);
-
-CREATE TEMP TABLE IF NOT EXISTS Variables (Name TEXT PRIMARY KEY, Value TEXT); 

@@ -17,7 +17,6 @@ CREATE TRIGGER processNavItx AFTER INSERT ON mapInteractions
   END;
 
 CREATE TRIGGER processBrushItx AFTER INSERT ON brushItx
-  -- now we need to start listening on the countries
   BEGIN
     INSERT INTO mapRequests
       SELECT
@@ -27,34 +26,31 @@ CREATE TRIGGER processBrushItx AFTER INSERT ON brushItx
       FROM mapRequests) AS m
       WHERE NEW.ts > m.ts + 100;
       -- also update the map state so that there is responsive feedback
-    SELECT log(NEW.itxId || ' ' || NEW.latMin || ' ' || NEW.latMax || ' ' || NEW.longMin || ' ' || NEW.longMax, "processBrushItx");
     UPDATE currentBrushItx SET itxId = NEW.itxId;
-    SELECT drawBrush(NEW.latMin, NEW.latMax, NEW.longMin, NEW.longMax);
+    -- SELECT drawBrush(NEW.latMin, NEW.latMax, NEW.longMin, NEW.longMax);
   END;
 
--- not sure if this works, needs debuggin'
 CREATE TRIGGER processbBrushItxItems AFTER INSERT ON brushItxItems
   BEGIN
     UPDATE brushItxItems
-      SET brushItxItems.itxId = currentBrushItx.itxId
+      SET itxId = (SELECT itxId FROM currentBrushItx)
+      WHERE
+        brushItxItems.ts = NEW.ts;
+  END;
+
+CREATE TRIGGER fetchbBrushItxItems AFTER INSERT ON brushItxItems
+  BEGIN
+    SELECT queryUserData(currentBrushItx.itxId, pinData.userId)
+      FROM
+        currentBrushItx
+        JOIN pinResponses ON currentBrushItx.readItxId = pinResponses.itxId
+        JOIN pinData ON pinData.itxId = pinResponses.dataItx
       WHERE 
-        brushItxItems.ts = NEW.ts 
-        AND brushItxItems.country = NEW.country
-    -- see if the result is cached
-    -- render immediately if it is
-    -- calculate all the countries matching so far and update chart
-    SELECT AVG(Q1), AVG(Q2), AVG(Q3), AVG(Q4)
-    FROM countryData
-    JOIN brushItxItems ON countryData.country = brushItxItems.country
-    WHERE brushItxItems.itxId = currentBrushItx.itxId;
-    -- if not
-    SELECT getBrushData(brushItx.itxId, NEW.country)
-    FROM brushItx
-    JOIN currentBrushItx ON 
-      brushItx.itxId = currentBrushItx.itxId
-    WHERE NEW.country NOT IN (
-      SELECT country FROM countryData
-    );
+        pinData.lat < NEW.latMax
+        AND pinData.long < NEW.longMax
+        AND pinData.lat > NEW.latMin
+        AND pinData.long > NEW.longMin
+        AND pinData.userId NOT IN (SELECT userId FROM userData);
   END;
 
 -- we trigger the request
@@ -96,14 +92,6 @@ CREATE TRIGGER processMapRequests AFTER INSERT ON mapRequests
 CREATE TRIGGER updateMapState AFTER INSERT ON pinResponses
   BEGIN
     -- TODO: resolve logic
-    SELECT resetMapStateTemp(latMin, latMax, longMin, longMax)
-    FROM mapInteractions
-    ORDER BY itxId DESC LIMIT 1;
-    SELECT setMapStateTemp(long, lat)
-    FROM pinData
-    WHERE pinData.itxId = COALESCE(NEW.dataId, NEW.itxId);
-    -- fun, funcs can be composed!
-    SELECT getMapStateValue();
   END;
 
 -- think about how we can do even smarter partial edits

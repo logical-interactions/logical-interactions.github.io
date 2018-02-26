@@ -5,8 +5,10 @@ import MapZoom from "./MapZoom";
 import Chart from "./Chart";
 
 import { NW, SE } from "../lib/helper";
-import { MapSelection, MapDatum, getRandomInt, getBrushData, Coords } from "../lib/data";
-import { db, setupTriggers, insertNavItxStmt } from "../records/setup";
+import { MapSelection, MapDatum, getRandomInt, getUserhData, Coords } from "../lib/data";
+import { db } from "../records/setup";
+import { setupMapDB, stmts } from "../records/mapZoomSetup";
+
 
 interface AsyncContainerState {
   showExample: boolean;
@@ -27,14 +29,15 @@ export default class AsyncContainer extends React.Component<undefined, AsyncCont
         pop[d.name] = parseInt(d.population, 10);
       });
       this.setState({pop});
+      console.log("population object", pop);
     });
   }
 
   // so this mounts only when all children have mounted, great!
   componentDidMount() {
-    setupTriggers();
+    setupMapDB();
     // set this up so there is access
-    insertNavItxStmt.run([+new Date(), ...NW, ...SE]);
+    stmts().insertNavItx.run([+new Date(), ...NW, ...SE]);
   }
 
   toggleExample() {
@@ -44,42 +47,12 @@ export default class AsyncContainer extends React.Component<undefined, AsyncCont
   }
 
   render() {
-    const SERIES = ["jeans", "t-shirt", "coat", "shoes"];
-    let examples = (<>
-      <h2>Bad Async Interactions In the Wild</h2>
-      <h3>The hard to read</h3>
-      <i>"Did it get it?", "Should I click again?", "What's happening?"</i>
-      <h3>The Confusing</h3>
-      <p>
-        Here i
-      </p>
-      <h3>The Mistake</h3>
-      <p>
-        This viral <a href="https://gfycat.com/QueasyGrandIriomotecat">humorous gif</a> about the not so funny missile alert show cases what happens when <b>human latency</b> is ignored.</p>
-      <video controls>
-        <source src="media/misslewarning.webm" type="video/webm"/>
-      </video>
-      <p>
-        Even though to the computer you are clicking on the object it has rendered, humans have roughly <b>200 miliseconds</b> delay between deciding in the head and actually executing the click.  How to fix this kind of errors? It is clear that we cannot predict the future. However the developer must have a way of knowing the past version that the user was interacting with.
-      </p>
-    </>);
-
     return (<>
-      <h2>Consistency: Taming the Wild</h2>
-      <p>
-        that we can design <i>with</i> asynchrony.  Currently, the most common practice is to block so that the response and requests are aligned in time, but one could also imagine many other designs where the correspondence is not serialized and matched through other means.
-      </p>
-      <h3>A Visualization Example</h3>
-      <p>
-        While there are consistency models in databases, it doesn't directly translate to the UI (we <a href="http://people.eecs.berkeley.edu/~yifanwu/assets/devil.pdf">tried</a>!).  Let's take a look at an example
-      </p>
       <MapZoom
-        population={this.state.pop}
       />
       <Chart
         series={["Q1", "Q2", "Q3", "Q4"]}
       />
-      <h3>A Control Example</h3>
     </>);
   }
 }

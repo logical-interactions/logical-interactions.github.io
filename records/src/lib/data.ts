@@ -89,18 +89,18 @@ export function getMapEventData(mapData: MapDatum[], itxId: number, s: MapSelect
   });
 }
 
-export function getBrushData(itxid: number, country: string) {
+export function getUserhData(itxid: number, userId: string) {
   // make it slightly longer than the other
   let delay = getRandomInt(minLatency, maxLatency) * 2;
   // fake data make up a bar chart based on the param
   let data: number[] = Array(dataLength).fill(4);
-  for (let i = 0; i < country.length; i ++) {
-    data[i % dataLength] += country.charCodeAt(i);
+  for (let i = 0; i < userId.length; i ++) {
+    data[i % dataLength] += userId.charCodeAt(i);
   }
   return new Promise((resolve, reject) => {
     setTimeout(() => resolve({
       data,
-      country,
+      userId,
       itxid,
     }), delay);
   });

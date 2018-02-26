@@ -22,12 +22,12 @@ interface ChartState {
 export default class Chart extends React.Component<ChartProps, ChartState> {
   static defaultProps = {
     colorOverride: false,
-    height: 300,
+    height: 200,
     marginBottom: 40,
     marginLeft: 45,
     marginRight: 20,
     marginTop: 20,
-    width: 400,
+    width: 300,
     showLabel: false,
     showAxesLabels: true,
   };
@@ -36,7 +36,7 @@ export default class Chart extends React.Component<ChartProps, ChartState> {
     super(props);
     this.setChartDataState = this.setChartDataState.bind(this);
     this.state = {
-      data: null,
+      data: [0, 2, 3, 4], // just to test that it's working?
     };
   }
 
@@ -45,26 +45,29 @@ export default class Chart extends React.Component<ChartProps, ChartState> {
   }
 
   setChartDataState(q1: number, q2: number, q3: number, q4: number) {
+    console.log("setting chart data state", arguments);
     this.setState({data: [q1, q2, q3, q4]});
   }
 
   render() {
-    let { width, height, series } = this.props;
+    let { width, height, series, marginLeft, marginRight, marginTop, marginBottom } = this.props;
     let { data } = this.state;
+    const innerWidth = width - marginLeft - marginRight;
+    const innerHeight = height - marginTop - marginBottom;
     let x = d3.scaleBand()
-              .rangeRound([0, width])
-              .padding(0.1)
+              .rangeRound([0, innerWidth])
+              .padding(0.2)
               .domain(series);
     let y = d3.scaleLinear()
-              .rangeRound([height, 0])
+              .rangeRound([innerHeight, 0])
               .domain([0, d3.max(data)]);
 
     // get y scale and x positioning
-    let bars = data.map((d, i) => <rect x={x(series[i])} y={y(d)}  width={x.bandwidth()} height={height - y(d)}></rect>);
-    return(<svg>
-      <g ref={(g) => d3.select(g).call(d3.axisBottom(x))}></g>
+    let bars = data.map((d, i) => <rect x={x(series[i])} y={y(d)} width={x.bandwidth()} height={innerHeight - y(d)} fill={"rgb(255, 192, 203, 0.5)"}></rect>);
+    return(<svg  width={width} height={height}>
       {bars}
-      <g ref={(g) => d3.select(g).call(d3.axisLeft(y))}></g>
+      <g ref={(g) => d3.select(g).call(d3.axisLeft(y).ticks(5, "d"))}></g>
+      <g ref={(g) => d3.select(g).call(d3.axisBottom(x).ticks(4))} transform={"translate(0," + innerHeight + ")"}></g>
     </svg>);
   }
 }
