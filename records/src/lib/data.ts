@@ -1,6 +1,7 @@
 import * as d3 from "d3";
 import { geoMercator } from "d3-geo";
 
+import { PINS } from "../data/pins";
 
 export const SCALE = 1 << 6;
 export const WIDTH = 800;
@@ -81,11 +82,21 @@ export function getRandomInt(min: number, max: number) {
 
 // let mapData: MapEventsData[];
 // load the data
-export function getMapEventData(mapData: MapDatum[], itxId: number, s: MapSelection) {
+export function getMapEventData(itxId: number, s: MapSelection) {
   let delay = getRandomInt(minLatency, maxLatency);
   // FIXME filter based on selection and add determinstic details
-  // console.log("reading mapData", mapData);
-  let data = mapData.filter(d => (d[0] < s.nw[1]) && (d[0] > s.se[1]) && (d[0] < s.se[0]) && (d[1] > s.nw[0]));
+  let data = PINS.filter(d => {
+    if ((d[1] < s.nw[1]) && (d[1] > s.se[1]) && (d[0] < s.se[0]) && (d[0] > s.nw[0])) {
+      return true;
+    }
+    // console.log(d[1], s.nw[1], s.se[1], d[0], s.se[0], s.nw[0]);
+    return false;
+  });
+  console.log("filtered result", data, PINS, s);
+  // hack, to avoid hanging and having no result...
+  if (data.length === 0) {
+    data = [[0, 0, "dummy"]];
+  }
   return new Promise((resolve, reject) => {
     setTimeout(() => resolve({
       s,

@@ -21,8 +21,7 @@ CREATE VIEW mapOnlyState AS
     mapInteractions.ts
   FROM mapInteractions
     JOIN pinResponses ON pinResponses.itxId = mapInteractions.itxId
-    ORDER BY pinResponses.itxId
-    LIMIT 1;
+    ORDER BY pinResponses.itxId DESC LIMIT 1;
 
 
 -- if brush is earlier than the most recent map state, use everything based on brush
@@ -43,7 +42,7 @@ CREATE VIEW renderMapState AS
     setMapBounds(m.latMin, m.latMax, m.longMin, m.longMax)
   FROM
     newMapAndBrushState
-    JOIN mapInteractions AS m ON itxid;
+    INNER JOIN mapInteractions AS m ON newMapAndBrushState.mapItxId = m.itxId;
 
 CREATE VIEW renderPinState AS
   SELECT setPinState(m.latMin, m.latMax, m.longMin, m.longMax, pinData.long, pinData.lat)

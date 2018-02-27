@@ -4,7 +4,7 @@ import * as d3 from "d3";
 import { checkBounds, interactionHelper, getTranslatedMapping } from "../lib/helper";
 import { db } from "../records/setup";
 import { stmts, setupCanvasDependentUDFs } from "../records/mapZoomSetup";
-import { getMapEventData, MapSelection, getRandomInt, Rect, Coords, mapBoundsToTransform, approxEqual, SCALE, WIDTH, HEIGHT } from "../lib/data";
+import { MapSelection, getRandomInt, Rect, Coords, mapBoundsToTransform, approxEqual, SCALE, WIDTH, HEIGHT } from "../lib/data";
 
 interface MapZoomProps {
   width?: number;

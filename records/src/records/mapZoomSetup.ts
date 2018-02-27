@@ -5,8 +5,6 @@ import { geoMercator, geoPath } from "d3-geo";
 import { db, executeFile } from "./setup";
 import { getMapEventData, getUserhData, Coords, MapSelection,  mapBoundsToTransform, SCALE, WIDTH, HEIGHT } from "../lib/data";
 import { getTranslatedMapping } from "../lib/helper";
-// import { genSetMapStateTemp } from "../lib/helper";
-import { PINS } from "../data/pins";
 import { POP, MAXPOP } from "../data/pop";
 import { Statement } from "sql.js";
 
@@ -30,8 +28,8 @@ export function setupMapDB() {
     // also want to insert into pinResponse to indicate that we have values...
     // if it's here, it must be that the dataId is the same as interaction Id, that is, the same query was issued.
     data.forEach((d: any) => {
-      d.unshift(itxId);
-      insertPin.run(d);
+      // d.unshift(itxId);
+      insertPin.run([itxId, ...d]);
     });
     // this response must be the most recent one...
     insertPinResponse.run([itxId, +new Date(), itxId]);
@@ -40,7 +38,7 @@ export function setupMapDB() {
 
   function queryPin(itxId: number, latMin: number, latMax: number, longMin: number, longMax: number) {
     console.log("sending request for", itxId, latMin, latMax, longMin, longMax);
-    getMapEventData(PINS, itxId, {nw: [longMin, latMax], se: [longMax, latMin]}).then(processPinResponse);
+    getMapEventData(itxId, {nw: [longMin, latMax], se: [longMax, latMin]}).then(processPinResponse);
   }
 
   function queryUserData(itxId: number, userId: string) {
