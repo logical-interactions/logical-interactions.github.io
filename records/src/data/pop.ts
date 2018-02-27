@@ -177,4 +177,4 @@ export const POP: {[index: string]: number} = {
   "Antarctica": 0,
   "South Sudan": 1215232,
   "Somaliland": 35000,
-}
+};

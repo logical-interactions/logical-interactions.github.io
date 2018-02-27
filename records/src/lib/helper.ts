@@ -3,52 +3,13 @@ import { Coords, MapSelection } from "./data";
 import * as d3 from "d3";
 import { geoMercator, geoPath } from "d3-geo";
 
-import { mapBoundsToTransform, SCALE, WIDTH, HEIGHT } from "../lib/data";
-import { Transform } from "../lib/history";
+import { mapBoundsToTransform, SCALE, WIDTH, HEIGHT, Transform } from "../lib/data";
 
 export function getTranslatedMapping(t: Transform) {
   return geoMercator()
           .scale(SCALE * t.k)
           .translate([WIDTH - t.x, HEIGHT - t.y]);
 }
-
-// pass in the geo setup, and the canvas
-// need to set a _lock_ on the current map position
-// OR, render the lat long information everysingle time there is a tuple entry???
-// export function genSetMapStateTemp(ctx: CanvasRenderingContext2D) {
-//   // this is the share state..
-//   // check with someone if mixing these is ok??
-//   let p: d3.GeoProjection = null;
-//   function resetMapStateTemp(latMin: number, latMax: number, longMin: number, longMax: number) {
-//     let s = {
-//       nw: [longMin, latMax] as Coords,
-//       se: [longMax, latMin] as Coords
-//     };
-//     let t = mapBoundsToTransform(s, SCALE, WIDTH, HEIGHT);
-//     p = getTranslatedMapping(t);
-//     // hard code for now
-//     ctx.fillStyle = "red";
-//   }
-//   function setMapStateTemp(long: number, lat: number) {
-//     // this needs to mutate some global thing
-//     // console.log("insert", lat, long);
-//     ctx.beginPath();
-//     ctx.arc(p([long, lat])[0], p([long, lat])[1], 2, 0, 2 * Math.PI);
-//     ctx.fill();
-//   }
-//   function drawBrush(latMin: number, latMax: number, longMin: number, longMax: number) {
-//     ctx.fillStyle = "rgba(255, 255, 0, 0.5)";
-//     let nw = p([longMin, latMax]);
-//     let se = p([longMax, latMin]);
-//     ctx.fillRect(nw[0], nw[1], se[0] - nw[0], nw[1] - se[1]);
-//   }
-//   function getMapStateValue() {
-//     // indicate done
-//     // TODO: stop spinner
-//     console.log("done");
-//   }
-//   return [resetMapStateTemp, setMapStateTemp, getMapStateValue, drawBrush];
-// }
 
 export function readFileSync(filename: string): string {
   let request = new XMLHttpRequest();

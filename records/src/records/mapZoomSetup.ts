@@ -19,8 +19,8 @@ export function setupMapDB() {
   executeFile("renderTriggers");
   executeFile("stateManagementTriggers");
 
-  let insertPinResponse = db.prepare("INSERT INTO pinResponses (itxId, ts) VALUES (?, ?)");
-  let insertPin = db.prepare("INSERT INTO pinData (itxId, long, lat) VALUES (?, ?, ?)");
+  let insertPinResponse = db.prepare("INSERT INTO pinResponses (itxId, ts, dataId) VALUES (?, ?, ?)");
+  let insertPin = db.prepare("INSERT INTO pinData (itxId, long, lat, userId) VALUES (?, ?, ?, ?)");
   let insertUsernData = db.prepare("INSERT INTO userData (userId, Q1, Q2, Q3, Q4) VALUES (?, ?, ?, ?, ?);");
 
   function processPinResponse(response: any) {
@@ -33,7 +33,8 @@ export function setupMapDB() {
       d.unshift(itxId);
       insertPin.run(d);
     });
-    insertPinResponse.run([itxId, +new Date()]);
+    // this response must be the most recent one...
+    insertPinResponse.run([itxId, +new Date(), itxId]);
     db.exec("COMMIT;");
   }
 
@@ -111,6 +112,7 @@ export function setupCanvasDependentUDFs(ctx: CanvasRenderingContext2D) {
       ctx.fill();
     });
   }
+  // TODO: draw brush???
 
   let UDFs: any[] = [setPinState, setMapState];
   UDFs.forEach((f) => {

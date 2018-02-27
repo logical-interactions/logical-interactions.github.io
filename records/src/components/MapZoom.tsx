@@ -4,8 +4,7 @@ import * as d3 from "d3";
 import { checkBounds, interactionHelper, getTranslatedMapping } from "../lib/helper";
 import { db } from "../records/setup";
 import { stmts, setupCanvasDependentUDFs } from "../records/mapZoomSetup";
-import { getMapEventData, MapSelection, MapDatum, getRandomInt, Rect, Coords, mapBoundsToTransform, approxEqual, SCALE, WIDTH, HEIGHT } from "../lib/data";
-import { InteractionTypes, PinState, BrushState, Transform } from "../lib/history";
+import { getMapEventData, MapSelection, getRandomInt, Rect, Coords, mapBoundsToTransform, approxEqual, SCALE, WIDTH, HEIGHT } from "../lib/data";
 
 interface MapZoomProps {
   width?: number;
@@ -62,20 +61,6 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     };
   }
 
-  // brushItxId: number;
-  // navItxId: number;
-  // setBrushItxId(brushItxId: number) {
-
-  // }
-  // when the results show up
-  // render the countries and the barcharts
-  // no need to check if the state of the brush is still the same if we bind on data space
-  // setMapState(itxId: number, data: MapDatum[]) {
-  //   console.log("setting map state", itxId, data);
-  //   this.setState({
-  //     pins: {itxId, data}
-  //   });
-  // }
   setMapPending(pending: boolean) {
     this.setState({
       pending
@@ -91,40 +76,6 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
       navSelection,
     });
   }
-
-  // to avoid redundant react updates, should just have one component responsible for one thing.
-  // before components were overloaded with layout etc, try to separate it.
-  // componentDidUpdate() {
-  //   const canvas = this.refs.canvas as HTMLCanvasElement;
-  //   const ctx = canvas.getContext("2d");
-  //   if ((this.state.navSelection) && (this.state.worldData)) {
-  //     ctx.clearRect(0, 0, WIDTH, HEIGHT);
-  //     // clear the map
-  //     // TODO: use fancy buffer to make things even faster!
-  //     // var buffer = document.createElement('canvas');
-  //     // buffer.width = canvas.width;
-  //     // buffer.height = canvas.height;
-  //     // // save
-  //     // buffer.getContext('2d').drawImage(canvas, 0, 0);
-  //     // // restore
-  //     // canvas.getContext('2d').drawImage(buffer, 0, 0);
-  //     let t = mapBoundsToTransform(this.state.navSelection, SCALE, WIDTH, HEIGHT);
-  //     console.log("transformation for render", t);
-  //     let p = getTranslatedMapping(t);
-  //     let path = geoPath()
-  //                 .projection(p)
-  //                 .context(ctx);
-  //     this.state.worldData.forEach((d, i) => {
-  //       let colorVal = this.props.population[d.id] ? Math.pow(this.props.population[d.id] / MAXPOP, 0.4) * 0.6 + 0.1 : 0.2;
-  //       ctx.fillStyle = d3ScaleChromatic.interpolateBlues(colorVal);
-  //       ctx.beginPath();
-  //       path(d);
-  //       ctx.fill();
-  //     });
-  //     // console.log("canvas should have been udapted");
-  //   }
-  // }
-
 
   handleKeyDown(event: any) {
     // Cmd+Z

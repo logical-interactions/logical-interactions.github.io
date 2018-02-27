@@ -5,7 +5,7 @@ import MapZoom from "./MapZoom";
 import Chart from "./Chart";
 
 import { NW, SE } from "../lib/helper";
-import { MapSelection, MapDatum, getRandomInt, getUserhData, Coords } from "../lib/data";
+import { MapSelection, getRandomInt, getUserhData, Coords } from "../lib/data";
 import { db } from "../records/setup";
 import { setupMapDB, stmts } from "../records/mapZoomSetup";
 

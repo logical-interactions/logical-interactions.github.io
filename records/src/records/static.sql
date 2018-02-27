@@ -25,41 +25,41 @@ CREATE TABLE brushItx(
 );
 
 CREATE TABLE mapRequests (
-  itxId INTEGER NOT NULL UNIQUE, 
+  itxId INTEGER NOT NULL UNIQUE,
   ts INTEGER NOT NULL
 );
 
 -- many pin could map to the same pinData
 CREATE TABLE pinData (
-  itxId INTEGER, 
-  userId TEXT, 
-  long INTEGER, 
-  lat INTEGER
+  itxId INTEGER NOT NULL,
+  userId TEXT NOT NULL,
+  long INTEGER NOT NULL,
+  lat INTEGER NOT NULL
 );
 
 CREATE TABLE userData (
-  userId TEXT NOT NULL UNIQUE, 
-  Q1 INTEGER, 
-  Q2 INTEGER, 
-  Q3 INTEGER, 
-  Q4 INTEGER
+  userId TEXT NOT NULL UNIQUE,
+  Q1 INTEGER NOT NULL,
+  Q2 INTEGER NOT NULL,
+  Q3 INTEGER NOT NULL,
+  Q4 INTEGER NOT NULL
 );
 
 CREATE TABLE pinResponses (
-  itxId INTEGER NOT NULL UNIQUE, 
-  ts INTEGER, 
+  itxId INTEGER NOT NULL UNIQUE,
+  ts INTEGER,
   dataId INTEGER
 );
 
 -- TODO: we probably need to log the render data in order to know what the current read situation is.
 CREATE TABLE pinRender(
-  itxId INTEGER NOT NULL UNIQUE, 
+  itxId INTEGER NOT NULL UNIQUE,
   ts INTEGER NOT NULL
 );
 
 -- TODO: somehow insert this sometime...
 CREATE TABLE renderHistory(
-  mapItxId INTEGER NOT NULL, 
+  mapItxId INTEGER NOT NULL,
   brushItxId INTEGER,
   cause TEXT NOT NULL,
   ts INTEGER

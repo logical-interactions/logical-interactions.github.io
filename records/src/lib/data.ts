@@ -22,6 +22,12 @@ export interface Datum {
   error?: number;
 }
 
+export interface Transform {
+  y: number;
+  x: number;
+  k: number;
+}
+
 export function approxEqual(a: number, b: number) {
   if (Math.abs(a - b) > Math.abs(a * 0.01)) {
     console.log("big diff", a, b);
@@ -67,7 +73,7 @@ export function mapBoundsToTransform(s: MapSelection, SCALE: number, WIDTH: numb
   };
 }
 
-export type MapDatum = [number, number];
+export type MapDatum = [number, number, string];
 
 export function getRandomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
