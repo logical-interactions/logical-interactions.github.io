@@ -1,6 +1,5 @@
--- if there is an interaction, we do the trigger for request if there is some threshold
-
--- also grid this so that it snaps to position
+-- triggers are for data fetching
+-- right now we can force a refresh in db on every single event
 
 CREATE TRIGGER processNavItx AFTER INSERT ON mapInteractions
   BEGIN
@@ -13,7 +12,7 @@ CREATE TRIGGER processNavItx AFTER INSERT ON mapInteractions
       WHERE NEW.ts > m.ts + 100;
       -- also update the map state so that there is responsive feedback
     SELECT log(NEW.itxId || ' ' || NEW.latMin || ' ' || NEW.latMax || ' ' || NEW.longMin || ' ' || NEW.longMax, "processNavItx");
-    SELECT setMapBounds(NEW.latMin, NEW.latMax, NEW.longMin, NEW.longMax);
+    -- SELECT setMapBounds(NEW.latMin, NEW.latMax, NEW.longMin, NEW.longMax);
   END;
 
 CREATE TRIGGER processBrushItx AFTER INSERT ON brushItx
@@ -22,11 +21,12 @@ CREATE TRIGGER processBrushItx AFTER INSERT ON brushItx
       SELECT
         NEW.itxId AS itxId,
         timeNow() AS ts
-      FROM (SELECT COALESCE(MAX(ts), 0) AS ts
-      FROM mapRequests) AS m
-      WHERE NEW.ts > m.ts + 100;
-      -- also update the map state so that there is responsive feedback
-    UPDATE currentBrushItx SET itxId = NEW.itxId;
+      FROM 
+        (SELECT COALESCE(MAX(ts), 0) AS ts FROM mapRequests) AS m
+      WHERE
+        NEW.ts > m.ts + 100;
+    UPDATE currentBrushItx
+      SET itxId = NEW.itxId;
     -- SELECT drawBrush(NEW.latMin, NEW.latMax, NEW.longMin, NEW.longMax);
   END;
 
@@ -40,20 +40,20 @@ CREATE TRIGGER processbBrushItxItems AFTER INSERT ON brushItxItems
 
 CREATE TRIGGER fetchbBrushItxItems AFTER INSERT ON brushItxItems
   BEGIN
-    SELECT queryUserData(currentBrushItx.itxId, pinData.userId)
-      FROM
-        currentBrushItx
-        JOIN pinResponses ON currentBrushItx.readItxId = pinResponses.itxId
-        JOIN pinData ON pinData.itxId = pinResponses.dataItx
-      WHERE 
-        pinData.lat < NEW.latMax
-        AND pinData.long < NEW.longMax
-        AND pinData.lat > NEW.latMin
-        AND pinData.long > NEW.longMin
-        AND pinData.userId NOT IN (SELECT userId FROM userData);
+    SELECT
+      queryUserData(currentBrushItx.itxId, pinData.userId)
+    FROM
+      currentBrushItx
+      JOIN pinResponses ON currentBrushItx.readItxId = pinResponses.itxId
+      JOIN pinData ON pinData.itxId = pinResponses.dataItx
+    WHERE 
+      pinData.lat < NEW.latMax
+      AND pinData.long < NEW.longMax
+      AND pinData.lat > NEW.latMin
+      AND pinData.long > NEW.longMin
+      AND pinData.userId NOT IN (SELECT userId FROM userData);
   END;
 
--- we trigger the request
 CREATE TRIGGER processMapRequests AFTER INSERT ON mapRequests
   BEGIN
     SELECT log(NEW.itxId, "processMapRequests");
@@ -78,8 +78,10 @@ CREATE TRIGGER processMapRequests AFTER INSERT ON mapRequests
         ON pinResponses.itxId = matched.itxId;
     -- now if that insersion DIDN'T happen
     -- https://stackoverflow.com/questions/19337029/insert-if-not-exists-statement-in-sqlite this is cool
-    SELECT queryPin(NEW.itxId, mapInteractions.latMin, mapInteractions.latMax, mapInteractions.longMin, mapInteractions.longMax)
-    FROM mapInteractions
+    SELECT
+      queryPin(NEW.itxId, mapInteractions.latMin, mapInteractions.latMax, mapInteractions.longMin, mapInteractions.longMax)
+    FROM
+      mapInteractions
     WHERE
       NOT EXISTS (SELECT itxId from pinResponses WHERE itxId = NEW.itxId)
       AND mapInteractions.itxId = NEW.itxId;
@@ -88,16 +90,3 @@ CREATE TRIGGER processMapRequests AFTER INSERT ON mapRequests
     -- JOIN (SELECT MAX(itxId) AS itxId FROM mapRequests) AS map 
     --   ON pin.itxId < map.itxId
   END;
-
-CREATE TRIGGER updateMapState AFTER INSERT ON pinResponses
-  BEGIN
-    -- TODO: resolve logic
-  END;
-
--- think about how we can do even smarter partial edits
--- https://bl.ocks.org/mbostock/3783604
--- though d3 seems to have done verything already --- can we just shift the canvas left and do thing?
-
--- all the triggers are at the data processing level
-
--- if someone needs complex processing, call UDFs, won't be diff from rx

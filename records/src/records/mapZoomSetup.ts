@@ -14,11 +14,13 @@ export function setupMapDB() {
   // we need to wait for the UDFs to be loaded, trigger by the respective components
   executeFile("static");
   executeFile("mutations");
-  executeFile("triggers");
+  executeFile("views");
+  executeFile("dataFetchTriggers");
+  executeFile("renderTriggers");
 
   let insertPinResponse = db.prepare("INSERT INTO pinResponses (itxId, ts) VALUES (?, ?)");
   let insertPin = db.prepare("INSERT INTO pinData (itxId, long, lat) VALUES (?, ?, ?)");
-  let insertRegionData = db.prepare("INSERT INTO regionData (region, Q1, Q2, Q3, Q4) VALUES (?, ?, ?, ?, ?);");
+  let insertUsernData = db.prepare("INSERT INTO userData (userId, Q1, Q2, Q3, Q4) VALUES (?, ?, ?, ?, ?);");
 
   function processPinResponse(response: any) {
     console.log("received response", response);
@@ -40,13 +42,13 @@ export function setupMapDB() {
   }
 
   function queryUserData(itxId: number, userId: string) {
-    getUserhData(itxId, userId).then(processRegionResponse);
+    getUserhData(itxId, userId).then(processUserDataResponse);
   }
 
-  function processRegionResponse(response: any) {
+  function processUserDataResponse(response: any) {
     // store it in the
-    let {data, region, itxid} = response;
-    insertRegionData.run([region, ...data]);
+    let {data, userId, itxid} = response;
+    insertUsernData.run([userId, ...data]);
   }
 
   let UDFs: any[] = [queryPin, queryUserData];
@@ -88,15 +90,20 @@ export function setupCanvasDependentUDFs(ctx: CanvasRenderingContext2D) {
   }
 
   function setMapState(latMin: number, latMax: number, longMin: number, longMax: number) {
+    console.log("setting map state", arguments);
     ctx.clearRect(0, 0, WIDTH, HEIGHT);
-    let t = mapBoundsToTransform(this.state.navSelection, SCALE, WIDTH, HEIGHT);
+    let s = {
+      nw: [longMin, latMax] as Coords,
+      se: [longMax, latMin] as Coords
+    };
+    let t = mapBoundsToTransform(s, SCALE, WIDTH, HEIGHT);
     console.log("transformation for render", t);
     let p = getTranslatedMapping(t);
     let path = geoPath()
                 .projection(p)
                 .context(ctx);
     worldData.forEach((d, i) => {
-      let colorVal = POP[d.id] ? Math.pow(this.props.population[d.id] / MAXPOP, 0.4) * 0.6 + 0.1 : 0.2;
+      let colorVal = POP[d.id] ? Math.pow(POP[d.id] / MAXPOP, 0.4) * 0.6 + 0.1 : 0.2;
       ctx.fillStyle = d3ScaleChromatic.interpolateBlues(colorVal);
       ctx.beginPath();
       path(d);
@@ -104,17 +111,21 @@ export function setupCanvasDependentUDFs(ctx: CanvasRenderingContext2D) {
     });
   }
 
-  let UDFs: any[] = [setPinState];
+  let UDFs: any[] = [setPinState, setMapState];
   UDFs.forEach((f) => {
     db.create_function(f.name, f);
   });
 }
 
+// we cannot really call this from the engine since we are not sure if this is properly inserted into the DB...
+// tho it would be weird to call this from the db though...
 function evalView() {
-  db.exec("BEGIN TRANSACTION;");
-  db.exec("SELECT * FROM renderMapState");
-  db.exec("SELECT * FROM renderPinState");
-  db.exec("COMMIT;");
+  db.exec(`
+    BEGIN TRANSACTION;
+    SELECT * FROM renderMapState;
+    SELECT * FROM renderPinState;
+    COMMIT;
+  `);
 }
 
 
@@ -157,20 +168,3 @@ function getMapZoomStatements() {
 }
 
 export const stmts = getMapZoomStatements();
-
-// // export const insertNavItxStmt = db.prepare("INSERT INTO mapInteractions (ts, longMin, latMax, longMax, latMin, itxType) VALUES (?, ?, ?, ?, ?, 'nav')");
-
-// export const insertBrushItxStmt = db.prepare("INSERT INTO brushItx (ts, mapItxId) VALUES (?, ?)");
-
-// export const insertBrushItxItemStmt = db.prepare(`
-//   INSERT INTO brushItxItems (ts, region) VALUES (?, ?);
-// `);
-
-// // the rest are interal/helper
-
-// let insertRegionData = db.prepare("INSERT INTO regionData (region, Q1, Q2, Q3, Q4) VALUES (?, ?, ?, ?, ?);");
-
-// let insertPin = db.prepare("INSERT INTO pinData (itxId, long, lat) VALUES (?, ?, ?)");
-
-// let insertPinResponse = db.prepare("INSERT INTO pinResponses (itxId, ts) VALUES (?, ?)");
-

@@ -145,6 +145,12 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
       let {nw, se} = interactionHelper(this.state.navSelection, itxType);
       let controlsDisabledOld = Object.assign({}, this.state.controlsDisabled);
       let controlsDisabled = checkBounds(controlsDisabledOld, nw as Coords, se as Coords);
+      // also if this.state.navSeletion is null, disable
+      if (!this.state.navSelection) {
+        Object.keys(controlsDisabled).forEach((key) => {
+          controlsDisabled[key] = true;
+        });
+      }
       if (JSON.stringify(controlsDisabled) !== JSON.stringify(this.state.controlsDisabled)) {
         this.setState({controlsDisabled});
       }

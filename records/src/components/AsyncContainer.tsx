@@ -12,7 +12,7 @@ import { setupMapDB, stmts } from "../records/mapZoomSetup";
 
 interface AsyncContainerState {
   showExample: boolean;
-  pop?: {[index: string]: number};
+  // pop?: {[index: string]: number};
 }
 
 export default class AsyncContainer extends React.Component<undefined, AsyncContainerState> {
@@ -23,14 +23,14 @@ export default class AsyncContainer extends React.Component<undefined, AsyncCont
     this.state = {
       showExample: true,
     };
-    d3.tsv("/data/world_population.tsv", (error: any, data: any[]) => {
-      let pop: {[index: string]: number} = {};
-      data.map((d) => {
-        pop[d.name] = parseInt(d.population, 10);
-      });
-      this.setState({pop});
-      console.log("population object", pop);
-    });
+    // d3.tsv("/data/world_population.tsv", (error: any, data: any[]) => {
+    //   let pop: {[index: string]: number} = {};
+    //   data.map((d) => {
+    //     pop[d.name] = parseInt(d.population, 10);
+    //   });
+    //   this.setState({pop});
+    //   console.log("population object", pop);
+    // });
   }
 
   // so this mounts only when all children have mounted, great!
