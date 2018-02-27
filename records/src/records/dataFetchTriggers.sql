@@ -30,14 +30,6 @@ CREATE TRIGGER processBrushItx AFTER INSERT ON brushItx
     -- SELECT drawBrush(NEW.latMin, NEW.latMax, NEW.longMin, NEW.longMax);
   END;
 
-CREATE TRIGGER processbBrushItxItems AFTER INSERT ON brushItxItems
-  BEGIN
-    UPDATE brushItxItems
-      SET itxId = (SELECT itxId FROM currentBrushItx)
-      WHERE
-        brushItxItems.ts = NEW.ts;
-  END;
-
 CREATE TRIGGER fetchbBrushItxItems AFTER INSERT ON brushItxItems
   BEGIN
     SELECT
@@ -45,7 +37,7 @@ CREATE TRIGGER fetchbBrushItxItems AFTER INSERT ON brushItxItems
     FROM
       currentBrushItx
       JOIN pinResponses ON currentBrushItx.readItxId = pinResponses.itxId
-      JOIN pinData ON pinData.itxId = pinResponses.dataItx
+      JOIN pinData ON pinData.itxId = pinResponses.dataId
     WHERE 
       pinData.lat < NEW.latMax
       AND pinData.long < NEW.longMax

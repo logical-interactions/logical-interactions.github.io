@@ -17,6 +17,7 @@ export function setupMapDB() {
   executeFile("views");
   executeFile("dataFetchTriggers");
   executeFile("renderTriggers");
+  executeFile("stateManagementTriggers");
 
   let insertPinResponse = db.prepare("INSERT INTO pinResponses (itxId, ts) VALUES (?, ?)");
   let insertPin = db.prepare("INSERT INTO pinData (itxId, long, lat) VALUES (?, ?, ?)");
@@ -133,6 +134,8 @@ function getMapZoomStatements() {
   let stmts: {
     insertNavItx: Statement;
     insertBrushItx: Statement;
+    insertBrushItxItems: Statement;
+    brushItxDone: Statement;
     undoQuery: Statement;
 
   };
@@ -140,7 +143,9 @@ function getMapZoomStatements() {
     if (!stmts) {
       stmts = {
         insertNavItx: db.prepare("INSERT INTO mapInteractions (ts, longMin, latMax, longMax, latMin) VALUES (?, ?, ?, ?, ?)"),
-        insertBrushItx: db.prepare("INSERT INTO brushItx (ts, mapItxId) VALUES (?, ?)"),
+        insertBrushItx: db.prepare("INSERT INTO brushItx (ts) VALUES (?)"),
+        insertBrushItxItems: db.prepare("INSERT INTO brushItxItems (ts, longMin, latMax, longMax, latMin) VALUES (?, ?, ?, ?, ?)"),
+        brushItxDone: db.prepare("UPDATE currentBrushItx SET done = 1;"),
         undoQuery: db.prepare(`
         SELECT log('started', 'undo');
         UPDATE mapInteractions

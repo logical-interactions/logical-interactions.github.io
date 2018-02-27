@@ -19,8 +19,8 @@ CREATE TABLE brushItxItems (
 );
 
 CREATE TABLE brushItx(
-  itxId INTEGER PRIMARY KEY, 
-  ts INTEGER, 
+  itxId INTEGER PRIMARY KEY,
+  ts INTEGER NOT NULL,
   mapItxId INTEGER
 );
 
@@ -60,6 +60,7 @@ CREATE TABLE pinRender(
 -- TODO: somehow insert this sometime...
 CREATE TABLE renderHistory(
   mapItxId INTEGER NOT NULL, 
-  brushItxId INTEGER, 
-  cause TEXT NOT NULL
+  brushItxId INTEGER,
+  cause TEXT NOT NULL,
+  ts INTEGER
 );

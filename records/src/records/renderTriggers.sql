@@ -6,7 +6,7 @@
 
 CREATE TRIGGER refreshAfterPinResponses AFTER INSERT ON pinResponses
   BEGIN
-    INSERT INTO renderHistory SELECT *, 'pinResponses' FROM newMapAndBrushState;
+    INSERT INTO renderHistory SELECT *, 'pinResponses', timeNow() FROM newMapAndBrushState;
     SELECT * FROM renderMapState;
     SELECT * FROM renderPinState;
     SELECT * FROM renderChartState;
@@ -14,7 +14,7 @@ CREATE TRIGGER refreshAfterPinResponses AFTER INSERT ON pinResponses
 
 CREATE TRIGGER refreshAfterMapRequests AFTER INSERT ON mapRequests
   BEGIN
-    INSERT INTO renderHistory SELECT *, 'mapRequests' FROM newMapAndBrushState;
+    INSERT INTO renderHistory SELECT *, 'mapRequests', timeNow() FROM newMapAndBrushState;
     SELECT * FROM renderMapState;
     SELECT * FROM renderPinState;
     SELECT * FROM renderChartState;
@@ -22,7 +22,7 @@ CREATE TRIGGER refreshAfterMapRequests AFTER INSERT ON mapRequests
 
 CREATE TRIGGER refreshAfterBrushItxItems AFTER INSERT ON brushItxItems
   BEGIN
-    INSERT INTO renderHistory SELECT *, 'brushItxItems' FROM newMapAndBrushState;
+    INSERT INTO renderHistory SELECT *, 'brushItxItems', timeNow() FROM newMapAndBrushState;
     SELECT * FROM renderMapState;
     SELECT * FROM renderPinState;
     SELECT * FROM renderChartState;
@@ -31,7 +31,7 @@ CREATE TRIGGER refreshAfterBrushItxItems AFTER INSERT ON brushItxItems
 -- TODO: try the optimization this we know for sure would NOT update the map or pin state
 CREATE TRIGGER refreshUserData AFTER INSERT ON userData
   BEGIN
-    INSERT INTO renderHistory SELECT *, 'userData' FROM newMapAndBrushState;
+    INSERT INTO renderHistory SELECT *, 'userData', timeNow() FROM newMapAndBrushState;
     SELECT * FROM renderMapState;
     SELECT * FROM renderPinState;
     SELECT * FROM renderChartState;

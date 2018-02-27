@@ -52,9 +52,10 @@ CREATE VIEW renderPinState AS
     JOIN pinData ON pinData.itxId = pinResponses.dataId
     JOIN mapInteractions AS m ON s.mapItxId = m.itxid;
 
+-- assuming that the auto increment starts at 1, this boolean business is fine.
 CREATE VIEW renderChartState AS
   SELECT
-    setChartDataState(AVG(userData.Q1), AVG(userData.Q2), AVG(userData.Q3), AVG(userData.Q4))
+    setChartDataState(AVG(userData.Q1), AVG(userData.Q2), AVG(userData.Q3), AVG(userData.Q4), COALESCE(s.brushItxId, 0))
   FROM
     newMapAndBrushState AS s
     JOIN mapInteractions AS m ON s.mapItxId = m.itxId

@@ -18,6 +18,7 @@ interface MapZoomProps {
 interface MapZoomState {
   // brushItxId: number;
   // navItxId: number;
+  pending: boolean;
   navSelection: MapSelection;
   shiftDown: boolean;
   // pins: PinState;
@@ -39,10 +40,10 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
 
   constructor(props: MapZoomProps) {
     super(props);
-    // this.setMapState = this.setMapState.bind(this);
+    this.setMapPending = this.setMapPending.bind(this);
     this.setMapBounds = this.setMapBounds.bind(this);
     this.interact = this.interact.bind(this);
-    // db.create_function("setMapState", this.setMapState);
+    db.create_function("setMapPending", this.setMapPending);
     db.create_function("setMapBounds", this.setMapBounds);
     this.state = {
       shiftDown: false,
@@ -56,6 +57,7 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
         "down": false,
         "brush": false,
       },
+      pending: false,
       // worldData: [],
     };
   }
@@ -74,14 +76,19 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
   //     pins: {itxId, data}
   //   });
   // }
+  setMapPending(pending: boolean) {
+    this.setState({
+      pending
+    });
 
+  }
   setMapBounds(latMin: number, latMax: number, longMin: number, longMax: number) {
     let navSelection = {
       nw: [longMin, latMax] as Coords,
       se: [longMax, latMin] as Coords
     };
     this.setState({
-      navSelection
+      navSelection,
     });
   }
 
@@ -170,12 +177,15 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
       let p = getTranslatedMapping(t);
       let brush = d3.brush()
                     .extent([[0, 0], [innerWidth, innerHeight]])
+                    .on("start", function() {
+                      stmts().insertBrushItx.run([]);
+                    })
                     .on("end", function() {
                       const s = d3.brushSelection(this) as [[number, number], [number, number]];
                       if (s !== null) {
                         let nw = p.invert(s[0]);
                         let se = p.invert(s[1]);
-                        stmts().insertBrushItx.run([+new Date(), ...nw, ...se]);
+                        stmts().insertBrushItxItems.run([+new Date(), ...nw, ...se]);
                       }
                     });
       brushDiv = <g ref={ g => d3.select(g).call(brush) }></g>;
