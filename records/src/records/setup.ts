@@ -38,8 +38,8 @@ UDFs.forEach((f) => {
   db.create_function(f.name, f);
 });
 
-export function executeFile(fn: string) {
-  let setupSql = readFileSync(`/src/records/${fn}.sql`);
+export function executeFile(folder: string, fn: string) {
+  let setupSql = readFileSync(`/src/records/${folder}/${fn}.sql`);
   let scripts = setupSql.split(";\n\n");
   scripts.forEach((s, i) => {
     s = s.replace(/^ *--.*$/mg, "");

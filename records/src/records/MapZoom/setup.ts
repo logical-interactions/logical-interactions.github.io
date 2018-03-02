@@ -2,18 +2,15 @@ import { feature } from "topojson";
 import * as d3ScaleChromatic from "d3-scale-chromatic";
 import { geoMercator, geoPath } from "d3-geo";
 
-import { db, executeFile } from "./setup";
-import { getMapEventData, getUserhData, Coords, MapSelection,  mapBoundsToTransform, SCALE, WIDTH, HEIGHT } from "../lib/data";
-import { getTranslatedMapping } from "../lib/helper";
-import { POP, MAXPOP } from "../data/pop";
+import { db, executeFile } from "../setup";
+import { getMapEventData, getUserhData, Coords, MapSelection,  mapBoundsToTransform, SCALE, WIDTH, HEIGHT } from "../../lib/data";
+import { getTranslatedMapping } from "../../lib/helper";
+import { POP, MAXPOP } from "../../data/pop";
 import { Statement } from "sql.js";
 
 export function setupMapDB() {
   // we need to wait for the UDFs to be loaded, trigger by the respective components
-  executeFile("static");
-  executeFile("views");
-  executeFile("dataFetchTriggers");
-  executeFile("renderTriggers");
+  ["tables", "views", "dataFetchTriggers", "renderTriggers"].map(f => {executeFile("MapZoom", f); });
 
   let insertPinResponse = db.prepare("INSERT INTO pinResponses (itxId, ts) VALUES (?, ?)");
   let insertPin = db.prepare("INSERT OR IGNORE INTO pinData (long, lat, userId) VALUES (?, ?, ?)");
