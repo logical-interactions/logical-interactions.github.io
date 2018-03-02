@@ -40,7 +40,7 @@ CREATE VIEW newMapAndBrushState AS
 CREATE VIEW pinPending AS
   SELECT setMapPending(val.pending)
   FROM (
-    SELECT COALESCE(pinResponses.dataId, 0) = 0 AS pending
+    SELECT COALESCE(pinResponses.itxId, 0) AS pending
     FROM newMapAndBrushState AS s
       JOIN pinResponses ON pinResponses.itxId = s.mapItxId
   ) AS val;
@@ -65,10 +65,14 @@ CREATE VIEW renderMapState AS
 
 CREATE VIEW renderPinState AS
   SELECT setPinState(m.latMin, m.latMax, m.longMin, m.longMax, pinData.long, pinData.lat)
-  FROM newMapAndBrushState AS s
-    JOIN pinResponses ON pinResponses.itxId = s.mapItxId
-    JOIN pinData ON pinData.itxId = pinResponses.dataId
-    JOIN mapInteractions AS m ON s.mapItxId = m.itxid;
+  FROM
+    newMapAndBrushState AS s
+    JOIN mapInteractions AS m ON s.mapItxId = m.itxid
+    JOIN pinData ON 
+      pinData.lat < m.latMax
+      AND pinData.long < m.longMax
+      AND pinData.lat > m.latMin
+      AND pinData.long > m.longMin;
     -- don't render again if the mapItx hasn't changed and there has been a render based on the mapItx
     -- (
     --   SELECT mapItxId AS mapItxId
@@ -94,8 +98,7 @@ CREATE VIEW chartUserIds AS
       ) AS t
       ON b.ts = t.ts
     JOIN pinData
-      ON pinData.itxId = s.mapItxId
-      AND pinData.lat < b.latMax
+      ON pinData.lat < b.latMax
       AND pinData.long < b.longMax
       AND pinData.lat > b.latMin
       AND pinData.long > b.longMin;

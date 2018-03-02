@@ -31,10 +31,11 @@ CREATE TABLE mapRequests (
 
 -- many pin could map to the same pinData
 CREATE TABLE pinData (
-  itxId INTEGER NOT NULL,
+  -- itxId INTEGER NOT NULL,
   userId TEXT NOT NULL,
   long INTEGER NOT NULL,
-  lat INTEGER NOT NULL
+  lat INTEGER NOT NULL,
+  UNIQUE(userId, long, lat)
 );
 
 CREATE TABLE userData (
@@ -47,8 +48,7 @@ CREATE TABLE userData (
 
 CREATE TABLE pinResponses (
   itxId INTEGER NOT NULL UNIQUE,
-  ts INTEGER,
-  dataId INTEGER
+  ts INTEGER
 );
 
 -- TODO: we probably need to log the render data in order to know what the current read situation is.

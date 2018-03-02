@@ -105,7 +105,7 @@ export function getMapEventData(itxId: number, s: MapSelection) {
   });
 }
 
-export function getUserhData(itxid: number, userId: string) {
+export function getUserhData(userId: string) {
   // make it slightly longer than the other
   let delay = getRandomInt(minLatency, maxLatency) * 2;
   // fake data make up a bar chart based on the param
@@ -117,7 +117,6 @@ export function getUserhData(itxid: number, userId: string) {
     setTimeout(() => resolve({
       data,
       userId,
-      itxid,
     }), delay);
   });
 }

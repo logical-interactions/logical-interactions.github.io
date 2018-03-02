@@ -15,8 +15,8 @@ export function setupMapDB() {
   executeFile("dataFetchTriggers");
   executeFile("renderTriggers");
 
-  let insertPinResponse = db.prepare("INSERT INTO pinResponses (itxId, ts, dataId) VALUES (?, ?, ?)");
-  let insertPin = db.prepare("INSERT INTO pinData (itxId, long, lat, userId) VALUES (?, ?, ?, ?)");
+  let insertPinResponse = db.prepare("INSERT INTO pinResponses (itxId, ts) VALUES (?, ?)");
+  let insertPin = db.prepare("INSERT OR IGNORE INTO pinData (long, lat, userId) VALUES (?, ?, ?)");
   let insertUsernData = db.prepare("INSERT INTO userData (userId, Q1, Q2, Q3, Q4) VALUES (?, ?, ?, ?, ?);");
 
   function processPinResponse(response: any) {
@@ -30,10 +30,10 @@ export function setupMapDB() {
     // if it's here, it must be that the dataId is the same as interaction Id, that is, the same query was issued.
     data.forEach((d: any) => {
       // d.unshift(itxId);
-      insertPin.run([itxId, ...d]);
+      insertPin.run(d);
     });
     // this response must be the most recent one...
-    insertPinResponse.run([itxId, +new Date(), itxId]);
+    insertPinResponse.run([itxId, +new Date()]);
     db.exec("COMMIT;");
   }
 
@@ -42,8 +42,8 @@ export function setupMapDB() {
     getMapEventData(itxId, {nw: [longMin, latMax], se: [longMax, latMin]}).then(processPinResponse);
   }
 
-  function queryUserData(itxId: number, userId: string) {
-    getUserhData(itxId, userId).then(processUserDataResponse);
+  function queryUserData(userId: string) {
+    getUserhData( userId).then(processUserDataResponse);
   }
 
   function processUserDataResponse(response: any) {
