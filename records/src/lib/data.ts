@@ -80,7 +80,7 @@ export function getRandomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-// let mapData: MapEventsData[];
+// let mapData: MapEvents  Data[];
 // load the data
 export function getMapEventData(itxId: number, s: MapSelection) {
   let delay = getRandomInt(minLatency, maxLatency);
@@ -89,7 +89,6 @@ export function getMapEventData(itxId: number, s: MapSelection) {
     if ((d[1] < s.nw[1]) && (d[1] > s.se[1]) && (d[0] < s.se[0]) && (d[0] > s.nw[0])) {
       return true;
     }
-    // console.log(d[1], s.nw[1], s.se[1], d[0], s.se[0], s.nw[0]);
     return false;
   });
   console.log("filtered result", data, PINS, s);

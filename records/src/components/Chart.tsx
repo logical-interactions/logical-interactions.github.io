@@ -36,6 +36,7 @@ export default class Chart extends React.Component<ChartProps, ChartState> {
   constructor(props: ChartProps) {
     super(props);
     this.setChartDataState = this.setChartDataState.bind(this);
+    this.setChartPending = this.setChartPending.bind(this);
     this.state = {
       data: null, // just to test that it's working?
       pending: false,
@@ -43,20 +44,26 @@ export default class Chart extends React.Component<ChartProps, ChartState> {
   }
 
   componentDidMount() {
+    db.create_function("setChartPending", this.setChartPending);
     db.create_function("setChartDataState", this.setChartDataState);
   }
 
-  setChartDataState(q1: number, q2: number, q3: number, q4: number, pending: boolean) {
+  setChartPending(pending: boolean) {
+    console.log("setChartPending", pending);
+    this.setState({
+      pending,
+    });
+  }
+
+  setChartDataState(q1: number, q2: number, q3: number, q4: number) {
     console.log("setting chart data state", arguments);
     if ((q1 !== null) && (q2 !== null) && (q3 !== null) && (q4 !== null)) {
       this.setState({
         data: [q1, q2, q3, q4],
-        pending
       });
     } else {
       this.setState({
         data: null,
-        pending
       });
     }
   }

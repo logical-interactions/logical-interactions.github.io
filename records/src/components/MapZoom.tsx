@@ -65,7 +65,6 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     this.setState({
       pending
     });
-
   }
   setMapBounds(latMin: number, latMax: number, longMin: number, longMax: number) {
     let navSelection = {
@@ -118,7 +117,7 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
 
   render() {
     let { width, height } = this.props;
-    let { controlsDisabled } = this.state;
+    let { controlsDisabled, pending } = this.state;
     let brushDiv: JSX.Element;
     if (this.state.navSelection) {
       let t = mapBoundsToTransform(this.state.navSelection, SCALE, WIDTH, HEIGHT);
@@ -129,7 +128,7 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
       let brush = d3.brush()
                     .extent([[0, 0], [innerWidth, innerHeight]])
                     .on("start", function() {
-                      stmts().insertBrushItx.run([]);
+                      stmts().insertBrushItx.run([+new Date()]);
                     })
                     .on("end", function() {
                       const s = d3.brushSelection(this) as [[number, number], [number, number]];
@@ -142,11 +141,17 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
       brushDiv = <g ref={ g => d3.select(g).call(brush) }></g>;
     }
     let controls = ["in", "out", "left", "right", "up", "down"].map((c) => <button onClick={this.interact(c)} disabled={controlsDisabled[c]}>{c}</button>);
+    let pendingSvg: JSX.Element;
+    if (pending) {
+      console.log("showing as pending");
+      pendingSvg = <rect x="0" y="0" width={WIDTH} height={HEIGHT} fill="black" opacity="0.1" />;
+    }
     return(<>
       {controls}
       <div style={{position: "relative", height: HEIGHT, width: WIDTH}}>
         <canvas style={{position: "absolute"}} ref="canvas" width={WIDTH} height={HEIGHT} />
         <svg style={{position: "absolute"}} width={WIDTH} height={HEIGHT}>
+          {pendingSvg}
           {brushDiv}
         </svg>
       </div>

@@ -15,21 +15,6 @@ CREATE TRIGGER processNavItx AFTER INSERT ON mapInteractions
     -- SELECT setMapBounds(NEW.latMin, NEW.latMax, NEW.longMin, NEW.longMax);
   END;
 
-CREATE TRIGGER processBrushItx AFTER INSERT ON brushItx
-  BEGIN
-    INSERT INTO mapRequests
-      SELECT
-        NEW.itxId AS itxId,
-        timeNow() AS ts
-      FROM 
-        (SELECT COALESCE(MAX(ts), 0) AS ts FROM mapRequests) AS m
-      WHERE
-        NEW.ts > m.ts + 100;
-    UPDATE currentBrushItx
-      SET itxId = NEW.itxId;
-    -- SELECT drawBrush(NEW.latMin, NEW.latMax, NEW.longMin, NEW.longMax);
-  END;
-
 CREATE TRIGGER fetchbBrushItxItems AFTER INSERT ON brushItxItems
   BEGIN
     SELECT

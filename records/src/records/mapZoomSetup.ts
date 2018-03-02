@@ -24,6 +24,9 @@ export function setupMapDB() {
   function processPinResponse(response: any) {
     console.log("received response", response);
     const {selection, data, itxId} = response;
+    if (!data) {
+      throw new Error("Pin data should be defined");
+    }
     db.exec("BEGIN TRANSACTION;");
     // also want to insert into pinResponse to indicate that we have values...
     // if it's here, it must be that the dataId is the same as interaction Id, that is, the same query was issued.
@@ -61,18 +64,8 @@ export function setupCanvasDependentUDFs(ctx: CanvasRenderingContext2D) {
 
   // data needed for canvas drawing map
   // can always keep in the context
+  let worldDataLoaded: boolean = false;
   let worldData: any[];
-  fetch("/data/world.json")
-  .then(response => {
-    if (response.status !== 200) {
-      console.log(`There was a problem: ${response.status}`);
-      return;
-    }
-    response.json().then(worldDataRaw => {
-      worldData = feature(worldDataRaw, worldDataRaw.objects.countries).features;
-    });
-  });
-
   // fixme: this seems a bit wasteful, but it would be automatically correct synchronization wise...
   // i wonder how expensive it actually is...
   function setPinState(latMin: number, latMax: number, longMin: number, longMax: number, long: number, lat: number) {
@@ -102,13 +95,30 @@ export function setupCanvasDependentUDFs(ctx: CanvasRenderingContext2D) {
     let path = geoPath()
                 .projection(p)
                 .context(ctx);
-    worldData.forEach((d, i) => {
+
+    function _setMapStateHelper(d: any, i: number) {
       let colorVal = POP[d.id] ? Math.pow(POP[d.id] / MAXPOP, 0.4) * 0.6 + 0.1 : 0.2;
       ctx.fillStyle = d3ScaleChromatic.interpolateBlues(colorVal);
       ctx.beginPath();
       path(d);
       ctx.fill();
-    });
+    }
+    if (!worldDataLoaded) {
+      fetch("/data/world.json")
+        .then(response => {
+          if (response.status !== 200) {
+            console.log(`There was a problem: ${response.status}`);
+            return;
+          }
+          response.json().then(worldDataRaw => {
+            worldData = feature(worldDataRaw, worldDataRaw.objects.countries).features;
+            worldDataLoaded = true;
+            worldData.forEach(_setMapStateHelper);
+          });
+        });
+      } else {
+        worldData.forEach(_setMapStateHelper);
+    }
   }
   // TODO: draw brush???
 
@@ -143,8 +153,12 @@ function getMapZoomStatements() {
     if (!stmts) {
       stmts = {
         insertNavItx: db.prepare("INSERT INTO mapInteractions (ts, longMin, latMax, longMax, latMin) VALUES (?, ?, ?, ?, ?)"),
-        insertBrushItx: db.prepare("INSERT INTO brushItx (ts) VALUES (?)"),
-        insertBrushItxItems: db.prepare("INSERT INTO brushItxItems (ts, longMin, latMax, longMax, latMin) VALUES (?, ?, ?, ?, ?)"),
+        insertBrushItx: db.prepare(`INSERT INTO brushItx (ts) VALUES (?);`),
+        insertBrushItxItems: db.prepare(`
+          INSERT INTO brushItxItems (itxId, ts, longMin, latMax, longMax, latMin)
+            SELECT itxId, ?, ?, ?, ?, ?
+            FROM currentBrushItx
+        `),
         brushItxDone: db.prepare("UPDATE currentBrushItx SET done = 1;"),
         undoQuery: db.prepare(`
         SELECT log('started', 'undo');
