@@ -11,11 +11,9 @@ import { Statement } from "sql.js";
 export function setupMapDB() {
   // we need to wait for the UDFs to be loaded, trigger by the respective components
   executeFile("static");
-  executeFile("mutations");
   executeFile("views");
   executeFile("dataFetchTriggers");
   executeFile("renderTriggers");
-  executeFile("stateManagementTriggers");
 
   let insertPinResponse = db.prepare("INSERT INTO pinResponses (itxId, ts, dataId) VALUES (?, ?, ?)");
   let insertPin = db.prepare("INSERT INTO pinData (itxId, long, lat, userId) VALUES (?, ?, ?, ?)");
@@ -145,7 +143,7 @@ function getMapZoomStatements() {
     insertNavItx: Statement;
     insertBrushItx: Statement;
     insertBrushItxItems: Statement;
-    brushItxDone: Statement;
+    // brushItxDone: Statement;
     undoQuery: Statement;
 
   };
@@ -153,13 +151,18 @@ function getMapZoomStatements() {
     if (!stmts) {
       stmts = {
         insertNavItx: db.prepare("INSERT INTO mapInteractions (ts, longMin, latMax, longMax, latMin) VALUES (?, ?, ?, ?, ?)"),
-        insertBrushItx: db.prepare(`INSERT INTO brushItx (ts) VALUES (?);`),
+        insertBrushItx: db.prepare(`
+          INSERT INTO brushItx (ts, mapItxId)
+          SELECT ?, renderHistory.mapItxId
+          FROM renderHistory
+          JOIN (SELECT MAX(ts) AS ts FROM renderHistory) AS m ON m.ts = renderHistory.ts;
+        `),
         insertBrushItxItems: db.prepare(`
           INSERT INTO brushItxItems (itxId, ts, longMin, latMax, longMax, latMin)
-            SELECT itxId, ?, ?, ?, ?, ?
-            FROM currentBrushItx
+            SELECT MAX(itxId), ?, ?, ?, ?, ?
+            FROM brushItx;
         `),
-        brushItxDone: db.prepare("UPDATE currentBrushItx SET done = 1;"),
+        // brushItxDone: db.prepare("UPDATE currentBrushItx SET done = 1;"),
         undoQuery: db.prepare(`
         SELECT log('started', 'undo');
         UPDATE mapInteractions

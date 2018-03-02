@@ -18,10 +18,10 @@ CREATE TRIGGER processNavItx AFTER INSERT ON mapInteractions
 CREATE TRIGGER fetchbBrushItxItems AFTER INSERT ON brushItxItems
   BEGIN
     SELECT
-      queryUserData(currentBrushItx.itxId, pinData.userId)
+      queryUserData(b.itxId, pinData.userId)
     FROM
-      currentBrushItx
-      JOIN pinResponses ON currentBrushItx.readItxId = pinResponses.itxId
+      (SELECT itxId, mapItxId FROM brushItx ORDER BY itxId DESC LIMIT 1) AS b
+      JOIN pinResponses ON b.mapItxId = pinResponses.itxId
       JOIN pinData ON pinData.itxId = pinResponses.dataId
     WHERE 
       pinData.lat < NEW.latMax

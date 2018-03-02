@@ -155,6 +155,11 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
           {brushDiv}
         </svg>
       </div>
+      <button>Show Me Where I've Been</button>
+      <button>Export Selected User Ids</button>
+      <button>Animate Where I've been</button>
+      <button>Clear Cache</button>
+      <button>Stream Data</button>
     </>);
   }
 }

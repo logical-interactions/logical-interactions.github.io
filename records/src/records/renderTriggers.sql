@@ -38,6 +38,7 @@ CREATE TRIGGER refreshUserData AFTER INSERT ON userData
     SELECT * FROM renderMapState;
     SELECT * FROM renderPinState;
     SELECT * FROM renderChartState;
+    SELECT * FROM chartPending;
     INSERT INTO renderHistory SELECT *, 'userData', timeNow() FROM newMapAndBrushState;
   END;
 
