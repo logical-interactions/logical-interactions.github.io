@@ -1,9 +1,16 @@
--- TODO: reference data.sql file in RUIO
-CREATE VIEW hourChartData AS
-   SELECT
-    getHour(date) AS val,
-    COUNT(*) AS count,
-    'hour' AS chart,
-    data_bins.lt AS lt
-  FROM data_bins
-  GROUP BY hour;
+-- inerted into filterHistory
+-- CREATE VIEW currentInteractions AS
+--   SELECT
+--     chart,
+--     MAX(itxId) AS itxId
+--   FROM
+--     brushItx
+--   GROUP BY chart;
+
+CREATE VIEW currentItx AS
+  SELECT
+    o.*
+  FROM brushItx o
+    LEFT JOIN brushItx b
+        ON o.chart = b.chart AND o.ts < b.ts
+  WHERE b.ts is NULL;
