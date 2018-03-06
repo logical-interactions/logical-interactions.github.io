@@ -23,38 +23,13 @@ CREATE VIEW distanceChartDataView AS
 -- needs some basic templating here perhaps?
 CREATE VIEW filteredDataView AS
   SELECT
+    binnedData.*
+  FROM
     binnedData
-    JOIN (
-      SELECT
-        itxId,
-        b.low,
-        b.high
-      FROM
-        currentItx b
-      WHERE chart = 'hour'
-    ) AS hourItx ON
-      (hourItx.low  IS NULL AND hourItx.high IS NULL)
-      OR (binnedData.hour >= hourItx.low AND binnedData.hour <= hourItx.high)
-    JOIN (
-      SELECT
-        itxId,
-        b.low,
-        b.high
-      FROM
-        currentItx b
-      WHERE chart = 'delay'
-    ) AS delayItx ON
-      (delayItx.low  IS NULL AND delayItx.high IS NULL)
-      OR (binnedData.delay >= delayItx.low AND binnedData.delay <= delayItx.high)
-    JOIN (
-      SELECT
-        itxId,
-        b.low,
-        b.high
-      FROM
-        currentItx b
-      WHERE chart = 'distance'
-    ) AS distanceItx ON
-      (distanceItx.low  IS NULL AND distanceItx.high IS NULL)
-      OR (binnedData.distance >= distanceItx.low AND binnedData.distance <= distanceItx.high)
-  ;
+    JOIN xFilterRequest AS f
+      ON ((f.hourLow  IS NULL AND f.hourHigh IS NULL)
+         OR (binnedData.hour >= f.hourLow  AND binnedData.hour <= f.hourHigh))
+      AND ((f.delayLow  IS NULL AND f.delayHigh IS NULL)
+         OR (binnedData.delay >= f.delayLow  AND binnedData.delay <= f.delayHigh))
+      AND ((f.distanceLow  IS NULL AND f.distanceHigh IS NULL)
+         OR (binnedData.distance >= f.distanceLow  AND binnedData.distance <= f.distanceHigh))

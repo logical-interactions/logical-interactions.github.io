@@ -1,13 +1,21 @@
 import * as React from "react";
 import * as d3 from "d3";
 
+import { Indicator } from "./Indicator";
 import { db } from "../records/setup";
 import { Datum } from "../lib/data";
+import { bindDefault } from "../lib/helper";
+import { getXFilterStmts } from "../records/XFilter/setup";
 
 // slightly different from the original XFilterChart, since we need two layers
 
 interface XFilterChartProps {
-  baseData: [{x: string, y: number}];
+  baseData: {x: number, y: number}[];
+  xFilterData: {x: number, y: number}[];
+  pending: boolean;
+  // doesn't quite work with chronicles yet
+  chart: string;
+  fill?: string;
   height?: number;
   width?: number;
   marginBottom?: number;
@@ -17,89 +25,62 @@ interface XFilterChartProps {
   yDomain?: [number, number];
 }
 
-interface XFilterChartState {
-  data: number[];
-  pending: boolean;
-}
+const defaultProps = {
+  colorOverride: false,
+  fill: "rgb(255, 192, 203, 0.5)",
+  height: 200,
+  marginBottom: 40,
+  marginLeft: 45,
+  marginRight: 20,
+  marginTop: 20,
+  width: 300,
+  showLabel: false,
+  showAxesLabels: true,
+};
 
-export default class XFilterChart extends React.Component<XFilterChartProps, XFilterChartState> {
-  static defaultProps = {
-    colorOverride: false,
-    height: 200,
-    marginBottom: 40,
-    marginLeft: 45,
-    marginRight: 20,
-    marginTop: 20,
-    width: 300,
-    showLabel: false,
-    showAxesLabels: true,
-  };
-
-  constructor(props: XFilterChartProps) {
-    super(props);
-    this.setXFilterChartDataState = this.setXFilterChartDataState.bind(this);
-    this.setXFilterChartPending = this.setXFilterChartPending.bind(this);
-    this.state = {
-      data: null, // just to test that it's working?
-      pending: false,
-    };
+export const XFilterChart = (props: XFilterChartProps) => {
+  props = bindDefault(props, defaultProps);
+  let { chart, width, height, fill, marginLeft, marginRight, marginTop, marginBottom, baseData, xFilterData, pending } = props;
+  let stmts = getXFilterStmts();
+  let spinner: JSX.Element = null;
+  let vis: JSX.Element = null;
+  if (pending) {
+    spinner = <Indicator />;
   }
+  const innerWidth = width - marginLeft - marginRight;
+  const innerHeight = height - marginTop - marginBottom;
+  let x = d3.scaleLinear()
+            .rangeRound([0, innerWidth])
+            .domain(baseData.map((d) => d.x));
+  let bandwidth = innerWidth * 0.8 / baseData.length;
+  let y = d3.scaleLinear()
+            .rangeRound([innerHeight, 0])
+            .domain([0, d3.max(baseData, (d) => d.y)]);
+  // get y scale and x positioning
+  // note that the concat order matters, due to svg z-index
+  let bars = baseData.concat(xFilterData).map((d, i) => <rect x={x(d.x)} y={y(d.y)} width={bandwidth} height={innerHeight - y(d.y)} fill={fill}></rect>);
+  vis = <svg  width={width} height={height}>
+          {bars}
+          <g ref={(g) => d3.select(g).call(d3.axisLeft(y).ticks(5, "d"))}></g>
+          <g ref={(g) => d3.select(g).call(d3.axisBottom(x).ticks(4))} transform={"translate(0," + innerHeight + ")"}></g>
+          {spinner}
+        </svg>;
 
-  componentDidMount() {
-    db.create_function("setXFilterChartPending", this.setXFilterChartPending);
-    db.create_function("setXFilterChartDataState", this.setXFilterChartDataState);
-  }
-
-  setXFilterChartPending(pending: boolean) {
-    console.log("setXFilterChartPending", pending);
-    this.setState({
-      pending,
-    });
-  }
-
-  setXFilterChartDataState(q1: number, q2: number, q3: number, q4: number) {
-    console.log("setting XFilterChart data state", arguments);
-    if ((q1 !== null) && (q2 !== null) && (q3 !== null) && (q4 !== null)) {
-      this.setState({
-        data: [q1, q2, q3, q4],
-      });
-    } else {
-      this.setState({
-        data: null,
-      });
-    }
-  }
-
-  render() {
-    let { width, height, series, marginLeft, marginRight, marginTop, marginBottom } = this.props;
-    let { data, pending } = this.state;
-    let spinner: JSX.Element = null;
-    let vis: JSX.Element = null;
-    if (pending) {
-      spinner = <div className="indicator inline-block"></div>;
-    }
-    if (data) {
-      const innerWidth = width - marginLeft - marginRight;
-      const innerHeight = height - marginTop - marginBottom;
-      let x = d3.scaleBand()
-                .rangeRound([0, innerWidth])
-                .padding(0.2)
-                .domain(series);
-      let y = d3.scaleLinear()
-                .rangeRound([innerHeight, 0])
-                .domain([0, d3.max(data)]);
-      // get y scale and x positioning
-      let bars = data.map((d, i) => <rect x={x(series[i])} y={y(d)} width={x.bandwidth()} height={innerHeight - y(d)} fill={"rgb(255, 192, 203, 0.5)"}></rect>);
-      vis = <svg  width={width} height={height}>
-              {bars}
-              <g ref={(g) => d3.select(g).call(d3.axisLeft(y).ticks(5, "d"))}></g>
-              <g ref={(g) => d3.select(g).call(d3.axisBottom(x).ticks(4))} transform={"translate(0," + innerHeight + ")"}></g>
-              {spinner}
-            </svg>;
-    }
-    return(<>
-      {vis}
-      {spinner}
-    </>);
-  }
-}
+  let brush = d3.brushX()
+                .extent([[0, 0], [innerWidth, innerHeight]])
+                .on("start", function() {
+                  // TODO
+                })
+                .on("end", function() {
+                  const s = d3.brushSelection(this) as [number, number];
+                  if (s !== null) {
+                    stmts.insertBrushItx.run([+new Date(), x.invert(s[0]), x.invert(s[1]), chart]);
+                  }
+                });
+  let brushDiv = <g ref={ g => d3.select(g).call(brush) }></g>;
+  return(<>
+    {vis}
+    {brushDiv}
+    {spinner}
+  </>);
+};

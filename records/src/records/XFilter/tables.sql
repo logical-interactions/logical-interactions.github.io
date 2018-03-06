@@ -7,8 +7,13 @@ CREATE TABLE brushItx (
   chart TEXT NOT NULL
 );
 
-CREATE TABLE filterHistory (
-  filterId INTEGER PRIMARY KEY,
+-- name: filters
+CREATE TABLE xFilterRequest (
+  -- this will be the id that fdirectly triggered the interaction
+  requestId INTEGER PRIMARY KEY,
+  -- optional
+  itxId INTEGER,
+  ts INTEGER NOT NULL,
   -- can be NULL to indicate no filter
   hourLow INTEGER, hourHigh INTEGER,
   delayLow INTEGER, delayHigh INTEGER,
@@ -16,29 +21,33 @@ CREATE TABLE filterHistory (
   UNIQUE(hourLow, hourHigh, delayLow, delayHigh, distanceLow, distanceHigh)
 );
 
-CREATE TABLE brushRequest (
-  itxId INTEGER PRIMARY KEY,
-  filterId INTEGER,
-  ts INTEGER
+CREATE TABLE xFilterResponse (
+  requestId INTEGER NOT NULL UNIQUE,
+  itxId INTEGER NOT NULL,
+  ts INTEGER NOT NULL,
+  -- can be a previous requestId, or the currentone
+  dataId INTEGER NOT NULL
 );
 
 -- caching at the interaction level, for undo-redo
 -- but not at the data level.
 
-CREATE TABLE hourChartData (
-  filterId INTEGER PRIMARY KEY,
-  hourBin INTEGER,
+CREATE TABLE chartData (
+  requestId INTEGER NOT NULL,
+  bin INTEGER,
   count INTEGER,
+  chart INTEGER,
+  UNIQUE(requestId, chart)
 );
 
-CREATE TABLE delayChartData (
-  filterId INTEGER PRIMARY KEY,
-  delayBin INTEGER,
-  count INTEGER,
-);
+-- CREATE TABLE delayChartData (
+--   itxId INTEGER NOT NULL UNIQUE,
+--   delayBin INTEGER,
+--   count INTEGER,
+-- );
 
-CREATE TABLE distanceChartData (
-  filterId INTEGER PRIMARY KEY,
-  distanceBin INTEGER,
-  count INTEGER,
-);
+-- CREATE TABLE distanceChartData (
+--   itxId INTEGER NOT NULL UNIQUE,
+--   distanceBin INTEGER,
+--   count INTEGER,
+-- );

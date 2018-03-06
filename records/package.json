@@ -34,6 +34,7 @@
     "d3-scale-chromatic": "^1.1.1",
     "google-map-react": "^0.27.0",
     "normalize.css": "^7.0.0",
+    "npm": "^5.7.1",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "react-google-maps": "^9.4.5",

@@ -7,15 +7,16 @@ import Chart from "./Chart";
 import { NW, SE } from "../lib/helper";
 import { MapSelection, getRandomInt, getUserhData, Coords } from "../lib/data";
 import { db } from "../records/setup";
-import { setupMapDB, stmts } from "../records/MapZoom/setup";
+import { setupMapDB, getMapZoomStatements } from "../records/MapZoom/setup";
 
 export default class AsyncContainer extends React.Component<undefined, undefined> {
 
   componentDidMount() {
     // this mounts only when all children have mounted
+    let stmts = getMapZoomStatements();
     setupMapDB();
     // initial view is just an interaction here
-    stmts().insertNavItx.run([+new Date(), ...NW, ...SE]);
+    stmts.insertNavItx.run([+new Date(), ...NW, ...SE]);
   }
 
   render() {

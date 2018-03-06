@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <!-- the following can be linked to online distributed urls as well -->
+    <script src="./sql.js"></script>
+    <script src="./d3.min.js"></script>
+    <script>
+      var db = new SQL.Database();
+      window.db = db;
+      function setupXFilterDB() {
+          db.exec(`
+          CREATE TABLE flight (
+            date TEXT,
+            delay INTEGER,
+            distance INTEGER,
+            origin TEXT,
+            destination TEXT
+          );
+
+          CREATE TABLE binnedData (
+            hour INTEGER,
+            delay INTEGER,
+            distance INTEGER,
+            origin TEXT,
+            destination TEXT
+          );
+        `);
+        // date,delay,distance,origin,destination
+        let insertData = db.prepare(`INSERT INTO flight VALUES (?, ?, ?, ?, ?)`);
+        // do the binning here
+        d3.text("flights.csv", function(error, _data) {
+          db.exec("BEGIN TRANSACTION;");
+          let arrays = d3.csvParseRows(_data);
+          arrays.forEach(d => {
+            insertData.run(d);
+          });
+          db.exec(`
+            INSERT INTO binnedData
+              SELECT
+                CAST(SUBSTR(flight.date, 5, 2) AS INTEGER) AS hour,
+                CAST(CAST(flight.delay - delayRange.low AS INTEGER) / delayRange.val AS INTEGER) * delayRange.val AS delay,
+                CAST(CAST(flight.distance - distanceRange.low AS INTEGER) / distanceRange.val AS INTEGER) * distanceRange.val AS distance,
+                origin,
+                destination
+              FROM flight,
+                (
+                  SELECT
+                    (MAX(d.delay) - MIN(d.delay)) / 20 AS val,
+                    MIN(d.delay) AS low
+                  FROM flight AS d
+                ) AS delayRange,
+                (
+                  SELECT 
+                    (MAX(d.distance) - MIN(d.distance)) / 20 AS val,
+                    MIN(d.distance) AS low
+                  FROM flight AS d
+                ) AS distanceRange;
+          `);
+          db.exec(`DROP TABLE flight;`);
+          db.exec("COMMIT;");
+        });
+      }
+      setupXFilterDB();
+      function download() {
+        var dRaw = db.export();
+        var blob = new Blob([dRaw]);
+        console.log("what the db looks like", dRaw);
+        var a = document.createElement("a");
+        a.href = window.URL.createObjectURL(blob);
+        a.download = "sql.db";
+        a.onclick = function() {
+          setTimeout(function() {
+            window.URL.revokeObjectURL(a.href);
+          }, 1500);
+        };
+        a.click();
+      }
+      window.download = download;
+      function d(sql) {
+        let r = db.exec(sql);
+        if (r.length > 0) {
+          console.log(JSON.stringify(r[0].values).replace(/\],\[/g, "\n").replace("[[", "").replace("]]", "").replace(/,/g, "\t"));
+        } else {
+          console.log("NO RESULT");
+        }
+      }
+      window.d = d;
+    </script>
+  </body>
+</html>

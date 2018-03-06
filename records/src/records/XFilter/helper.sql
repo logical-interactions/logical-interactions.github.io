@@ -1,9 +1,10 @@
 -- this will already be in the DB that's loaded in
+-- preprocessed at /preproc/xfilter_prep.html
 
 CREATE TABLE binnedData (
   month INTEGER,
   hour INTEGER,
-  delayBin INTEGER,
+  delay INTEGER,
   distance INTEGER,
   origin TEXT,
   destination TEXT
@@ -26,8 +27,8 @@ CREATE VIEW binnedDataView AS
   SELECT
     CAST(SUBSTR(flight.date, 0, 1) AS INTEGER) AS month,
     CAST(SUBSTR(flight.date, 5, 1) AS INTEGER) AS hour,
-    CAST(flight.delay - delayRange.low) AS INTEGER / delayRange.val AS INTEGER) AS delayBin,
-    CAST(flight.distance - distanceRange.low) AS INTEGER / distanceRange.val AS INTEGER) AS disntanceBin,
+    CAST(flight.delay - delayRange.low) AS INTEGER / delayRange.val AS INTEGER) AS delay,
+    CAST(flight.distance - distanceRange.low) AS INTEGER / distanceRange.val AS INTEGER) AS distane,
     origin,
     destination
   FROM flight,

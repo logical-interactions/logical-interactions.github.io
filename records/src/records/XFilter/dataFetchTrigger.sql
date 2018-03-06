@@ -1,3 +1,0 @@
--- see if the data is in brushRequest
--- if not, go compute
--- else, render
