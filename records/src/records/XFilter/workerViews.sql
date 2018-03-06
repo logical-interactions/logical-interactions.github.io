@@ -8,21 +8,23 @@ CREATE VIEW hourChartDataView AS
 
 CREATE VIEW delayChartDataView AS
   SELECT
-    delayBin AS bin,
+    delay AS bin,
     COUNT(*) AS count
   FROM filteredDataView
-  GROUP BY delayBin;
+  GROUP BY delay;
 
 CREATE VIEW distanceChartDataView AS
   SELECT
     disntanceBin AS bin,
     COUNT(*) AS count
   FROM filteredDataView
-  GROUP BY disntanceBin;
+  GROUP BY disntance;
 
 -- needs some basic templating here perhaps?
 CREATE VIEW filteredDataView AS
   SELECT
+    f.itxId AS itxId,
+    f.requestId AS requestId,
     binnedData.*
   FROM
     binnedData

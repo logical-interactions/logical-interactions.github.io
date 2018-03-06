@@ -2,49 +2,94 @@ import { readFileSync } from "../../lib/helper";
 import { db } from "../setup";
 
 let worker: Worker = null;
+// for debugging
+let opened = false;
+let setup = false;
+(<any>window).worker = worker;
 
-export function xFilterWorker() {
-  if (!worker) {
-    worker = new Worker("/lib/worker.sql.js");
+export function xFilterWorker(): Promise<Worker> {
+  return new Promise((resolve, reject) => {
+    if (!worker) {
+      worker = new Worker("/lib/worker.sql.js");
+      fetch("/data/flight_small.db")
+      .then(response => {
+        if (response.status !== 200) {
+          console.log(`There was a problem: ${response.status}`);
+          return;
+        }
+        return response.arrayBuffer();
+      })
+      .then(buffer => {
+        console.log("Setting up db in the worker", buffer);
+        worker.postMessage({
+          id: "open",
+          action: "open",
+          buffer,
+        });
+      });
 
-    fetch("/data/flight_small.db")
-    .then(response => {
-      if (response.status !== 200) {
-        console.log(`There was a problem: ${response.status}`);
-        return;
-      }
-      worker.postMessage({
-        id: 1,
-        action: "open",
-        buffer: response,
-      });
-    });
-    const CHARTS = ["hour", "delay", "distance"];
-    worker.onmessage = function() {
-      console.log("Database opened");
-      let setupSql = readFileSync(`/src/records/XFilter/workerViews.sql`);
-      worker.postMessage({
-        id: "workerViews",
-        action: "exec",
-        sql: setupSql
-      });
+      const CHARTS = ["hour", "delay", "distance"];
       worker.onmessage = function(event) {
-        console.log("got db data", event.data);
-        // The result of the query
-        // id, with results for exec
-        // now send this to the main db
-        // communication protocal, split by ":",
-        // [insert|read]:[tablename]:[param 1]:[param 2] etc.
-        // a bit brittle...
-        let chart = event.data.id.split(":")[1];
-        if (CHARTS.indexOf(chart) > -1) {
-          let filterId = event.data.id.split(",")[2];
-          let sql = `INSERT INTO ${chart}ChartData VALUES ${event.data.results.map((r: any) => `(${filterId}, ${r[0]}, ${r[1]})`)}$;`;
-          db.exec(sql);
+        console.log(`[Worker] ${event.data.id}`, event);
+        // this is tied to the queryWorker in setup.ts
+        let args = event.data.id.split(":");
+        let cmd = args[0];
+        switch (args[0]) {
+          case "open": {
+            console.log("[Worker] Database opened", event);
+            if (opened) {
+              throw new Error("Should not open worker DB twice");
+            }
+            opened = true;
+            let setupSql = readFileSync(`/src/records/XFilter/workerViews.sql`);
+            worker.postMessage({
+              id: "setup",
+              action: "exec",
+              sql: setupSql
+            });
+            break;
+          }
+          case "setup": {
+            if (setup) {
+              throw new Error("Should not setup worker DB twice");
+            }
+            setup = true;
+            resolve(worker);
+            break;
+          }
+          case "insertThenShare": {
+            if ((!opened) || (!setup)) {
+              throw new Error("Need to setup worker DB before using");
+            }
+            let requestId = args[1];
+            ["hour", "delay", "distance"].map((n) => {
+              let querySql = `
+                SELECT * FROM ${n}ChartDataView;
+              `;
+              console.log("[Worker] querying db to share data");
+              // this is emulating a callback
+              worker.postMessage({
+                id: `share:${requestId}:${n}`,
+                action: "exec",
+                sql: querySql
+              });
+            });
+            break;
+          }
+          case "share": {
+            let requestId = args[1];
+            let chart = args[2];
+            // TODO: deal with pagination later?
+            let values = event.data.results[0].values;
+            let sql = `INSERT INTO chartData VALUES ${values.map((r: any) => `(${requestId}, ${r[0]}, ${r[1]}, '${chart})'`)};`;
+            db.exec(sql);
+            break;
+          }
         }
       };
-    };
-    worker.onerror = function(e) {console.log("Worker error: ", e); };
-  }
-  return worker;
+      worker.onerror = function(e) {console.log("Worker error: ", e); };
+    } else {
+      resolve(worker);
+    }
+  });
 }

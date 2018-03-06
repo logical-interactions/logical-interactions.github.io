@@ -61,9 +61,9 @@ export function getXFilterStmts() {
 // the input should already be from a group_concat
 // they can just specify the remote
 
-export function queryWorker(itxId: number) {
-  let worker = xFilterWorker();
-  let sharedTable = "filters";
+export function queryWorker(requestId: number) {
+  console.log("worker doing job", requestId);
+  let sharedTable = "xFilterRequest";
   // now get the values for
   // need to share the currentIn
   // could use some basic DSL here --- copy pasting
@@ -72,31 +72,29 @@ export function queryWorker(itxId: number) {
     FROM sqlite_master
     WHERE
       type = 'table'
-      AND name = ${sharedTable};
+      AND name = '${sharedTable}';
   `;
-  let definition = db.run(getTableDefinition);
-  let values = db.exec(`SELECT * FROM ${sharedTable} WHERE itxId = ${itxId}`)[0].values;
-  if (!values) {
-    throw new Error (`${sharedTable} not defined`);
+  let definition = db.exec(getTableDefinition)[0].values[0];
+  if (!definition) {
+    throw new Error (`${sharedTable} not defined in client db`);
   }
+  let tableRes = db.exec(`SELECT * FROM ${sharedTable} WHERE requestId = ${requestId}`)[0];
+  if ((!tableRes) || (!tableRes.values)) {
+    throw new Error(`This should not have happened, ${sharedTable} should have been defined with ${requestId}`);
+  }
+  // need to make null explicit here...
   let shareSql = `
     DROP TABLE IF EXISTS ${sharedTable};
-    ${getTableDefinition};
-    INSERT INTO ${sharedTable} VALUES ${values.map((d) => `(${d})`)};
+    ${definition};
+    INSERT INTO ${sharedTable} VALUES ${tableRes.values.map((d) => `(${d.map((v) => v ? v : "null").join(", ")})`)};
   `;
-  worker.postMessage({
-    id: "insert:currentItx",
-    action: "exec",
-    sql: shareSql
-  });
-  ["hour", "delay", "distance"].map((n) => {
-    let querySql = `
-      SELECT * FROM ${n}ChartDataView;
-    `;
+  console.log("sharesql", shareSql);
+  let workerPromise = xFilterWorker();
+  workerPromise.then(worker => {
     worker.postMessage({
-      id: `read:${n}ChartDataView:${itxId}`,
+      id: `insertThenShare:${requestId}`,
       action: "exec",
-      sql: querySql
+      sql: shareSql
     });
   });
 }

@@ -12,7 +12,7 @@ CREATE TABLE xFilterRequest (
   -- this will be the id that fdirectly triggered the interaction
   requestId INTEGER PRIMARY KEY,
   -- optional
-  itxId INTEGER,
+  itxId INTEGER UNIQUE,
   ts INTEGER NOT NULL,
   -- can be NULL to indicate no filter
   hourLow INTEGER, hourHigh INTEGER,

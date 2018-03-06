@@ -59,7 +59,7 @@ BEGIN
     AND delayLow = NEW.delayLow AND delayHigh = NEW.delayHigh
     AND distanceLow = NEW.distanceLow AND distanceHigh = NEW.distanceHigh;
   SELECT
-    queryWorker(NEW.itxId)
+    queryWorker(NEW.requestId)
   WHERE
-    NEW.itxId IN (SELECT itxId FROM xFilterResponse);
+    NEW.requestId NOT IN (SELECT dataId FROM xFilterResponse);
 END;
