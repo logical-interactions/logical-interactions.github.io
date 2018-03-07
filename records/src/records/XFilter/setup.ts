@@ -5,6 +5,7 @@ import { Statement, QueryResults } from "sql.js";
 import { db, executeFile } from "../setup";
 import { xFilterWorker } from "./workerSetup";
 
+export const XFILTERCHARTS = ["hour", "delay", "distance"];
 // data shape transformations...
 export function parseChartData(res: QueryResults[]) {
   if (res[0] && res[0].values && res[0].values.length > 0 ) {
@@ -30,8 +31,19 @@ export function parseChartData(res: QueryResults[]) {
 // if buffer size is 1, normal, else, chronicles
 // TODO, add buffer: number
 export function setupXFilterDB() {
-  ["tables", "views", "dataFetchTriggers"].map(f => {executeFile("XFilter", f); });
+  ["tables", "views", "dataFetchTriggers", "renderTriggers"].map(f => {executeFile("XFilter", f); });
   db.create_function("queryWorker", queryWorker);
+  db.create_function("checkAtomic", (charts: string) => {
+    let isAtomic = XFILTERCHARTS.reduce((acc, val) => {
+      return acc && (charts.indexOf(val) > -1);
+    }, true);
+    console.log("Xfilter atomic", isAtomic);
+    if (isAtomic) {
+      return 1;
+    } else {
+      return 0;
+    }
+  });
   // date,delay,distance,origin,destination
   // let insertData = db.prepare(`INSERT INTO flight VALUES (?, ?, ?, ?, ?)`);
   // // do the binning here

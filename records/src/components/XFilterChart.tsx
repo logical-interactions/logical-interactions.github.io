@@ -41,6 +41,7 @@ const defaultProps = {
 export const XFilterChart = (props: XFilterChartProps) => {
   props = bindDefault(props, defaultProps);
   let { chart, width, height, fill, marginLeft, marginRight, marginTop, marginBottom, baseData, xFilterData, pending } = props;
+  console.log(`[XFilterChart] ${chart}`, baseData, xFilterData);
   let stmts = getXFilterStmts();
   let spinner: JSX.Element = null;
   let vis: JSX.Element = null;
@@ -51,14 +52,14 @@ export const XFilterChart = (props: XFilterChartProps) => {
   const innerHeight = height - marginTop - marginBottom;
   let x = d3.scaleLinear()
             .rangeRound([0, innerWidth])
-            .domain(baseData.map((d) => d.x));
+            .domain([d3.min(baseData, (d) => d.x), d3.max(baseData, (d) => d.x)]);
   let bandwidth = innerWidth * 0.8 / baseData.length;
   let y = d3.scaleLinear()
             .rangeRound([innerHeight, 0])
             .domain([0, d3.max(baseData, (d) => d.y)]);
   // get y scale and x positioning
   // note that the concat order matters, due to svg z-index
-  let bars = baseData.concat(xFilterData).map((d, i) => <rect x={x(d.x)} y={y(d.y)} width={bandwidth} height={innerHeight - y(d.y)} fill={fill}></rect>);
+  let bars = baseData.concat(xFilterData ? xFilterData : []).map((d, i) => <rect x={x(d.x)} y={y(d.y)} width={bandwidth} height={innerHeight - y(d.y)} fill={fill}></rect>);
   vis = <svg  width={width} height={height}>
           {bars}
           <g ref={(g) => d3.select(g).call(d3.axisLeft(y).ticks(5, "d"))}></g>

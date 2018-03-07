@@ -28,7 +28,6 @@ export function xFilterWorker(): Promise<Worker> {
         });
       });
 
-      const CHARTS = ["hour", "delay", "distance"];
       worker.onmessage = function(event) {
         console.log(`[Worker] ${event.data.id}`, event);
         // this is tied to the queryWorker in setup.ts
@@ -81,7 +80,11 @@ export function xFilterWorker(): Promise<Worker> {
             let chart = args[2];
             // TODO: deal with pagination later?
             let values = event.data.results[0].values;
-            let sql = `INSERT INTO chartData VALUES ${values.map((r: any) => `(${requestId}, ${r[0]}, ${r[1]}, '${chart})'`)};`;
+            let sql = `
+              INSERT INTO chartData VALUES ${values.map((r: any) => `(${requestId}, ${r[0]}, ${r[1]}, '${chart}')`)};
+              INSERT INTO chartDataAtomic VALUES (${requestId}, '${chart}');
+            `;
+            console.log("exec to client db", sql);
             db.exec(sql);
             break;
           }

@@ -23,7 +23,6 @@ CREATE TABLE xFilterRequest (
 
 CREATE TABLE xFilterResponse (
   requestId INTEGER NOT NULL UNIQUE,
-  itxId INTEGER NOT NULL,
   ts INTEGER NOT NULL,
   -- can be a previous requestId, or the currentone
   dataId INTEGER NOT NULL
@@ -34,11 +33,17 @@ CREATE TABLE xFilterResponse (
 
 CREATE TABLE chartData (
   requestId INTEGER NOT NULL,
-  bin INTEGER,
-  count INTEGER,
-  chart INTEGER,
-  UNIQUE(requestId, chart)
+  bin INTEGER NOT NULL,
+  count INTEGER NOT NULL,
+  chart INTEGER NOT NULL,
+  UNIQUE(requestId, chart, bin)
 );
+
+CREATE TABLE chartDataAtomic (
+  requestId INTEGER NOT NULL,
+  chart INTEGER NOT NULL,
+  UNIQUE(requestId, chart)
+)
 
 -- CREATE TABLE delayChartData (
 --   itxId INTEGER NOT NULL UNIQUE,

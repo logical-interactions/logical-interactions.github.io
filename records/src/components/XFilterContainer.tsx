@@ -23,9 +23,9 @@ export default class XFilterContainer extends React.Component<undefined, XFilter
   // first compute the filter, but do not set the brush
   constructor(props: undefined) {
     super(props);
-    this.setData = this.setData.bind(this);
+    this.refreshXFilterData = this.refreshXFilterData.bind(this);
     setupXFilterDB();
-    db.create_function("refreshXFilter", this.setData);
+    db.create_function("refreshXFilter", this.refreshXFilterData);
     // the rest is null
     db.exec(`
       INSERT INTO xFilterRequest (itxId, ts) VALUES (-1, timeNow());
@@ -38,10 +38,11 @@ export default class XFilterContainer extends React.Component<undefined, XFilter
   // componentDidMount() {
   // }
 
-  setData() {
+  refreshXFilterData() {
     // fetch from the db
     // this is different from map since it's more like "pull" based.
     // then update state
+    console.log("[Component] refreshXFilterData called", "background: 'yellow'");
     if (!this.state.baseData) {
       // try fetching itgroup_concat
       // chart,
@@ -51,10 +52,14 @@ export default class XFilterContainer extends React.Component<undefined, XFilter
           d.chart, d.bin, d.count
         FROM
           chartData d
-          JOIN xFilterResponse r ON d.requestId = r.dataId
-        WHERE r.itxId = -1;
+          JOIN xFilterRequest r ON d.requestId = r.requestId
+        WHERE
+          r.hourLow IS NULL AND r.hourHigh IS NULL
+          AND r.delayLow IS NULL AND r.delayHigh IS NULL
+          AND r.distanceLow IS NULL AND r.distanceHigh IS NULL;
       `);
       let baseData = parseChartData(baseRes);
+      console.log("response", baseRes, baseData);
       if (baseData) {
         this.setState({
           baseData
@@ -65,9 +70,10 @@ export default class XFilterContainer extends React.Component<undefined, XFilter
       SELECT
         d.chart, d.bin, d.count
       FROM
-        xFilterResponse r
-        JOIN chartData d ON d.requestId = r.dataId
-      WHERE r.itxId = (SELECT MAX(itxId) FROM currentItx);
+        xFilterResponse res
+        JOIN xFilterRequest req ON res.requestId = req.requestId
+        JOIN chartData d ON d.requestId = res.dataId
+      WHERE req.itxId = (SELECT MAX(itxId) FROM currentItx);
     `);
     let data = parseChartData(res);
     if (data) {

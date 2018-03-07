@@ -46,10 +46,9 @@ END;
 CREATE TRIGGER afterBrushRequestItx AFTER INSERT ON xFilterRequest
 BEGIN
   -- send request to worker if response is not present
-  INSERT INTO xFilterResponse (requestId, itxId, ts, dataId)
+  INSERT INTO xFilterResponse (requestId, ts, dataId)
   SELECT
     NEW.requestId,
-    NEW.itxId,
     timeNow(),
     xFilterRequest.requestId
   FROM xFilterRequest

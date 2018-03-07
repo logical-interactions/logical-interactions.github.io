@@ -15,10 +15,10 @@ CREATE VIEW delayChartDataView AS
 
 CREATE VIEW distanceChartDataView AS
   SELECT
-    disntanceBin AS bin,
+    distance AS bin,
     COUNT(*) AS count
   FROM filteredDataView
-  GROUP BY disntance;
+  GROUP BY distance;
 
 -- needs some basic templating here perhaps?
 CREATE VIEW filteredDataView AS
