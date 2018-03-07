@@ -2,8 +2,8 @@
 CREATE TABLE brushItx (
   itxId INTEGER PRIMARY KEY,
   ts INTEGER NOT NULL,
-  low INTEGER NOT NULL,
-  high INTEGER NOT NULL,
+  low INTEGER,
+  high INTEGER,
   chart TEXT NOT NULL
 );
 

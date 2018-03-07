@@ -15,7 +15,8 @@ interface XFilterChartProps {
   pending: boolean;
   // doesn't quite work with chronicles yet
   chart: string;
-  fill?: string;
+  baseFill?: string;
+  selectFill?: string;
   height?: number;
   width?: number;
   marginBottom?: number;
@@ -27,20 +28,21 @@ interface XFilterChartProps {
 
 const defaultProps = {
   colorOverride: false,
-  fill: "rgb(255, 192, 203, 0.5)",
-  height: 200,
+  baseFill: "rgb(255, 192, 203, 0.5)",
+  selectFill: "rgb(176, 224, 230, 0.8)",
+  height: 100,
   marginBottom: 40,
   marginLeft: 45,
   marginRight: 20,
   marginTop: 20,
-  width: 300,
+  width: 200,
   showLabel: false,
   showAxesLabels: true,
 };
 
 export const XFilterChart = (props: XFilterChartProps) => {
   props = bindDefault(props, defaultProps);
-  let { chart, width, height, fill, marginLeft, marginRight, marginTop, marginBottom, baseData, xFilterData, pending } = props;
+  let { chart, width, height, baseFill, marginLeft, marginRight, marginTop, marginBottom, baseData, xFilterData, pending, selectFill } = props;
   console.log(`[XFilterChart] ${chart}`, baseData, xFilterData);
   let stmts = getXFilterStmts();
   let spinner: JSX.Element = null;
@@ -58,19 +60,13 @@ export const XFilterChart = (props: XFilterChartProps) => {
             .rangeRound([innerHeight, 0])
             .domain([0, d3.max(baseData, (d) => d.y)]);
   // get y scale and x positioning
-  // note that the concat order matters, due to svg z-index
-  let bars = baseData.concat(xFilterData ? xFilterData : []).map((d, i) => <rect x={x(d.x)} y={y(d.y)} width={bandwidth} height={innerHeight - y(d.y)} fill={fill}></rect>);
-  vis = <svg  width={width} height={height}>
-          {bars}
-          <g ref={(g) => d3.select(g).call(d3.axisLeft(y).ticks(5, "d"))}></g>
-          <g ref={(g) => d3.select(g).call(d3.axisBottom(x).ticks(4))} transform={"translate(0," + innerHeight + ")"}></g>
-          {spinner}
-        </svg>;
-
+  let baseBars = baseData.map((d, i) => <rect x={x(d.x)} y={y(d.y)} width={bandwidth} height={innerHeight - y(d.y)} fill={baseFill}></rect>);
+  let selectBars = (xFilterData ? xFilterData : []).map((d, i) => <rect x={x(d.x)} y={y(d.y)} width={bandwidth} height={innerHeight - y(d.y)} fill={selectFill}></rect>);
   let brush = d3.brushX()
                 .extent([[0, 0], [innerWidth, innerHeight]])
                 .on("start", function() {
                   // TODO
+                  console.log("brush started");
                 })
                 .on("end", function() {
                   const s = d3.brushSelection(this) as [number, number];
@@ -79,9 +75,16 @@ export const XFilterChart = (props: XFilterChartProps) => {
                   }
                 });
   let brushDiv = <g ref={ g => d3.select(g).call(brush) }></g>;
+  vis = <svg  width={width} height={height}>
+          {baseBars}
+          {selectBars}
+          <g ref={(g) => d3.select(g).call(d3.axisLeft(y).ticks(5, "d"))}></g>
+          <g ref={(g) => d3.select(g).call(d3.axisBottom(x).ticks(4))} transform={"translate(0," + innerHeight + ")"}></g>
+          {brushDiv}
+          {spinner}
+        </svg>;
+  console.log("brush", brushDiv);
   return(<>
     {vis}
-    {brushDiv}
-    {spinner}
   </>);
 };

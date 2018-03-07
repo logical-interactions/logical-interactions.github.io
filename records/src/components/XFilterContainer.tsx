@@ -6,7 +6,7 @@ import * as React from "react";
 import { Indicator } from "./Indicator";
 import { XFilterChart } from "./XFilterChart";
 import { db } from "../records/setup";
-import { parseChartData, setupXFilterDB } from "../records/XFilter/setup";
+import { parseChartData, setupXFilterDB, XFILTERCHARTS } from "../records/XFilter/setup";
 
 // this is a good example of custom state management, where the parent manages children states
 
@@ -27,8 +27,10 @@ export default class XFilterContainer extends React.Component<undefined, XFilter
     setupXFilterDB();
     db.create_function("refreshXFilter", this.refreshXFilterData);
     // the rest is null
+    // INSERT INTO xFilterRequest (itxId, ts) VALUES (-1, timeNow());
+    let t = +new Date();
     db.exec(`
-      INSERT INTO xFilterRequest (itxId, ts) VALUES (-1, timeNow());
+      INSERT INTO brushItx (ts, chart) VALUES ${XFILTERCHARTS.map((v) => `(${t}, '${v}')`).join(", ")};
     `);
     this.state = {
       baseData: null,

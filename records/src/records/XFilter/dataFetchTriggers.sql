@@ -5,6 +5,7 @@
 CREATE TRIGGER afterBrushItx AFTER INSERT ON brushItx
 BEGIN
   -- TOOD: add throttling
+  SELECT log(NEW.itxId || NEW.chart || NEW.low || ' - ' || NEW.high, 'afterBrushItx');
   INSERT INTO xFilterRequest (itxId, ts, hourLow, hourHigh, delayLow, delayHigh, distanceLow, distanceHigh)
   SELECT
     id.itxId,
