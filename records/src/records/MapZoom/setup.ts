@@ -134,6 +134,26 @@ function evalView() {
   `);
 }
 
+export const undoSQL = `
+SELECT log('started', 'undo');
+UPDATE mapInteractions
+  SET undoed = 1 WHERE itxId IN (SELECT itxId FROM mapInteractions ORDER BY itxId DESC LIMIT 1);
+INSERT INTO mapInteractions (ts, latMin, latMax, longMin, longMax, undoed)
+  SELECT timeNow(), latMin, latMax, longMin, longMax, 2
+  FROM mapInteractions
+  WHERE undoed = 0
+  ORDER BY itxId DESC LIMIT 1;
+UPDATE mapInteractions
+  SET undoed = 1
+  WHERE itxId IN (
+    SELECT itxId
+    FROM mapInteractions
+    WHERE undoed = 0
+    ORDER BY itxId DESC LIMIT 1);
+UPDATE mapInteractions
+  SET undoed = 0 WHERE undoed = 2;
+`;
+
 
 export function getMapZoomStatements() {
   let stmts: {
@@ -160,26 +180,7 @@ export function getMapZoomStatements() {
           FROM brushItx;
       `),
       // brushItxDone: db.prepare("UPDATE currentBrushItx SET done = 1;"),
-      undoQuery: db.prepare(`
-      SELECT log('started', 'undo');
-      UPDATE mapInteractions
-        SET undoed = 1 WHERE itxId IN (SELECT itxId FROM mapInteractions ORDER BY itxId DESC LIMIT 1);
-      INSERT INTO mapInteractions (ts, latMin, latMax, longMin, longMax, undoed)
-        SELECT timeNow(), latMin, latMax, longMin, longMax, 2
-        FROM mapInteractions
-        WHERE undoed = 0
-        ORDER BY itxId DESC LIMIT 1;
-      UPDATE mapInteractions
-        SET undoed = 1
-        WHERE itxId IN (
-          SELECT itxId
-          FROM mapInteractions
-          WHERE undoed = 0
-          ORDER BY itxId DESC LIMIT 1);
-      -- then set it back to 1
-      UPDATE mapInteractions
-        SET undoed = 0 WHERE undoed = 2;
-    `),
+      undoQuery: db.prepare(undoSQL),
     };
   }
   return stmts;

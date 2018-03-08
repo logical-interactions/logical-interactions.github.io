@@ -1,6 +1,8 @@
 import * as React from "react";
 
 import StressTest from "./StressTest";
+import MapZoomExplain from "./MapZoomExplain";
+import XFilterExplain from "./XFilterExplain";
 
   // let applications = (<>
   //   <h2>Throttling and Caching</h2>
@@ -24,7 +26,6 @@ export const PageContainer = () => (<>
   <p>
     We will walk through two main examples to illustrate how the framework is applied.
   </p>
-  {/* <XFilterContainer /> */}
   {/* <AsyncContainer /> */}
   {/* <Test /> */}
   {/* <StressTest /> */}
