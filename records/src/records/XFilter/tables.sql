@@ -12,7 +12,7 @@ CREATE TABLE xFilterRequest (
   -- this will be the id that fdirectly triggered the interaction
   requestId INTEGER PRIMARY KEY,
   -- optional
-  itxId INTEGER UNIQUE,
+  itxId INTEGER,
   ts INTEGER NOT NULL,
   -- can be NULL to indicate no filter
   hourLow INTEGER, hourHigh INTEGER,
@@ -43,7 +43,13 @@ CREATE TABLE chartDataAtomic (
   requestId INTEGER NOT NULL,
   chart INTEGER NOT NULL,
   UNIQUE(requestId, chart)
-)
+);
+
+-- this assumes atomic render
+CREATE TABLE xFilterRender (
+  itxId INTEGER NOT NULL UNIQUE,
+  ts INTEGER NOT NULL
+);
 
 -- CREATE TABLE delayChartData (
 --   itxId INTEGER NOT NULL UNIQUE,

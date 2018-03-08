@@ -12,4 +12,3 @@ CREATE VIEW currentItx AS
   -- FROM
   --   brushItx
   -- GROUP BY chart;
-

@@ -28,7 +28,7 @@
         // date,delay,distance,origin,destination
         let insertData = db.prepare(`INSERT INTO flight VALUES (?, ?, ?, ?, ?)`);
         // do the binning here
-        d3.text("flights.csv", function(error, _data) {
+        d3.text("flights-3m.csv", function(error, _data) {
           db.exec("BEGIN TRANSACTION;");
           let arrays = d3.csvParseRows(_data);
           arrays.forEach(d => {
@@ -56,8 +56,17 @@
                   FROM flight AS d
                 ) AS distanceRange;
           `);
-          db.exec(`DROP TABLE flight;`);
+          let sanitySQL = `
+            SELECT
+              assertNoBigger(COUNT(DISTINCT distance), 20),
+              assertNoBigger(COUNT(DISTINCT delay), 20),
+            FROM
+              binnedData;`;
+          db.exec(`
+            DROP TABLE flight;
+          `);
           db.exec("COMMIT;");
+          db.exec("vacuum");
         });
       }
       setupXFilterDB();
@@ -67,7 +76,7 @@
         console.log("what the db looks like", dRaw);
         var a = document.createElement("a");
         a.href = window.URL.createObjectURL(blob);
-        a.download = "sql.db";
+        a.download = "flight-3m.db";
         a.onclick = function() {
           setTimeout(function() {
             window.URL.revokeObjectURL(a.href);

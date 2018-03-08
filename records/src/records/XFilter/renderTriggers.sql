@@ -15,3 +15,12 @@ CREATE TRIGGER xFilterRenderTrigger AFTER INSERT ON xFilterResponse
 BEGIN
   SELECT refreshXFilter(), log(NEW.requestId, 'xFilterRenderTrigger');
 END;
+
+CREATE TRIGGER xFilterPending AFTER INSERT ON xFilterRequest
+WHEN NEW.itxId IS NOT NULL
+BEGIN
+  -- sending pending to true
+  SELECT
+    setXFilterPending(1),
+    log(NEW.requestId, 'xFilterPending');
+END;

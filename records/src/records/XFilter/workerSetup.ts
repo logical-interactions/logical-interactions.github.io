@@ -79,13 +79,20 @@ export function xFilterWorker(): Promise<Worker> {
             let requestId = args[1];
             let chart = args[2];
             // TODO: deal with pagination later?
-            let values = event.data.results[0].values;
-            let sql = `
-              INSERT INTO chartData VALUES ${values.map((r: any) => `(${requestId}, ${r[0]}, ${r[1]}, '${chart}')`)};
-              INSERT INTO chartDataAtomic VALUES (${requestId}, '${chart}');
-            `;
-            console.log("exec to client db", sql);
-            db.exec(sql);
+            if (event.data.results[0] && event.data.results[0].values.length > 0) {
+              let values = event.data.results[0].values;
+              let sql = `
+                INSERT INTO chartData VALUES ${values.map((r: any) => `(${requestId}, ${r[0]}, ${r[1]}, '${chart}')`)};
+                INSERT INTO chartDataAtomic VALUES (${requestId}, '${chart}');
+              `;
+              db.exec(sql);
+              // setTimeout(() => {
+              //   console.log("exec to client db after intentional delay");
+              //   db.exec(sql);
+              // }, 1000);
+            } else {
+              console.log("No result for", chart, requestId);
+            }
             break;
           }
         }

@@ -43,7 +43,7 @@ const defaultProps = {
 export const XFilterChart = (props: XFilterChartProps) => {
   props = bindDefault(props, defaultProps);
   let { chart, width, height, baseFill, marginLeft, marginRight, marginTop, marginBottom, baseData, xFilterData, pending, selectFill } = props;
-  console.log(`[XFilterChart] ${chart}`, baseData, xFilterData);
+  // console.log(`[XFilterChart] ${chart}`, baseData, xFilterData);
   let stmts = getXFilterStmts();
   let spinner: JSX.Element = null;
   let vis: JSX.Element = null;
@@ -71,7 +71,9 @@ export const XFilterChart = (props: XFilterChartProps) => {
                 .on("end", function() {
                   const s = d3.brushSelection(this) as [number, number];
                   if (s !== null) {
-                    stmts.insertBrushItx.run([+new Date(), x.invert(s[0]), x.invert(s[1]), chart]);
+                    let v1 = x.invert(s[0]);
+                    let v2 = x.invert(s[1]);
+                    stmts.insertBrushItx.run([+new Date(), Math.min(v1, v2), Math.max(v1, v2), chart]);
                   }
                 });
   let brushDiv = <g ref={ g => d3.select(g).call(brush) }></g>;
@@ -83,7 +85,7 @@ export const XFilterChart = (props: XFilterChartProps) => {
           {brushDiv}
           {spinner}
         </svg>;
-  console.log("brush", brushDiv);
+  // console.log("brush", brushDiv);
   return(<>
     {vis}
   </>);

@@ -33,7 +33,7 @@ function d(sql: string) {
 }
 (<any>window).d = d;
 
-let UDFs: any[] = [timeNow, log];
+let UDFs: any[] = [timeNow, log, assertNoBigger];
 UDFs.forEach((f) => {
   db.create_function(f.name, f);
 });
@@ -61,4 +61,10 @@ function log(msg: string, source: string) {
 
 function timeNow() {
   return +new Date();
+}
+
+function assertNoBigger(v1: number, v2: number, msg: string) {
+  if (v1 > v2) {
+    throw new Error(`${v1} is larger than ${v2}, ${msg}`);
+  }
 }

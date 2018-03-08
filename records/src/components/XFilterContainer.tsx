@@ -14,6 +14,7 @@ interface XFilterContainerState {
   // this will be inefficient since react does not know what actually changed and will likely refresh everything
   baseData: {[index: string]: {x: number, y: number}[]};
   data: {[index: string]: {x: number, y: number}[]};
+  pending: boolean;
 }
 
 export default class XFilterContainer extends React.Component<undefined, XFilterContainerState> {
@@ -24,8 +25,10 @@ export default class XFilterContainer extends React.Component<undefined, XFilter
   constructor(props: undefined) {
     super(props);
     this.refreshXFilterData = this.refreshXFilterData.bind(this);
+    this.setPending = this.setPending.bind(this);
     setupXFilterDB();
     db.create_function("refreshXFilter", this.refreshXFilterData);
+    db.create_function("setXFilterPending", this.setPending);
     // the rest is null
     // INSERT INTO xFilterRequest (itxId, ts) VALUES (-1, timeNow());
     let t = +new Date();
@@ -34,9 +37,11 @@ export default class XFilterContainer extends React.Component<undefined, XFilter
     `);
     this.state = {
       baseData: null,
-      data: {}
+      data: {},
+      pending: true,
     };
   }
+
   // componentDidMount() {
   // }
 
@@ -60,36 +65,53 @@ export default class XFilterContainer extends React.Component<undefined, XFilter
           AND r.delayLow IS NULL AND r.delayHigh IS NULL
           AND r.distanceLow IS NULL AND r.distanceHigh IS NULL;
       `);
-      let baseData = parseChartData(baseRes);
-      console.log("response", baseRes, baseData);
-      if (baseData) {
+      let baseDataR = parseChartData(baseRes);
+      console.log("response", baseRes, baseDataR);
+      if (baseDataR.data) {
         this.setState({
-          baseData
+          baseData: baseDataR.data,
         });
       }
     }
     let res = db.exec(`
       SELECT
-        d.chart, d.bin, d.count
+        d.chart,
+        d.bin,
+        d.count,
+        req.itxId
       FROM
         xFilterResponse res
         JOIN xFilterRequest req ON res.requestId = req.requestId
         JOIN chartData d ON d.requestId = res.dataId
       WHERE req.itxId = (SELECT MAX(itxId) FROM currentItx);
     `);
-    let data = parseChartData(res);
-    if (data) {
+    let dataR = parseChartData(res);
+    if (dataR.data) {
+      let pending = false;
+      db.exec(`INSERT INTO xFilterRender (itxId, ts) VALUES (${dataR.itxId}, ${+new Date()})`);
       this.setState((prevState) => {
         return {
-          data
+          data: dataR.data,
+          pending
         };
       });
     }
   }
 
+  setPending(isPending: number) {
+    console.log("setting pending to", isPending);
+    let pending = false;
+    if (isPending) {
+      pending = true;
+    }
+    this.setState({
+      pending
+    });
+  }
+
   render() {
     // TODO add pending
-    let {baseData, data} = this.state;
+    let {baseData, data, pending} = this.state;
     let spinner: JSX.Element;
     let charts: JSX.Element[];
     if (baseData) {
@@ -102,8 +124,11 @@ export default class XFilterContainer extends React.Component<undefined, XFilter
           pending={false}
         />;
       });
+      if (pending) {
+        spinner = <><Indicator />Processing Request</>;
+      }
     } else {
-      spinner = <Indicator />;
+      spinner = <><Indicator />Loading Initial Data...</>;
     }
     return (<>
       {charts}

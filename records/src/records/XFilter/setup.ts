@@ -10,22 +10,31 @@ export const XFILTERCHARTS = ["hour", "delay", "distance"];
 export function parseChartData(res: QueryResults[]) {
   if (res[0] && res[0].values && res[0].values.length > 0 ) {
     let cols = res[0].columns;
-    if ((cols[0] !== "chart") && (cols[1] !== "bin") && (cols[1] !== "count")) {
+    if ((cols[0] !== "chart") || (cols[1] !== "bin") || (cols[2] !== "count")) {
       throw new Error("Section do not match");
     }
     let v = res[0].values;
-      let data: {[index: string]: {x: number, y: number}[]} = {
-        hour: [],
-        delay: [],
-        distance: []
-      };
-      v.forEach(e => {
-        let chart = e[0] as string;
-        data[chart].push({x: e[1] as number, y: e[2] as number});
-      });
-      return data;
+    let itxId = null;
+    if (cols[3] === "itxId") {
+      itxId = v[0][3];
+    }
+    let data: {[index: string]: {x: number, y: number}[]} = {
+      hour: [],
+      delay: [],
+      distance: []
+    };
+    v.forEach(e => {
+      let chart = e[0] as string;
+      data[chart].push({x: e[1] as number, y: e[2] as number});
+    });
+    return {
+      data, itxId
+    };
   }
-  return null;
+  return {
+    data: null,
+    itxId: null
+  };
 }
 
 // if buffer size is 1, normal, else, chronicles
@@ -34,6 +43,9 @@ export function setupXFilterDB() {
   ["tables", "views", "dataFetchTriggers", "renderTriggers"].map(f => {executeFile("XFilter", f); });
   db.create_function("queryWorker", queryWorker);
   db.create_function("checkAtomic", (charts: string) => {
+    if (!charts) {
+      return 0;
+    }
     let isAtomic = XFILTERCHARTS.reduce((acc, val) => {
       return acc && (charts.indexOf(val) > -1);
     }, true);
