@@ -4,8 +4,8 @@ import { geoMercator } from "d3-geo";
 import { PINS } from "../data/pins";
 
 export const SCALE = 1 << 6;
-export const WIDTH = 800;
-export const HEIGHT = 450;
+export const WIDTH = 700;
+export const HEIGHT = 400;
 
 const dataLength = 4;
 
@@ -117,7 +117,7 @@ export function getMapEventData(itxId: number, s: MapSelection) {
     }
     return false;
   });
-  console.log("filtered result", data, PINS, s);
+  // console.log("filtered result", data, PINS, s);
   // hack, to avoid hanging and having no result...
   if (data.length === 0) {
     data = [[0, 0, "dummy"]];

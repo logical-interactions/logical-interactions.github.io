@@ -51,6 +51,10 @@ CREATE TABLE pinResponses (
   ts INTEGER
 );
 
+CREATE TABLE streamingData (
+  ts INTEGER
+);
+
 -- TODO: we probably need to log the render data in order to know what the current read situation is.
 CREATE TABLE pinRender(
   itxId INTEGER NOT NULL UNIQUE,

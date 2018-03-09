@@ -42,7 +42,7 @@ CREATE VIEW pinPending AS
   FROM (
     SELECT COALESCE(pinResponses.itxId, 0) AS pending
     FROM newMapAndBrushState AS s
-      JOIN pinResponses ON pinResponses.itxId = s.mapItxId
+      LEFT OUTER JOIN pinResponses ON pinResponses.itxId = s.mapItxId
   ) AS val;
 
 
@@ -110,6 +110,21 @@ CREATE VIEW chartPending AS
   FROM
     chartUserIds
   WHERE userId NOT IN (SELECT userId FROM userData);
+
+CREATE VIEW renderBrushState AS
+  SELECT
+    setBrushState(m.latMax, m.longMax, m.latMin, m.longMin, b.latMax, b.longMax, b.latMin, b.longMin)
+  FROM
+    newMapAndBrushState AS s
+    JOIN mapInteractions AS m ON s.mapItxId = m.itxId
+    JOIN brushItxItems AS b ON s.brushItxId = b.itxId
+    JOIN (
+        SELECT MAX(ts) AS ts
+        FROM
+          brushItxItems AS b2
+          JOIN newMapAndBrushState AS s2 ON b2.itxId = s2.brushItxId
+      ) AS t
+      ON b.ts = t.ts;
 
 -- assuming that the auto increment starts at 1, this boolean business is fine.
 CREATE VIEW renderChartState AS

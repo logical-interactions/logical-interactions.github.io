@@ -7,19 +7,20 @@
 CREATE TRIGGER refreshAfterPinResponses AFTER INSERT ON pinResponses
   BEGIN
     SELECT log('pinResponses', 'renderMapState'), * FROM renderMapState;
-    SELECT * FROM renderPinState;
     SELECT * FROM renderChartState;
+    SELECT * FROM renderPinState;
+    SELECT * FROM pinPending;
+    SELECT * FROM renderBrushState;
     INSERT INTO renderHistory SELECT *, 'pinResponses', timeNow() FROM newMapAndBrushState;
   END;
 
 CREATE TRIGGER refreshAfterMapRequests AFTER INSERT ON mapRequests
   BEGIN
-    SELECT log('1','test');
     SELECT log('mapRequests', 'renderMapState'), * FROM renderMapState;
-    SELECT * FROM renderPinState;
     SELECT * FROM renderChartState;
+    SELECT * FROM renderPinState;
     SELECT * FROM pinPending;
-    SELECT log('2','test');
+    SELECT * FROM renderBrushState;
     INSERT INTO renderHistory SELECT *, 'mapRequests', timeNow() FROM newMapAndBrushState;
   END;
 
@@ -29,6 +30,7 @@ CREATE TRIGGER refreshAfterBrushItxItems AFTER INSERT ON brushItxItems
     SELECT * FROM renderPinState;
     SELECT * FROM renderChartState;
     SELECT * FROM chartPending;
+    SELECT * FROM renderBrushState;
     INSERT INTO renderHistory SELECT *, 'brushItxItems', timeNow() FROM newMapAndBrushState;
   END;
 
@@ -39,7 +41,16 @@ CREATE TRIGGER refreshUserData AFTER INSERT ON userData
     SELECT * FROM renderPinState;
     SELECT * FROM renderChartState;
     SELECT * FROM chartPending;
+    SELECT * FROM renderBrushState;
     INSERT INTO renderHistory SELECT *, 'userData', timeNow() FROM newMapAndBrushState;
   END;
 
-
+CREATE TRIGGER refreshStreamingData AFTER INSERT ON streamingData
+  BEGIN
+    SELECT * FROM renderMapState;
+    SELECT * FROM renderPinState;
+    SELECT * FROM renderChartState;
+    SELECT * FROM chartPending;
+    SELECT * FROM renderBrushState;
+    INSERT INTO renderHistory SELECT *, 'streamingData', timeNow() FROM newMapAndBrushState;
+  END;

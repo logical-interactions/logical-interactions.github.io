@@ -71,10 +71,25 @@ export function setupCanvasDependentUDFs(ctx: CanvasRenderingContext2D) {
     let t = mapBoundsToTransform(s, SCALE, WIDTH, HEIGHT);
     let p = getTranslatedMapping(t);
     // hard code for now
+    // console.log("Drawing pin", arguments);
     ctx.fillStyle = "red";
     ctx.beginPath();
-    ctx.arc(p([long, lat])[0], p([long, lat])[1], 2, 0, 2 * Math.PI);
+    let d = p([long, lat]);
+    ctx.arc(d[0], d[1], 2, 0, 2 * Math.PI);
     ctx.fill();
+  }
+
+  function setBrushState(latMin: number, latMax: number, longMin: number, longMax: number, brushLatMin: number, brushLatMax: number, brushLongMin: number, brushLongMax: number) {
+    let s = {
+      nw: [longMin, latMax] as Coords,
+      se: [longMax, latMin] as Coords
+    };
+    let t = mapBoundsToTransform(s, SCALE, WIDTH, HEIGHT);
+    let p = getTranslatedMapping(t);
+    ctx.fillStyle = "rgba(119,136,153,0.4)";
+    let p1 = p([brushLongMin, brushLatMax]);
+    let p2 = p([brushLongMax, brushLatMin]);
+    ctx.fillRect(p1[0], p1[1], p2[0], p2[1]);
   }
 
   function setMapState(latMin: number, latMax: number, longMin: number, longMax: number) {
@@ -115,9 +130,8 @@ export function setupCanvasDependentUDFs(ctx: CanvasRenderingContext2D) {
         worldData.forEach(_setMapStateHelper);
     }
   }
-  // TODO: draw brush???
 
-  let UDFs: any[] = [setPinState, setMapState];
+  let UDFs: any[] = [setPinState, setMapState, setBrushState];
   UDFs.forEach((f) => {
     db.create_function(f.name, f);
   });

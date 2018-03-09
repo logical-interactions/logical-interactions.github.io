@@ -35,8 +35,11 @@ export function readFileAsync(filename: string): Promise<any> {
 export const NW = [-173, 77];
 export const SE = [163, -43];
 
+export const NWStart = [-140, 54];
+export const SEStart = [-54, 20];
+
 export function checkBounds(controls: {[index: string]: boolean}, nw: Coords, se: Coords) {
-  if (se[0] - nw[0] < 20) {
+  if ((Math.abs(se[0] - nw[0]) < 20) && (Math.abs(se[1] - nw[1]) < 20)) {
     // too close
     controls["in"] = true;
   }

@@ -33,7 +33,7 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
   button: HTMLButtonElement;
   static defaultProps = {
     debuging: true,
-    width: 800,
+    width: 720,
     height: 450,
     maxLatency: 4000,
     minLatency: 1000,
@@ -62,9 +62,10 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     };
   }
 
-  setMapPending(pending: boolean) {
+  setMapPending(pending: number) {
+    console.log("PIN PENDING", pending);
     this.setState({
-      pending
+      pending: (pending > 0) ? false : true
     });
   }
 
@@ -166,14 +167,14 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     let pendingSvg: JSX.Element;
     if (pending) {
       console.log("showing as pending");
-      pendingSvg = <rect x="0" y="0" width={WIDTH} height={HEIGHT} fill="black" opacity="0.1" />;
+      pendingSvg = <div className="indicatorLine"></div>;
     }
     return(<>
       {controls}
       <div style={{position: "relative", height: HEIGHT, width: WIDTH}}>
+        {pendingSvg}
         <canvas style={{position: "absolute"}} ref="canvas" width={WIDTH} height={HEIGHT} />
         <svg style={{position: "absolute"}} width={WIDTH} height={HEIGHT}>
-          {pendingSvg}
           {brushDiv}
         </svg>
       </div>

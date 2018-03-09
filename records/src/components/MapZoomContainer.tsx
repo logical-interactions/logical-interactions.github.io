@@ -4,7 +4,7 @@ import * as d3 from "d3";
 import MapZoom from "./MapZoom";
 import Chart from "./Chart";
 
-import { NW, SE } from "../lib/helper";
+import { NWStart, SEStart } from "../lib/helper";
 import { MapSelection, getRandomInt, getUserhData, Coords } from "../lib/data";
 import { db } from "../records/setup";
 import { setupMapDB, getMapZoomStatements } from "../records/MapZoom/setup";
@@ -20,7 +20,7 @@ export default class MapZoomContainer extends React.Component<MapZoomContainerPr
     setupMapDB();
     let stmts = getMapZoomStatements();
     // initial view is just an interaction here
-    stmts.insertNavItx.run([+new Date(), ...NW, ...SE]);
+    stmts.insertNavItx.run([+new Date(), ...NWStart, ...SEStart]);
   }
 
   render() {

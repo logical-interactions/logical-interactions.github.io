@@ -23,6 +23,7 @@ export default class QueryDb extends React.Component<QueryDbProps, QueryDbState>
   constructor(props: QueryDbProps) {
     super(props);
     this.handleChange = this.handleChange.bind(this);
+    this.executeQuery = this.executeQuery.bind(this);
     let result = null;
     console.log("DEBUG, [QueryDb]", props.query);
     if (props.execute) {
@@ -45,25 +46,26 @@ export default class QueryDb extends React.Component<QueryDbProps, QueryDbState>
   }
   render() {
     let { explainTxt } = this.props;
-    let { result } = this.state;
+    let { result, query } = this.state;
     let resultEle: JSX.Element;
     let explainTxtEle: JSX.Element;
     if (result) {
-      resultEle = <>
+      resultEle = <table style={{fontFamily: "courier"}}>
         <thead>
           {result.columns.map(c => <th>{c}</th>)}
         </thead>
         <tbody>
-          {result.values.map(r => <tr>{r.map(c => (<td>c</td>))}</tr>)}
+          {result.values.map(r => <tr>{r.map(c => (<td>{c}</td>))}</tr>)}
         </tbody>
-      </>;
+      </table>;
     }
     if (explainTxt) {
       explainTxtEle = <p style={{color: "blue"}}>{explainTxt}</p>;
     }
     return (<>
       {explainTxtEle}
-      <input type="text" value={this.state.query} onChange={this.handleChange} />
+      <textarea value={query} onChange={this.handleChange} rows={query.split("\n").length + 1} cols={80} style={{fontFamily: "courier"}} />
+      <br/>
       <button onClick={this.executeQuery}>Run</button>
       {resultEle}
     </>);
