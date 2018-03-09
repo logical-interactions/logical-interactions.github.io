@@ -4,7 +4,7 @@ import { db } from "../records/setup";
 import { QueryResults } from "sql.js";
 
 interface QueryDbProps {
-  execute: boolean;
+  execute?: boolean;
   hideQuery?: boolean;
   explainTxt?: string;
   query?: string;
@@ -18,20 +18,30 @@ interface QueryDbState {
 export default class QueryDb extends React.Component<QueryDbProps, QueryDbState> {
   static defaultProps = {
     hideQuery: false,
+    execute: false,
   };
   constructor(props: QueryDbProps) {
     super(props);
     this.handleChange = this.handleChange.bind(this);
+    let result = null;
+    console.log("DEBUG, [QueryDb]", props.query);
+    if (props.execute) {
+      if (!this.props.query) {
+        throw new Error("Automatically executing QueryDB should have predefined query");
+      }
+      result = db.exec(this.props.query)[0];
+    }
     this.state = {
       query: props.query,
-      result: null,
+      result,
     };
   }
   handleChange(event: any) {
     this.setState({query: event.target.value});
   }
   executeQuery() {
-    let r = db.exec(this.state.query);
+    let result = db.exec(this.state.query)[0];
+    this.setState({result});
   }
   render() {
     let { explainTxt } = this.props;

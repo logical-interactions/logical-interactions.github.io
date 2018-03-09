@@ -9,12 +9,16 @@ import { MapSelection, getRandomInt, getUserhData, Coords } from "../lib/data";
 import { db } from "../records/setup";
 import { setupMapDB, getMapZoomStatements } from "../records/MapZoom/setup";
 
-export default class MapZoomContainer extends React.Component<undefined, undefined> {
+interface MapZoomContainerProps {
+  logical: boolean;
+}
+
+export default class MapZoomContainer extends React.Component<MapZoomContainerProps, undefined> {
 
   componentDidMount() {
     // this mounts only when all children have mounted
-    let stmts = getMapZoomStatements();
     setupMapDB();
+    let stmts = getMapZoomStatements();
     // initial view is just an interaction here
     stmts.insertNavItx.run([+new Date(), ...NW, ...SE]);
   }
@@ -22,6 +26,7 @@ export default class MapZoomContainer extends React.Component<undefined, undefin
   render() {
     return (<>
       <MapZoom
+        logical={this.props.logical}
       />
       <Chart
         series={["Q1", "Q2", "Q3", "Q4"]}

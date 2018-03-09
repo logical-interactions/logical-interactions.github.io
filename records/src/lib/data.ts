@@ -7,8 +7,6 @@ export const SCALE = 1 << 6;
 export const WIDTH = 800;
 export const HEIGHT = 450;
 
-const maxLatency = 4000;
-const minLatency = 1000;
 const dataLength = 4;
 
 export interface Rect {
@@ -80,10 +78,38 @@ export function getRandomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+
+let latencies: {[index: string]: {min: number, max: number} } = {
+  pin: {
+    max: 4000,
+    min: 1000
+  },
+  user: {
+    max: 4000,
+    min: 3000
+  }
+};
+
+// hacky
+// do not want to refresh MapZoom
+export function mapZoomLatency(key: string, min?: number, max?: number) {
+  if (Object.keys(latencies).indexOf(key) < 0) {
+    throw new Error(`[getLatency] ${key} not found, ${ Object.keys(latencies)}`);
+  }
+  if (min > max) {
+    throw new Error(`[getLatency] min(${min}) must be smaller than max(${max}) `);
+  }
+  if (min && max) {
+    latencies[key] = {min, max};
+  }
+  return latencies[key];
+}
+
 // let mapData: MapEvents  Data[];
 // load the data
 export function getMapEventData(itxId: number, s: MapSelection) {
-  let delay = getRandomInt(minLatency, maxLatency);
+  let l = mapZoomLatency("pin");
+  let delay = getRandomInt(l.min, l.max);
   // FIXME filter based on selection and add determinstic details
   let data = PINS.filter(d => {
     if ((d[1] < s.nw[1]) && (d[1] > s.se[1]) && (d[0] < s.se[0]) && (d[0] > s.nw[0])) {
@@ -107,7 +133,8 @@ export function getMapEventData(itxId: number, s: MapSelection) {
 
 export function getUserhData(userId: string) {
   // make it slightly longer than the other
-  let delay = getRandomInt(minLatency, maxLatency) * 2;
+  let l = mapZoomLatency("user");
+  let delay = getRandomInt(l.min, l.max);
   // fake data make up a bar chart based on the param
   let data: number[] = Array(dataLength).fill(4);
   for (let i = 0; i < userId.length; i ++) {

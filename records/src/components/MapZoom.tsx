@@ -3,10 +3,11 @@ import * as d3 from "d3";
 
 import { checkBounds, interactionHelper, getTranslatedMapping } from "../lib/helper";
 import { db } from "../records/setup";
-import { getMapZoomStatements, setupCanvasDependentUDFs } from "../records/MapZoom/setup";
+import { setupMapDB, getMapZoomStatements, setupCanvasDependentUDFs } from "../records/MapZoom/setup";
 import { MapSelection, getRandomInt, Rect, Coords, mapBoundsToTransform, approxEqual, SCALE, WIDTH, HEIGHT } from "../lib/data";
 
 interface MapZoomProps {
+  logical: boolean;
   width?: number;
   height?: number;
   maxLatency?: number;
@@ -17,6 +18,7 @@ interface MapZoomProps {
 interface MapZoomState {
   // brushItxId: number;
   // navItxId: number;
+  intendedNavSelection: MapSelection;
   pending: boolean;
   navSelection: MapSelection;
   shiftDown: boolean;
@@ -42,11 +44,10 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     this.setMapPending = this.setMapPending.bind(this);
     this.setMapBounds = this.setMapBounds.bind(this);
     this.interact = this.interact.bind(this);
-    db.create_function("setMapPending", this.setMapPending);
-    db.create_function("setMapBounds", this.setMapBounds);
     this.state = {
       shiftDown: false,
       navSelection: null,
+      intendedNavSelection: null,
       controlsDisabled: {
         "in": false,
         "out": false,
@@ -66,14 +67,23 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
       pending
     });
   }
+
   setMapBounds(latMin: number, latMax: number, longMin: number, longMax: number) {
     let navSelection = {
       nw: [longMin, latMax] as Coords,
       se: [longMax, latMin] as Coords
     };
-    this.setState({
-      navSelection,
-    });
+    if (this.state.intendedNavSelection) {
+      this.setState({
+        navSelection,
+      });
+    } else {
+      // if this is initializing then sync navSelection and intendedNavSelection
+      this.setState({
+        navSelection,
+        intendedNavSelection: navSelection,
+      });
+    }
   }
 
   handleKeyDown(event: any) {
@@ -87,7 +97,11 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
   componentDidMount() {
     const canvas = this.refs.canvas as HTMLCanvasElement;
     const ctx = canvas.getContext("2d");
+    // do all the setup here
+    // functions must be defined before view references them
     setupCanvasDependentUDFs(ctx);
+    db.create_function("setMapPending", this.setMapPending);
+    db.create_function("setMapBounds", this.setMapBounds);
     // now pass this canvas reference to draw dots on!
     // db.create_function("setMapState", this.setMapState);
     window.addEventListener("keydown", this.handleKeyDown);
@@ -99,13 +113,14 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
   // so our undo redo logic will by similar to others (checked with Sublime), where a branch is lost from the linear path forward (much like how copy paste's clip board copy is gone after a second copy)
 
   interact(itxType: string) {
-    let stmts = getMapZoomStatements();
-    let {nw, se} = interactionHelper(this.state.navSelection, itxType);
     return() => {
+      let navSelection = this.props.logical ? this.state.navSelection : this.state.intendedNavSelection;
+      let {nw, se} = interactionHelper(navSelection, itxType) as {nw: Coords, se:  Coords };
+      let stmts = getMapZoomStatements();
       let controlsDisabledOld = Object.assign({}, this.state.controlsDisabled);
-      let controlsDisabled = checkBounds(controlsDisabledOld, nw as Coords, se as Coords);
+      let controlsDisabled = checkBounds(controlsDisabledOld, nw, se);
       // also if this.state.navSeletion is null, disable
-      if (!this.state.navSelection) {
+      if (!navSelection) {
         Object.keys(controlsDisabled).forEach((key) => {
           controlsDisabled[key] = true;
         });
@@ -113,6 +128,9 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
       if (JSON.stringify(controlsDisabled) !== JSON.stringify(this.state.controlsDisabled)) {
         this.setState({controlsDisabled});
       }
+      this.setState({
+        intendedNavSelection: {nw, se}
+      });
       stmts.insertNavItx.run([+new Date(), ...nw, ...se]);
     };
   }
@@ -120,7 +138,6 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
   render() {
     let { width, height } = this.props;
     let { controlsDisabled, pending } = this.state;
-    let stmts = getMapZoomStatements();
     let brushDiv: JSX.Element;
     if (this.state.navSelection) {
       let t = mapBoundsToTransform(this.state.navSelection, SCALE, WIDTH, HEIGHT);
@@ -131,9 +148,11 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
       let brush = d3.brush()
                     .extent([[0, 0], [innerWidth, innerHeight]])
                     .on("start", function() {
+                      let stmts = getMapZoomStatements();
                       stmts.insertBrushItx.run([+new Date()]);
                     })
                     .on("end", function() {
+                      let stmts = getMapZoomStatements();
                       const s = d3.brushSelection(this) as [[number, number], [number, number]];
                       if (s !== null) {
                         let nw = p.invert(s[0]);

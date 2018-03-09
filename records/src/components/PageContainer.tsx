@@ -26,7 +26,8 @@ export const PageContainer = () => (<>
   <p>
     We will walk through two main examples to illustrate how the framework is applied.
   </p>
-  {/* <AsyncContainer /> */}
+  <MapZoomExplain
+  />
   {/* <Test /> */}
   {/* <StressTest /> */}
 </>);
