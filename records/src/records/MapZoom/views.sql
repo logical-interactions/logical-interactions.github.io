@@ -20,9 +20,10 @@ CREATE VIEW mapOnlyState AS
     mapInteractions.itxId,
     mapInteractions.ts
   FROM mapInteractions
-  ORDER BY itxId DESC LIMIT 1;
-    -- JOIN pinResponses ON pinResponses.itxId = mapInteractions.itxId
-    -- ORDER BY pinResponses.itxId DESC LIMIT 1;
+  -- ORDER BY 
+    -- itxId DESC LIMIT 1;
+    JOIN pinResponses ON pinResponses.itxId = mapInteractions.itxId
+    ORDER BY pinResponses.itxId DESC LIMIT 1;
 
 
 -- if brush is earlier than the most recent map state, use everything based on brush
@@ -133,6 +134,6 @@ CREATE VIEW renderChartState AS
   FROM
     chartUserIds
     JOIN userData ON userData.userId = chartUserIds.userId,
-    (SELECT MAX(ts) as ts FROM renderHistory) AS r
-  WHERE
-    timeNow() - r.ts > 300;
+    (SELECT MAX(ts) as ts FROM renderHistory) AS r;
+  -- WHERE
+  --   timeNow() - r.ts > 300;

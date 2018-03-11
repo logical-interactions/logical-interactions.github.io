@@ -76,7 +76,7 @@ export function getXFilterStmts() {
   };
   if (!stmts) {
     stmts = {
-      insertBrushItx: db.prepare(`INSERT INTO brushItx (ts, low, high, chart) VALUES (?, ?, ?, ?)`)
+      insertBrushItx: db.prepare(`INSERT INTO xBrushItx (ts, low, high, chart) VALUES (?, ?, ?, ?)`)
     };
   }
   return stmts;

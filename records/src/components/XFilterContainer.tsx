@@ -33,7 +33,7 @@ export default class XFilterContainer extends React.Component<undefined, XFilter
     // INSERT INTO xFilterRequest (itxId, ts) VALUES (-1, timeNow());
     let t = +new Date();
     db.exec(`
-      INSERT INTO brushItx (ts, chart) VALUES ${XFILTERCHARTS.map((v) => `(${t}, '${v}')`).join(", ")};
+      INSERT INTO xBrushItx (ts, chart) VALUES ${XFILTERCHARTS.map((v) => `(${t}, '${v}')`).join(", ")};
     `);
     this.state = {
       baseData: null,

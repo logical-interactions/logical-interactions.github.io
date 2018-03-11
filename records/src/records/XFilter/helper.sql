@@ -4,7 +4,7 @@ SELECT
   r.ts - i.ts
 FROM
   xFilterRender r
-  JOIN brushItx i ON r.itxId = i.itxId;
+  JOIN xBrushItx i ON r.itxId = i.itxId;
 
 -- this will already be in the DB that's loaded in
 -- preprocessed at /preproc/xfilter_prep.html

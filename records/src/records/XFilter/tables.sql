@@ -1,5 +1,5 @@
 -- remove brush just gets mapped back to all the data being selected
-CREATE TABLE brushItx (
+CREATE TABLE xBrushItx (
   itxId INTEGER PRIMARY KEY,
   ts INTEGER NOT NULL,
   low INTEGER,

@@ -6,9 +6,9 @@
 
 CREATE TRIGGER refreshAfterPinResponses AFTER INSERT ON pinResponses
   BEGIN
-    SELECT log('pinResponses', 'renderMapState'), * FROM renderMapState;
+    SELECT log('renderMapState', 'refreshAfterPinResponses'), * FROM renderMapState;
     SELECT * FROM renderChartState;
-    SELECT * FROM renderPinState;
+    SELECT log('renderPinState', 'refreshAfterPinResponses'), * FROM renderPinState;
     SELECT * FROM pinPending;
     SELECT * FROM renderBrushState;
     INSERT INTO renderHistory SELECT *, 'pinResponses', timeNow() FROM newMapAndBrushState;
@@ -16,7 +16,7 @@ CREATE TRIGGER refreshAfterPinResponses AFTER INSERT ON pinResponses
 
 CREATE TRIGGER refreshAfterMapRequests AFTER INSERT ON mapRequests
   BEGIN
-    SELECT log('mapRequests', 'renderMapState'), * FROM renderMapState;
+    SELECT log('renderMapState', 'refreshAfterMapRequests'), * FROM renderMapState;
     SELECT * FROM renderChartState;
     SELECT * FROM renderPinState;
     SELECT * FROM pinPending;
@@ -39,7 +39,7 @@ CREATE TRIGGER refreshUserData AFTER INSERT ON userData
   BEGIN
     SELECT * FROM renderMapState;
     SELECT * FROM renderPinState;
-    SELECT * FROM renderChartState;
+    SELECT log('renderChartState', 'refreshUserData'), * FROM renderChartState;
     SELECT * FROM chartPending;
     SELECT * FROM renderBrushState;
     INSERT INTO renderHistory SELECT *, 'userData', timeNow() FROM newMapAndBrushState;

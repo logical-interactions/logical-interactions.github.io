@@ -79,7 +79,7 @@ export function setupCanvasDependentUDFs(ctx: CanvasRenderingContext2D) {
     ctx.fill();
   }
 
-  function setBrushState(latMin: number, latMax: number, longMin: number, longMax: number, brushLatMin: number, brushLatMax: number, brushLongMin: number, brushLongMax: number) {
+  function setBrushState(latMax: number, longMax: number, latMin: number, longMin: number, brushLatMax: number, brushLongMax: number, brushLatMin: number, brushLongMin: number) {
     let s = {
       nw: [longMin, latMax] as Coords,
       se: [longMax, latMin] as Coords
@@ -89,18 +89,22 @@ export function setupCanvasDependentUDFs(ctx: CanvasRenderingContext2D) {
     ctx.fillStyle = "rgba(119,136,153,0.4)";
     let p1 = p([brushLongMin, brushLatMax]);
     let p2 = p([brushLongMax, brushLatMin]);
-    ctx.fillRect(p1[0], p1[1], p2[0], p2[1]);
+    if (isNaN(p1[0]) || isNaN(p1[1]) || isNaN(p2[0]) || isNaN(p2[1])) {
+      throw new Error(`Brush calculation went wrong! for ${arguments}`);
+    }
+    ctx.fillRect(p1[0], p1[1], p2[0] - p1[0], p2[1] - p1[1]);
+    // console.log("Brush filling", p1[0], p1[1], p2[0], p2[1]);
   }
 
   function setMapState(latMin: number, latMax: number, longMin: number, longMax: number) {
-    console.log("setting map state", arguments);
+    // console.log("setting map state", arguments);
     ctx.clearRect(0, 0, WIDTH, HEIGHT);
     let s = {
       nw: [longMin, latMax] as Coords,
       se: [longMax, latMin] as Coords
     };
     let t = mapBoundsToTransform(s, SCALE, WIDTH, HEIGHT);
-    console.log("transformation for render", t);
+    // console.log("transformation for render", t);
     let p = getTranslatedMapping(t);
     let path = geoPath()
                 .projection(p)
@@ -108,7 +112,9 @@ export function setupCanvasDependentUDFs(ctx: CanvasRenderingContext2D) {
 
     function _setMapStateHelper(d: any, i: number) {
       let colorVal = POP[d.id] ? Math.pow(POP[d.id] / MAXPOP, 0.4) * 0.6 + 0.1 : 0.2;
-      ctx.fillStyle = d3ScaleChromatic.interpolateBlues(colorVal);
+      let rgb = d3ScaleChromatic.interpolateBlues(colorVal);
+      // adding transparency, brittle
+      ctx.fillStyle = rgb.substring(0, rgb.length - 1) + ", 0.5)";
       ctx.beginPath();
       path(d);
       ctx.fill();
@@ -198,4 +204,8 @@ export function getMapZoomStatements() {
     };
   }
   return stmts;
+}
+
+export function showPastMapBrushes() {
+  // TODO
 }

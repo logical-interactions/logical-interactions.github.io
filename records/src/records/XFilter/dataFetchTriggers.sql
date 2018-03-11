@@ -2,7 +2,7 @@
 -- if not, go compute
 -- else, render
 
-CREATE TRIGGER afterBrushItx AFTER INSERT ON brushItx
+CREATE TRIGGER afterBrushItx AFTER INSERT ON xBrushItx
 BEGIN
   -- TOOD: add throttling
   SELECT log(NEW.itxId || NEW.chart || NEW.low || ' - ' || NEW.high, 'afterBrushItx');

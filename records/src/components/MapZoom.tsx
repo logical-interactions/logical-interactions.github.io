@@ -3,7 +3,7 @@ import * as d3 from "d3";
 
 import { checkBounds, interactionHelper, getTranslatedMapping } from "../lib/helper";
 import { db } from "../records/setup";
-import { setupMapDB, getMapZoomStatements, setupCanvasDependentUDFs } from "../records/MapZoom/setup";
+import { setupMapDB, getMapZoomStatements, setupCanvasDependentUDFs, showPastMapBrushes } from "../records/MapZoom/setup";
 import { MapSelection, getRandomInt, Rect, Coords, mapBoundsToTransform, approxEqual, SCALE, WIDTH, HEIGHT } from "../lib/data";
 
 interface MapZoomProps {
@@ -113,9 +113,9 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
 
   // so our undo redo logic will by similar to others (checked with Sublime), where a branch is lost from the linear path forward (much like how copy paste's clip board copy is gone after a second copy)
 
-  interact(itxType: string) {
+  interact(itxType: string, brush: d3.BrushBehavior<{}>) {
     return() => {
-      let navSelection = this.props.logical ? this.state.navSelection : this.state.intendedNavSelection;
+      let navSelection = this.props.logical ? this.state.intendedNavSelection : this.state.navSelection;
       let {nw, se} = interactionHelper(navSelection, itxType) as {nw: Coords, se:  Coords };
       let stmts = getMapZoomStatements();
       let controlsDisabledOld = Object.assign({}, this.state.controlsDisabled);
@@ -133,6 +133,7 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
         intendedNavSelection: {nw, se}
       });
       stmts.insertNavItx.run([+new Date(), ...nw, ...se]);
+      d3.select(".brush").call(brush.move, null);
     };
   }
 
@@ -140,13 +141,14 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     let { width, height } = this.props;
     let { controlsDisabled, pending } = this.state;
     let brushDiv: JSX.Element;
+    let brush: d3.BrushBehavior<{}>;
     if (this.state.navSelection) {
       let t = mapBoundsToTransform(this.state.navSelection, SCALE, WIDTH, HEIGHT);
       // console.log("transformation for render", t);
       // makes more sense to use svg since the brush wouldn't cause a canvas redraw
       // this is really better than the SQL all in approach.
       let p = getTranslatedMapping(t);
-      let brush = d3.brush()
+      brush = d3.brush()
                     .extent([[0, 0], [innerWidth, innerHeight]])
                     .on("start", function() {
                       let stmts = getMapZoomStatements();
@@ -159,11 +161,16 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
                         let nw = p.invert(s[0]);
                         let se = p.invert(s[1]);
                         stmts.insertBrushItxItems.run([+new Date(), ...nw, ...se]);
+                        // and then remove
+                        d3.select(".brush").call(brush.move, null);
                       }
                     });
-      brushDiv = <g ref={ g => d3.select(g).call(brush) }></g>;
+      brushDiv = <g ref={ g => d3.select(g).call(brush) } className="brush"></g>;
     }
-    let controls = ["in", "out", "left", "right", "up", "down"].map((c) => <button onClick={this.interact(c)} disabled={controlsDisabled[c]}>{c}</button>);
+    let controls = ["in", "out", "left", "right", "up", "down"].map((c) => <button
+        onClick={this.interact(c, brush)}
+        disabled={controlsDisabled[c]}
+      >{c}</button>);
     let pendingSvg: JSX.Element;
     if (pending) {
       console.log("showing as pending");
@@ -173,12 +180,13 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
       {controls}
       <div style={{position: "relative", height: HEIGHT, width: WIDTH}}>
         {pendingSvg}
-        <canvas style={{position: "absolute"}} ref="canvas" width={WIDTH} height={HEIGHT} />
+        <canvas style={{position: "absolute"}} ref="canvas" width={WIDTH} height={HEIGHT}
+        />
         <svg style={{position: "absolute"}} width={WIDTH} height={HEIGHT}>
           {brushDiv}
         </svg>
       </div>
-      <button>Show Me Where I've Been</button>
+      <button onClick={showPastMapBrushes}>Show Me Where I've Been</button>
       <button>Export Selected User Ids</button>
       <button>Animate Where I've been</button>
       <button>Clear Cache</button>
