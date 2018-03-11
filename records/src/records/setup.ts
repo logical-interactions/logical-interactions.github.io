@@ -68,3 +68,34 @@ function assertNoBigger(v1: number, v2: number, msg: string) {
     throw new Error(`${v1} is larger than ${v2}, ${msg}`);
   }
 }
+
+export function downloadDB() {
+  console.log("download session");
+  let dRaw = db.export();
+  let blob = new Blob([dRaw]);
+  let a = document.createElement("a");
+  a.href = window.URL.createObjectURL(blob);
+  a.download = "session.db";
+  a.onclick = function() {
+    setTimeout(function() {
+      window.URL.revokeObjectURL(a.href);
+    }, 1500);
+  };
+  a.click();
+}
+
+export function downloadQueryResultAsCSV(query: string) {
+  let csvContent = "data:text/csv;charset=utf-8,";
+  let r = db.exec(query);
+  if (r.length && r[0].values) {
+    csvContent += r[0].columns.join(",") + "\r\n";
+    r[0].values.forEach((rowArray) => {
+      let row = rowArray.join(",");
+      csvContent += row + "\r\n";
+    });
+    let encodedUri = encodeURI(csvContent);
+    window.open(encodedUri);
+  } else {
+    console.log("NO RESULT");
+  }
+}

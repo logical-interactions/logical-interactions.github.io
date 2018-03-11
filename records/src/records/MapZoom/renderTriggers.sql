@@ -6,51 +6,48 @@
 
 CREATE TRIGGER refreshAfterPinResponses AFTER INSERT ON pinResponses
   BEGIN
-    SELECT log('renderMapState', 'refreshAfterPinResponses'), * FROM renderMapState;
-    SELECT * FROM renderChartState;
-    SELECT log('renderPinState', 'refreshAfterPinResponses'), * FROM renderPinState;
-    SELECT * FROM pinPending;
-    SELECT * FROM renderBrushState;
-    INSERT INTO renderHistory SELECT *, 'pinResponses', timeNow() FROM newMapAndBrushState;
+    INSERT INTO renderItxs
+    SELECT mapItxId, brushItxId, 'pinResponses', timeNow()
+    FROM renderItxsView;
   END;
 
 CREATE TRIGGER refreshAfterMapRequests AFTER INSERT ON mapRequests
   BEGIN
-    SELECT log('renderMapState', 'refreshAfterMapRequests'), * FROM renderMapState;
-    SELECT * FROM renderChartState;
-    SELECT * FROM renderPinState;
-    SELECT * FROM pinPending;
-    SELECT * FROM renderBrushState;
-    INSERT INTO renderHistory SELECT *, 'mapRequests', timeNow() FROM newMapAndBrushState;
+    INSERT INTO renderItxs
+    SELECT mapItxId, brushItxId, 'mapRequests', timeNow()
+    FROM renderItxsView;
   END;
 
 CREATE TRIGGER refreshAfterBrushItxItems AFTER INSERT ON brushItxItems
   BEGIN
-    SELECT * FROM renderMapState;
-    SELECT * FROM renderPinState;
-    SELECT * FROM renderChartState;
-    SELECT * FROM chartPending;
-    SELECT * FROM renderBrushState;
-    INSERT INTO renderHistory SELECT *, 'brushItxItems', timeNow() FROM newMapAndBrushState;
+    INSERT INTO renderItxs
+    SELECT mapItxId, brushItxId, 'brushItxItems', timeNow()
+    FROM renderItxsView;
   END;
 
 -- TODO: try the optimization this we know for sure would NOT update the map or pin state
 CREATE TRIGGER refreshUserData AFTER INSERT ON userData
   BEGIN
-    SELECT * FROM renderMapState;
-    SELECT * FROM renderPinState;
-    SELECT log('renderChartState', 'refreshUserData'), * FROM renderChartState;
-    SELECT * FROM chartPending;
-    SELECT * FROM renderBrushState;
-    INSERT INTO renderHistory SELECT *, 'userData', timeNow() FROM newMapAndBrushState;
+    INSERT INTO renderItxs
+    SELECT mapItxId, brushItxId, 'userData', timeNow()
+    FROM renderItxsView;
   END;
 
 CREATE TRIGGER refreshStreamingData AFTER INSERT ON streamingData
   BEGIN
-    SELECT * FROM renderMapState;
-    SELECT * FROM renderPinState;
+    INSERT INTO renderItxs
+    SELECT mapItxId, brushItxId, 'streamingData', timeNow()
+    FROM renderItxsView;
+  END;
+
+-- here is a place where we could do program analysis
+-- e.g. when it's just brush ItxItems, we just need the brush and the chart
+CREATE TRIGGER refreshUI AFTER INSERT ON renderItxs
+  BEGIN
+    SELECT * FROM renderMapState WHERE NEW.cause != 'brushItxItems';
+    SELECT * FROM renderPinState WHERE NEW.cause != 'brushItxItems';
+    SELECT * FROM pinPending;
     SELECT * FROM renderChartState;
     SELECT * FROM chartPending;
     SELECT * FROM renderBrushState;
-    INSERT INTO renderHistory SELECT *, 'streamingData', timeNow() FROM newMapAndBrushState;
   END;

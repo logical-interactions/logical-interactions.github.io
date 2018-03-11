@@ -4,6 +4,7 @@ import QueryDb from "./QueryDb";
 import MapZoomContainer from "./MapZoomContainer";
 import { toggleStreaming } from "../lib/streamingPins";
 import { mapZoomLatency } from "../lib/data";
+import { removeCacheSQL } from "../records/MapZoom/setup";
 
 interface MapZoomExplainState {
   // delay in mili seconds
@@ -124,10 +125,7 @@ export default class MapZoomExplain extends React.Component<undefined, MapZoomEx
         At this point perhaps a lot of the pins are already cached, so again you cannot see the effects of latency, well, we can clear the cache by simply running the following queries.
       </p>
       <QueryDb
-        query={`
-          DELETE FROM pinResponses;
-          DELETE FROM pinData;
-        `}
+        query={removeCacheSQL}
       />}
       <p>
         Note also that since the current map state does not change in the React component, even if the button is pressed multiple times, because the derived data space specification would be the same.  In order to implement blocking and allow users to navigate, we can change the interactions to "intentions" and evaluate on the server side, or alternatively push the temporary state to the client state.  If the data is not knowable by the client, then this has to be done on the server. In this case, it is knowable. We've instrumented the React code to toggle between these two options. Click on the button to see the effect

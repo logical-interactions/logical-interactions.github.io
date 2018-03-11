@@ -25,18 +25,23 @@ CREATE VIEW mapOnlyState AS
     JOIN pinResponses ON pinResponses.itxId = mapInteractions.itxId
     ORDER BY pinResponses.itxId DESC LIMIT 1;
 
-
 -- if brush is earlier than the most recent map state, use everything based on brush
 -- if map is earliest, remove brush (we can also redraw)
 
-CREATE VIEW newMapAndBrushState AS
-   SELECT
+CREATE VIEW renderItxsView AS
+  SELECT
     COALESCE(brushOnlyState.mapItxId, mapOnlyState.itxId) AS mapItxId,
     brushOnlyState.itxId AS brushItxId
-   FROM
+  FROM
     mapOnlyState
     LEFT OUTER JOIN brushOnlyState;
 
+CREATE VIEW newMapAndBrushState AS
+  SELECT
+    mapItxId,
+    brushItxId
+  FROM
+    renderItxs ORDER by ts DESC LIMIT 1;
 
 CREATE VIEW pinPending AS
   SELECT setMapPending(val.pending)
@@ -55,14 +60,6 @@ CREATE VIEW renderMapState AS
   FROM
     newMapAndBrushState AS s
     INNER JOIN mapInteractions AS m ON s.mapItxId = m.itxId;
-    -- -- don't render if the map state hasn't changed
-    -- (
-    --   SELECT COALESCE(mapItxId, -1) AS mapItxId
-    --   FROM renderHistory
-    --   WHERE cause = 'mapRequests'
-    --   ORDER BY ts DESC LIMIT 1
-    -- ) AS r
-    -- WHERE r.mapItxId != s.mapItxId;
 
 CREATE VIEW renderPinState AS
   SELECT setPinState(m.latMin, m.latMax, m.longMin, m.longMax, pinData.long, pinData.lat)
@@ -74,14 +71,6 @@ CREATE VIEW renderPinState AS
       AND pinData.long < m.longMax
       AND pinData.lat > m.latMin
       AND pinData.long > m.longMin;
-    -- don't render again if the mapItx hasn't changed and there has been a render based on the mapItx
-    -- (
-    --   SELECT mapItxId AS mapItxId
-    --   FROM renderHistory
-    --   WHERE cause = 'pinResponses'
-    --   ORDER BY ts DESC LIMIT 1
-    -- ) AS r
-    -- WHERE r.mapItxId != s.mapItxId;
 
 
 -- helper view
@@ -127,6 +116,21 @@ CREATE VIEW renderBrushState AS
       ) AS t
       ON b.ts = t.ts;
 
+CREATE VIEW getAllBrushState AS
+  SELECT
+    DISTINCT m.latMax, m.longMax, m.latMin, m.longMin, b.latMax, b.longMax, b.latMin, b.longMin
+  FROM
+    renderItxs s
+    JOIN mapInteractions AS m ON s.mapItxId = m.itxId
+    JOIN brushItxItems AS b ON s.brushItxId = b.itxId
+    JOIN (
+        SELECT MAX(ts) AS ts
+        FROM
+          brushItxItems AS b2
+          JOIN newMapAndBrushState AS s2 ON b2.itxId = s2.brushItxId
+      ) AS t
+      ON b.ts = t.ts;
+
 -- assuming that the auto increment starts at 1, this boolean business is fine.
 CREATE VIEW renderChartState AS
   SELECT
@@ -134,6 +138,6 @@ CREATE VIEW renderChartState AS
   FROM
     chartUserIds
     JOIN userData ON userData.userId = chartUserIds.userId,
-    (SELECT MAX(ts) as ts FROM renderHistory) AS r;
+    (SELECT MAX(ts) as ts FROM renderItxs) AS r;
   -- WHERE
   --   timeNow() - r.ts > 300;

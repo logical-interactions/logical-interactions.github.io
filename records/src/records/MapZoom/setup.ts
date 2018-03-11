@@ -143,16 +143,10 @@ export function setupCanvasDependentUDFs(ctx: CanvasRenderingContext2D) {
   });
 }
 
-// we cannot really call this from the engine since we are not sure if this is properly inserted into the DB...
-// tho it would be weird to call this from the db though...
-function evalView() {
-  db.exec(`
-    BEGIN TRANSACTION;
-    SELECT * FROM renderMapState;
-    SELECT * FROM renderPinState;
-    COMMIT;
-  `);
-}
+export const removeCacheSQL = `
+  DELETE FROM pinResponses;
+  DELETE FROM pinData;
+`;
 
 export const undoSQL = `
 SELECT log('started', 'undo');
@@ -190,9 +184,9 @@ export function getMapZoomStatements() {
       insertNavItx: db.prepare("INSERT INTO mapInteractions (ts, longMin, latMax, longMax, latMin) VALUES (?, ?, ?, ?, ?)"),
       insertBrushItx: db.prepare(`
         INSERT INTO brushItx (ts, mapItxId)
-        SELECT ?, renderHistory.mapItxId
-        FROM renderHistory
-        JOIN (SELECT MAX(ts) AS ts FROM renderHistory) AS m ON m.ts = renderHistory.ts;
+        SELECT ?, h.mapItxId
+        FROM renderItxs h
+        JOIN (SELECT MAX(ts) AS ts FROM renderItxs) AS m ON m.ts = h.ts;
       `),
       insertBrushItxItems: db.prepare(`
         INSERT INTO brushItxItems (itxId, ts, longMin, latMax, longMax, latMin)
@@ -208,4 +202,47 @@ export function getMapZoomStatements() {
 
 export function showPastMapBrushes() {
   // TODO
+  // render all the brushes
+  db.exec(`
+     SELECT setBrushState(*)
+     FROM getAllBrushState
+  `);
+}
+
+export function replayBackwardsSession(waitTime: number, end?: any) {
+  // using a time mechanism, iterate thru the render histories.
+  // while playing history, we dont want to have interactions
+  // just disable this in react, and react can call stop replay backwards session.
+  // we return the object that contains the function stop the interval
+  // pause and resume
+  // ideally, we have a streaming implementation
+  let result = db.exec(`
+    SELECT
+      DISTINCT mapItxId, brushItxId
+    FROM
+      renderItxs
+    WHERE cause != 'replay'
+    ORDER BY ts DESC
+  `);
+  if (result[0] && result[0].values && result[0].values.length) {
+    let itxIds = result[0].values;
+    // if we had a yield pattern we wouldn't need to do this ugly thing...
+    let counter = 0;
+    // i think the context would work here...
+    let repeatId = window.setInterval(() => {
+      db.exec(`
+        INSERT INTO renderItxs VALUES (${itxIds[counter][0]}, ${itxIds[counter][1]}, 'replay', timeNow());
+      `);
+      counter += 1;
+      if (counter === itxIds.length) {
+        window.clearInterval(repeatId);
+        if (end) {
+          end();
+        }
+      }
+    }, waitTime);
+    return repeatId;
+  } else {
+    return null;
+  }
 }

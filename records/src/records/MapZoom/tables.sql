@@ -61,10 +61,10 @@ CREATE TABLE pinRender(
   ts INTEGER NOT NULL
 );
 
--- TODO: somehow insert this sometime...
-CREATE TABLE renderHistory(
+CREATE TABLE renderItxs(
   mapItxId INTEGER NOT NULL,
   brushItxId INTEGER,
   cause TEXT NOT NULL,
-  ts INTEGER
+  ts INTEGER,
+  UNIQUE(mapItxId, brushItxId, cause, ts)
 );

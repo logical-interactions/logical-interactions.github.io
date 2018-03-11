@@ -113,3 +113,18 @@ table tr {
 colgroup {
   border-right: solid
 }
+
+.btn {
+  border-radius: 28px;
+  font-family: Arial;
+  color: #ffffff;
+  font-size: 19px;
+  background: #aa34d9;
+  padding: 10px 20px 10px 20px;
+  text-decoration: none;
+}
+
+.btn:hover {
+  background: #fc3cfc;
+  text-decoration: none;
+}

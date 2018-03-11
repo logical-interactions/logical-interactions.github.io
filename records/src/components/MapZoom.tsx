@@ -2,8 +2,8 @@ import * as React from "react";
 import * as d3 from "d3";
 
 import { checkBounds, interactionHelper, getTranslatedMapping } from "../lib/helper";
-import { db } from "../records/setup";
-import { setupMapDB, getMapZoomStatements, setupCanvasDependentUDFs, showPastMapBrushes } from "../records/MapZoom/setup";
+import { db, downloadDB, downloadQueryResultAsCSV } from "../records/setup";
+import { setupMapDB, getMapZoomStatements, setupCanvasDependentUDFs, showPastMapBrushes, replayBackwardsSession, removeCacheSQL } from "../records/MapZoom/setup";
 import { MapSelection, getRandomInt, Rect, Coords, mapBoundsToTransform, approxEqual, SCALE, WIDTH, HEIGHT } from "../lib/data";
 
 interface MapZoomProps {
@@ -24,6 +24,7 @@ interface MapZoomState {
   shiftDown: boolean;
   // pins: PinState;
   controlsDisabled: {[index: string]: boolean};
+  replayIntervalId: number;
   // worldData: any[];
 }
 
@@ -44,7 +45,10 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     this.setMapPending = this.setMapPending.bind(this);
     this.setMapBounds = this.setMapBounds.bind(this);
     this.interact = this.interact.bind(this);
+    this.replay = this.replay.bind(this);
+    this.setReplayIntervalNull = this.setReplayIntervalNull.bind(this);
     this.state = {
+      replayIntervalId: null,
       shiftDown: false,
       navSelection: null,
       intendedNavSelection: null,
@@ -137,6 +141,21 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     };
   }
 
+  replay() {
+    if (this.state.replayIntervalId) {
+      // then pause
+      window.clearInterval(this.state.replayIntervalId);
+      this.setState({replayIntervalId: null});
+    } else {
+      let replayIntervalId = replayBackwardsSession(2000, this.setReplayIntervalNull);
+      this.setState({replayIntervalId});
+    }
+  }
+
+  setReplayIntervalNull() {
+    this.setState({replayIntervalId: null});
+  }
+
   render() {
     let { width, height } = this.props;
     let { controlsDisabled, pending } = this.state;
@@ -186,11 +205,14 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
           {brushDiv}
         </svg>
       </div>
-      <button onClick={showPastMapBrushes}>Show Me Where I've Been</button>
-      <button>Export Selected User Ids</button>
-      <button>Animate Where I've been</button>
-      <button>Clear Cache</button>
+      <button onClick={showPastMapBrushes}>Show Past Brushes</button>
+      <button onClick={() => downloadQueryResultAsCSV(`SELECT * FROM userData`)}>Export Brushed User Data</button>
+      <button onClick={this.replay}>Animate Where I've been</button>
+      <button onClick={() => {
+        db.exec(removeCacheSQL);
+      }}>Clear Cache</button>
       <button>Stream Data</button>
+      <button onClick={downloadDB}></button>
     </>);
   }
 }

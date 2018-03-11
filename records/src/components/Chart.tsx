@@ -57,7 +57,7 @@ export default class Chart extends React.Component<ChartProps, ChartState> {
 
   setChartDataState(q1: number, q2: number, q3: number, q4: number) {
     if ((q1 !== null) && (q2 !== null) && (q3 !== null) && (q4 !== null)) {
-      console.log("setting chart data state", arguments);
+      // console.log("setting chart data state", arguments);
       this.setState({
         data: [q1, q2, q3, q4],
       });
