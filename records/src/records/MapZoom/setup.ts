@@ -204,7 +204,8 @@ export function showPastMapBrushes() {
   // TODO
   // render all the brushes
   db.exec(`
-     SELECT setBrushState(*)
+     SELECT
+      setBrushState(mapLatMax, mapLongMax, mapLatMin, mapLongMin, brushLatMax, brushLongMax, brushLatMin, brushLongMin)
      FROM getAllBrushState
   `);
 }

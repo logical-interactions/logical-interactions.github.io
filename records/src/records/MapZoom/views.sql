@@ -117,19 +117,25 @@ CREATE VIEW renderBrushState AS
       ON b.ts = t.ts;
 
 CREATE VIEW getAllBrushState AS
-  SELECT
-    DISTINCT m.latMax, m.longMax, m.latMin, m.longMin, b.latMax, b.longMax, b.latMin, b.longMin
+  SELECT DISTINCT
+    m.latMax mapLatMax,
+    m.longMax mapLongMax,
+    m.latMin mapLatMin,
+    m.longMin mapLongMin,
+    b.latMax brushLatMax,
+    b.longMax brushLongMax,
+    b.latMin brushLatMin,
+    b.longMin brushLongMin
   FROM
     renderItxs s
     JOIN mapInteractions AS m ON s.mapItxId = m.itxId
     JOIN brushItxItems AS b ON s.brushItxId = b.itxId
-    JOIN (
+    WHERE b.ts = (
         SELECT MAX(ts) AS ts
         FROM
           brushItxItems AS b2
-          JOIN newMapAndBrushState AS s2 ON b2.itxId = s2.brushItxId
-      ) AS t
-      ON b.ts = t.ts;
+          WHERE b2.itxId = s.brushItxId
+      );
 
 -- assuming that the auto increment starts at 1, this boolean business is fine.
 CREATE VIEW renderChartState AS

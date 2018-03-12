@@ -205,14 +205,14 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
           {brushDiv}
         </svg>
       </div>
-      <button onClick={showPastMapBrushes}>Show Past Brushes</button>
-      <button onClick={() => downloadQueryResultAsCSV(`SELECT * FROM userData`)}>Export Brushed User Data</button>
-      <button onClick={this.replay}>Animate Where I've been</button>
-      <button onClick={() => {
+      <button className="btn" onClick={showPastMapBrushes}>Show Past Brushes</button>
+      <button className="btn" onClick={() => downloadQueryResultAsCSV(`SELECT * FROM userData`)}>Export Brushed User Data</button>
+      <button className="btn" onClick={this.replay}>Animate Where I've been</button>
+      <button className="btn" onClick={() => {
         db.exec(removeCacheSQL);
       }}>Clear Cache</button>
-      <button>Stream Data</button>
-      <button onClick={downloadDB}></button>
+      <button className="btn">Stream Data</button>
+      <button className="btn" onClick={downloadDB}>Download Session</button>
     </>);
   }
 }

@@ -69,19 +69,23 @@ function assertNoBigger(v1: number, v2: number, msg: string) {
   }
 }
 
-export function downloadDB() {
-  console.log("download session");
-  let dRaw = db.export();
-  let blob = new Blob([dRaw]);
+function _downloadHelper(blob: Blob, name: string) {
   let a = document.createElement("a");
   a.href = window.URL.createObjectURL(blob);
-  a.download = "session.db";
+  a.download = name;
   a.onclick = function() {
     setTimeout(function() {
       window.URL.revokeObjectURL(a.href);
     }, 1500);
   };
   a.click();
+}
+
+export function downloadDB() {
+  console.log("download session");
+  let dRaw = db.export();
+  let blob = new Blob([dRaw]);
+  _downloadHelper(blob,  "session.db");
 }
 
 export function downloadQueryResultAsCSV(query: string) {
@@ -93,8 +97,9 @@ export function downloadQueryResultAsCSV(query: string) {
       let row = rowArray.join(",");
       csvContent += row + "\r\n";
     });
-    let encodedUri = encodeURI(csvContent);
-    window.open(encodedUri);
+    let b = new Blob([csvContent], {type: "text/plain;charset=UTF-8"});
+    _downloadHelper(b, "userData.csv");
+    console.log("should have downloaded", csvContent);
   } else {
     console.log("NO RESULT");
   }
