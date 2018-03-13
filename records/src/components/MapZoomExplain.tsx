@@ -38,7 +38,7 @@ export default class MapZoomExplain extends React.Component<undefined, MapZoomEx
           logical={this.state.isLogical}
         />
       </div>
-      <p>What is the framework we used to make that happen? First, there are two user initiated interactions: (1) panning the map and (2) brushing to select the pins. To capture these two interactions, we have some javascript hooks which computes the the specified region of the map via the upper left and lower right corner of the boudning box, so the two tables that store the interactions will look like the following. Ignore the <code>undoe</code> for now.</p>
+      <p>What is the framework we used to make that happen? First, there are two user-initiated interactions: (1) panning the map and (2) brushing to select the pins. To capture these two interactions, we have some javascript hooks which computes the specified region of the map via the upper left and lower right corner of the bounding box, so the two tables that store the interactions will look like the following. Ignore the <code>undoe</code> for now.</p>
       <QueryDb
         key={"defineMapItx"}
         hideQuery={true}
@@ -56,7 +56,7 @@ export default class MapZoomExplain extends React.Component<undefined, MapZoomEx
         explainTxt={"You can see your past panning and zooming interaction specifications by running the following code"}
       />
       <p>
-        The code for the brush is slightly different, as the brush is dynamically udpated as the brush moves, so we introduce a basic one level hierachy where the with the first mouse down, we create an entry in <code>brushItx</code> and then we create entries in <code>brushItxItems</code>.v
+        The code for the brush is slightly different, as the brush is dynamically updated as the brush moves, so we introduce a basic one level hierarchy where the with the first mouse down, we create an entry in <code>brushItx</code> and then we create entries in <code>brushItxItems</code>.v
       </p>
       <QueryDb
         key={"defineBrushItx"}
@@ -97,7 +97,7 @@ export default class MapZoomExplain extends React.Component<undefined, MapZoomEx
             AND name = 'mapOnlyStateNoneBlocking'`}
       />
       <p>
-        Let's say somehow you want the panning to block, that is, do not render the map until the pins have loaded, and also disable brushing, then you can do the following.
+        Let's say somehow you want the panning interation to block, that is, do not render the map until the pins have loaded, and also disable brushing, then you can do the following.
       </p>
       <QueryDb
         hideQuery={true}
@@ -111,7 +111,7 @@ export default class MapZoomExplain extends React.Component<undefined, MapZoomEx
         key={"seeMapOnlyStateBlocking"}
       />
       <p>
-        You can switch back and fourth between the following options to test it out.
+        You can switch back and forth between the following options to test it out.
       </p>
       <QueryDb
         query={switchToBlocking}
@@ -132,7 +132,7 @@ export default class MapZoomExplain extends React.Component<undefined, MapZoomEx
         query={removeCacheSQL}
       />
       <p>
-        These query highlights the aspects of "blocking" that is focused on the rendering, what about the interaction input?  Let's first take a look at how one implements interactions.  For the map, a React component carries the current state of the map, and since the map is blocked from moving until the pins are loaded, pressing the zoom in/out or pan will all be the same interactions, resulting in the same result.  However, if the map navigation is non blocking, then the React state is up to date with the interaction, so if left is pressed 3 times, it will move 3 times left.  Lastly, there is a third option to allow for new interactions while the rendering is blocked, we call this <i>logical interaction</i>, the idea is that the client maintains another separate piece of state, just for map navigation, where it can update independently of the database state, unmanaged. Then even if the loading is blocked, the interactions precedes in the background, so once again, when left is pressed 3 times, then regardless of whether the rendering is blocked, the map will eventaully move 3 to the left, instead of just one.
+        These queries highlights the aspects of "blocking" that is focused on the rendering, what about the interaction input?  Let's first take a look at how one implements interactions.  For the map, a React component carries the current state of the map, and since the map is blocked from moving until the pins are loaded, pressing the zoom in/out or pan will all be the same interactions, resulting in the same result.  However, if the map navigation is nonblocking, then the React state is up to date with the interaction, so if the "left" button is pressed three times, it will move three times left.  Lastly, there is a third option to allow for new interactions while the rendering is blocked, we call this <i>logical interaction</i>, the idea is that the client maintains another separate piece of state, just for map navigation, where it can update independently of the database state, unmanaged. Then even if the loading is blocked, the interactions precede in the background, so once again, when the "left" button is pressed three times, then regardless of whether the rendering is blocked, the map will eventually move 3 to the left, instead of just one.
       </p>
       <button className="btn" onClick={this.makeLogical}>Separate interaction intention (logical interaction)</button>
       <p>

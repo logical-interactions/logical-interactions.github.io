@@ -69,11 +69,15 @@ function assertNoBigger(v1: number, v2: number, msg: string) {
   }
 }
 
-let UDFs: any[] = [timeNow, log, assertNoBigger];
-UDFs.forEach((f) => {
-  console.log("[UDF] shared setup", f.name);
-  db.create_function(f.name, f);
-});
+// must do this manually because bundling minimizes the function anmes...
+db.create_function("timeNow", timeNow);
+db.create_function("log", log);
+db.create_function("assertNoBigger", assertNoBigger);
+
+// let UDFs: any[] = [timeNow, log, assertNoBigger];
+// UDFs.forEach((f) => {
+//   console.log("[UDF] shared setup", f.name);
+// });
 
 function _downloadHelper(blob: Blob, name: string) {
   let a = document.createElement("a");

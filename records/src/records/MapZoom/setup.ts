@@ -62,10 +62,12 @@ export function setupMapDB() {
     getStmt("insertUserData").run([userId, ...data]);
   }
 
-  let UDFs: any[] = [queryPin, queryUserData];
-  UDFs.forEach((f) => {
-    db.create_function(f.name, f);
-  });
+  db.create_function("queryPin", queryPin);
+  db.create_function("queryUserData", queryUserData);
+  // let UDFs: any[] = [queryPin, queryUserData];
+  // UDFs.forEach((f) => {
+  //   db.create_function(f.name, f);
+  // });
 }
 
 export function setupCanvasDependentUDFs(ctx: CanvasRenderingContext2D, scale: number, width: number, height: number) {
@@ -155,11 +157,15 @@ export function setupCanvasDependentUDFs(ctx: CanvasRenderingContext2D, scale: n
         worldData.forEach(_setMapStateHelper);
     }
   }
+  db.create_function("setPinState", setPinState);
+  db.create_function("setMapState", setMapState);
+  db.create_function("setBrushState", setBrushState);
+  db.create_function("renderText", renderText);
 
-  let UDFs: any[] = [setPinState, setMapState, setBrushState, renderText];
-  UDFs.forEach((f) => {
-    db.create_function(f.name, f);
-  });
+  // let UDFs: any[] = [setPinState, setMapState, setBrushState, renderText];
+  // UDFs.forEach((f) => {
+  //   db.create_function(f.name, f);
+  // });
 }
 
 export const removeCacheSQL = `
