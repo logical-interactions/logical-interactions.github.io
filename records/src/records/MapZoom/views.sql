@@ -101,9 +101,18 @@ CREATE VIEW chartPending AS
     chartUserIds
   WHERE userId NOT IN (SELECT userId FROM userData);
 
-CREATE VIEW renderBrushState AS
+
+
+CREATE VIEW currentBrush AS
   SELECT
-    setBrushState(m.latMax, m.longMax, m.latMin, m.longMin, b.latMax, b.longMax, b.latMin, b.longMin)
+    m.latMax mapLatMax,
+    m.longMax mapLongMax,
+    m.latMin mapLatMin,
+    m.longMin mapLongMin,
+    b.latMax brushLatMax,
+    b.longMax brushLongMax,
+    b.latMin brushLatMin,
+    b.longMin brushLongMin
   FROM
     newMapAndBrushState AS s
     JOIN mapInteractions AS m ON s.mapItxId = m.itxId

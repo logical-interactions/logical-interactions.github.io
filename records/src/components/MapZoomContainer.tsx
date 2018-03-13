@@ -5,8 +5,6 @@ import MapZoom from "./MapZoom";
 import Chart from "./Chart";
 
 import { NWStart, SEStart } from "../lib/helper";
-import { MapSelection, getRandomInt, getUserhData, Coords } from "../lib/data";
-import { db } from "../records/setup";
 import { setupMapDB, getMapZoomStatements } from "../records/MapZoom/setup";
 
 interface MapZoomContainerProps {

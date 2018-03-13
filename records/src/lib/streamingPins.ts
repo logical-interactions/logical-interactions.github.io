@@ -15,6 +15,7 @@ export function toggleStreaming() {
     isStreaming = false;
     window.clearInterval(intervalId);
   } else {
+    isStreaming = true;
     console.log("Startin streaming");
     intervalId = window.setInterval(() => {
       // need to read the current map state
@@ -39,7 +40,7 @@ export function toggleStreaming() {
         });
         // emulate getting newer data about this region
         // random sample for now, though it doesn't make sense since it might be in ocean
-        let data = Array.from({length: 20}, () => ({
+        let data = Array.from({length: 5}, () => ({
           userId: (Math.random() + 1).toString(36).substring(7),
           lat: getRandomInt(bounds[0] * 10 , bounds[1] * 10) / 10,
           long: getRandomInt(bounds[2] * 10 , bounds[3] * 10) / 10

@@ -3,7 +3,7 @@ import * as d3ScaleChromatic from "d3-scale-chromatic";
 import { geoMercator, geoPath } from "d3-geo";
 
 import { db, executeFile } from "../setup";
-import { getMapEventData, getUserhData, Coords, MapSelection,  mapBoundsToTransform, SCALE, WIDTH, HEIGHT } from "../../lib/data";
+import { getMapEventData, getUserData, Coords, MapSelection,  mapBoundsToTransform, SCALE, WIDTH, HEIGHT } from "../../lib/data";
 import { getTranslatedMapping } from "../../lib/helper";
 import { POP, MAXPOP } from "../../data/pop";
 import { Statement } from "sql.js";
@@ -12,9 +12,22 @@ export function setupMapDB() {
   // we need to wait for the UDFs to be loaded, trigger by the respective components
   ["tables", "views", "dataFetchTriggers", "renderTriggers"].map(f => {executeFile("MapZoom", f); });
 
-  let insertPinResponse = db.prepare("INSERT INTO pinResponses (itxId, ts) VALUES (?, ?)");
-  let insertPin = db.prepare("INSERT OR IGNORE INTO pinData (long, lat, userId) VALUES (?, ?, ?)");
-  let insertUsernData = db.prepare("INSERT INTO userData (userId, Q1, Q2, Q3, Q4) VALUES (?, ?, ?, ?, ?);");
+  let stmts: {[index: string]: Statement} = {};
+  const stmtSQL: {[index: string]: string} = {
+    insertPinResponse: "INSERT INTO pinResponses (itxId, ts) VALUES (?, ?)",
+    insertPin: "INSERT OR IGNORE INTO pinData (long, lat, userId) VALUES (?, ?, ?)",
+    insertUserData: "INSERT INTO userData (userId, Q1, Q2, Q3, Q4) VALUES (?, ?, ?, ?, ?);"
+  };
+
+  function getStmt(key: string) {
+    if (Object.keys(stmtSQL).indexOf(key) < 0) {
+      throw new Error("prepared statement undefined");
+    }
+    if (!stmts[key]) {
+      stmts[key] = db.prepare(stmtSQL[key]);
+    }
+    return stmts[key];
+  }
 
   function processPinResponse(response: any) {
     console.log("received response", response);
@@ -27,10 +40,10 @@ export function setupMapDB() {
     // if it's here, it must be that the dataId is the same as interaction Id, that is, the same query was issued.
     data.forEach((d: any) => {
       // d.unshift(itxId);
-      insertPin.run(d);
+      getStmt("insertPin").run(d);
     });
     // this response must be the most recent one...
-    insertPinResponse.run([itxId, +new Date()]);
+    getStmt("insertPinResponse").run([itxId, +new Date()]);
     db.exec("COMMIT;");
   }
 
@@ -40,13 +53,13 @@ export function setupMapDB() {
   }
 
   function queryUserData(userId: string) {
-    getUserhData( userId).then(processUserDataResponse);
+    getUserData(userId).then(processUserDataResponse);
   }
 
   function processUserDataResponse(response: any) {
     // store it in the
     let {data, userId, itxid} = response;
-    insertUsernData.run([userId, ...data]);
+    getStmt("insertUserData").run([userId, ...data]);
   }
 
   let UDFs: any[] = [queryPin, queryUserData];

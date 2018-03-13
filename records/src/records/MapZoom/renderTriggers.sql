@@ -49,5 +49,5 @@ CREATE TRIGGER refreshUI AFTER INSERT ON renderItxs
     SELECT * FROM pinPending;
     SELECT * FROM renderChartState;
     SELECT * FROM chartPending;
-    SELECT * FROM renderBrushState;
+    SELECT setBrushState(mapLatMax, mapLongMax, mapLatMin, mapLongMin, brushLatMax, brushLongMax, brushLatMin, brushLongMin) FROM currentBrush;
   END;

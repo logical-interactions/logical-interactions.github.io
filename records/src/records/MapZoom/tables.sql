@@ -46,6 +46,11 @@ CREATE TABLE userData (
   Q4 INTEGER NOT NULL
 );
 
+CREATE TABLE userDataRequest (
+  userId TEXT PRIMARY KEY,
+  ts INTEGER
+);
+
 CREATE TABLE pinResponses (
   itxId INTEGER NOT NULL UNIQUE,
   ts INTEGER

@@ -2,9 +2,11 @@ import * as React from "react";
 import * as d3 from "d3";
 
 import { checkBounds, interactionHelper, getTranslatedMapping } from "../lib/helper";
-import { db, downloadDB, downloadQueryResultAsCSV } from "../records/setup";
-import { setupMapDB, getMapZoomStatements, setupCanvasDependentUDFs, showPastMapBrushes, replayBackwardsSession, removeCacheSQL } from "../records/MapZoom/setup";
+import { db, downloadDB, downloadQueryResultAsCSV, loadDb } from "../records/setup";
+import { getMapZoomStatements, setupCanvasDependentUDFs, showPastMapBrushes, replayBackwardsSession, removeCacheSQL } from "../records/MapZoom/setup";
 import { MapSelection, getRandomInt, Rect, Coords, mapBoundsToTransform, approxEqual, SCALE, WIDTH, HEIGHT } from "../lib/data";
+import { toggleStreaming } from "../lib/streamingPins";
+
 
 interface MapZoomProps {
   logical: boolean;
@@ -141,6 +143,10 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     };
   }
 
+  onFileChange(e: any) {
+    loadDb(e.target.files[0]);
+  }
+
   replay() {
     if (this.state.replayIntervalId) {
       // then pause
@@ -205,14 +211,15 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
           {brushDiv}
         </svg>
       </div>
-      <button className="btn" onClick={showPastMapBrushes}>Show Past Brushes</button>
-      <button className="btn" onClick={() => downloadQueryResultAsCSV(`SELECT * FROM userData`)}>Export Brushed User Data</button>
-      <button className="btn" onClick={this.replay}>Animate Where I've been</button>
+      <button className="btn" onClick={showPastMapBrushes}>Past Brushes</button>
+      <button className="btn" onClick={() => downloadQueryResultAsCSV(`SELECT * FROM userData`)}>Export Brush Data</button>
+      <button className="btn" onClick={this.replay}>Animate Past</button>
       <button className="btn" onClick={() => {
         db.exec(removeCacheSQL);
       }}>Clear Cache</button>
-      <button className="btn">Stream Data</button>
+      <button className="btn"onClick={toggleStreaming}>Toggle Streaming</button>
       <button className="btn" onClick={downloadDB}>Download Session</button>
+      <input type="file" onChange={this.onFileChange} />
     </>);
   }
 }

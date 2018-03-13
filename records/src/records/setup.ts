@@ -5,7 +5,7 @@ import { Database } from "sql.js";
 import { readFileSync } from "../lib/helper";
 
 // DB set up
-export const db = new sql.Database();
+export let db = new sql.Database();
 // this will hopefully make things faster
 // read https://sqlite.org/pragma.html
 // db.run(`PRAGMA main.synchronous = 0`);
@@ -89,7 +89,7 @@ export function downloadDB() {
 }
 
 export function downloadQueryResultAsCSV(query: string) {
-  let csvContent = "data:text/csv;charset=utf-8,";
+  let csvContent = "";
   let r = db.exec(query);
   if (r.length && r[0].values) {
     csvContent += r[0].columns.join(",") + "\r\n";
@@ -103,4 +103,15 @@ export function downloadQueryResultAsCSV(query: string) {
   } else {
     console.log("NO RESULT");
   }
+}
+
+export function loadDb(f: Blob) {
+  // delete the current DB and create a new one
+  let r = new FileReader();
+  r.onload = function() {
+    console.log("Updated to the updated session");
+    let Uints = new Uint8Array(r.result);
+    db = new sql.Database(Uints);
+  };
+  r.readAsArrayBuffer(f);
 }

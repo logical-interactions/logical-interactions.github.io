@@ -131,7 +131,7 @@ export function getMapEventData(itxId: number, s: MapSelection) {
   });
 }
 
-export function getUserhData(userId: string) {
+export function getUserData(userId: string) {
   // make it slightly longer than the other
   let l = mapZoomLatency("user");
   let delay = getRandomInt(l.min, l.max);

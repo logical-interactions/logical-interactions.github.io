@@ -15,21 +15,42 @@ CREATE TRIGGER processNavItx AFTER INSERT ON mapInteractions
     -- SELECT setMapBounds(NEW.latMin, NEW.latMax, NEW.longMin, NEW.longMax);
   END;
 
-CREATE TRIGGER fetchbBrushItxItems AFTER INSERT ON brushItxItems
+CREATE TRIGGER fetchUserData AFTER INSERT ON userDataRequest
   BEGIN
+    SELECT queryUserData(NEW.userId);
+  END;  
+
+CREATE TRIGGER fetchUserDataFromBrush AFTER INSERT ON brushItxItems
+  BEGIN
+    INSERT INTO userDataRequest
     SELECT
-      queryUserData(pinData.userId)
+      pinData.userId AS userId,
+      timeNow()
     FROM
-      -- (SELECT itxId, mapItxId FROM brushItx ORDER BY itxId DESC LIMIT 1) AS b
-      -- JOIN pinResponses ON b.mapItxId = pinResponses.itxId
-      -- JOIN pinData ON
       pinData
     WHERE
-      pinData.userId NOT IN (SELECT userId FROM userData)
+      pinData.userId NOT IN (SELECT userId FROM userDataRequest)
       AND pinData.lat < NEW.latMax
       AND pinData.long < NEW.longMax
       AND pinData.lat > NEW.latMin
       AND pinData.long > NEW.longMin;
+  END;
+
+CREATE TRIGGER fetchUserDataFromStream AFTER INSERT ON streamingData
+  BEGIN
+    INSERT INTO userDataRequest
+    SELECT
+      pinData.userId AS userId,
+      timeNow()
+    FROM
+      pinData
+      JOIN currentBrush b ON 
+        pinData.lat < b.brushLatMax
+        AND pinData.long < b.brushLongMax
+        AND pinData.lat > b.brushLatMin
+        AND pinData.long > b.brushLongMin
+    WHERE
+      pinData.userId NOT IN (SELECT userId FROM userDataRequest);
   END;
 
 CREATE TRIGGER processMapRequests AFTER INSERT ON mapRequests
