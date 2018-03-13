@@ -1,8 +1,9 @@
 import * as sql from "sql.js";
 import * as d3 from "d3";
 import { Database } from "sql.js";
-
 import { readFileSync } from "../lib/helper";
+
+const ISPROD = true;
 
 // DB set up
 export let db = new sql.Database();
@@ -39,7 +40,8 @@ UDFs.forEach((f) => {
 });
 
 export function executeFile(folder: string, fn: string) {
-  let setupSql = readFileSync(`/src/records/${folder}/${fn}.sql`);
+  let path = ISPROD ? "/dist" : "/src/records";
+  let setupSql = readFileSync(`${path}/${folder}/${fn}.sql`);
   let scripts = setupSql.split(";\n\n");
   scripts.forEach((s, i) => {
     s = s.replace(/^ *--.*$/mg, "");
