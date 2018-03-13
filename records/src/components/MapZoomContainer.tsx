@@ -26,10 +26,12 @@ export default class MapZoomContainer extends React.Component<MapZoomContainerPr
   render() {
     return (<>
     <div style={{float: "left"}}>
+    <>
       <MapZoom
         width={MAXWIDTH * 0.7}
         logical={this.props.logical}
       />
+    </>
     </div>
     <div style={{float: "left"}}>
       <Chart

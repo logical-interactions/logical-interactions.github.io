@@ -182,18 +182,16 @@ UPDATE mapItx
   SET undoed = 0 WHERE undoed = 2;
 `;
 
+let stmts: {
+  insertNavItx: Statement;
+  insertBrushItx: Statement;
+  insertBrushItxItems: Statement;
+  // brushItxDone: Statement;
+  undoQuery: Statement;
+};
 
 export function getMapZoomStatements() {
-  let stmts: {
-    insertNavItx: Statement;
-    insertBrushItx: Statement;
-    insertBrushItxItems: Statement;
-    // brushItxDone: Statement;
-    undoQuery: Statement;
-
-  };
-  // return () => {
-    if (!stmts) {
+  if (!stmts) {
     stmts = {
       insertNavItx: db.prepare("INSERT INTO mapItx (ts, longMin, latMax, longMax, latMin) VALUES (?, ?, ?, ?, ?)"),
       insertBrushItx: db.prepare(`

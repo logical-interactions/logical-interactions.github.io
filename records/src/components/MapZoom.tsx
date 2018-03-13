@@ -113,7 +113,6 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     window.addEventListener("keydown", this.handleKeyDown);
   }
 
-  
   interact(itxType: string, brush: d3.BrushBehavior<{}>) {
     return() => {
       let navSelection = this.props.logical ? this.state.intendedNavSelection : this.state.navSelection;
