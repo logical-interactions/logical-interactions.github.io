@@ -40,7 +40,7 @@ UDFs.forEach((f) => {
 });
 
 export function executeFile(folder: string, fn: string) {
-  let path = ISPROD ? "/dist" : "/src/records";
+  let path = ISPROD ? "/dist/sql" : "/src/records";
   let setupSql = readFileSync(`${path}/${folder}/${fn}.sql`);
   let scripts = setupSql.split(";\n\n");
   scripts.forEach((s, i) => {
