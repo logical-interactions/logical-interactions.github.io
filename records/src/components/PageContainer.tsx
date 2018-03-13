@@ -3,6 +3,7 @@ import * as React from "react";
 import StressTest from "./StressTest";
 import MapZoomExplain from "./MapZoomExplain";
 import XFilterExplain from "./XFilterExplain";
+import { SvgSpinner } from "./SvgSpinner";
 
   // let applications = (<>
   //   <h2>Throttling and Caching</h2>
@@ -32,4 +33,12 @@ export const PageContainer = () => (<>
   /> */}
   {/* <Test /> */}
   {/* <StressTest /> */}
+  {/* <svg width={100} height={200}>
+  <SvgSpinner
+    color={"#FFEA19"}
+    cx={50}
+    radius={20}
+    cy={110}
+  />
+  </svg> */}
 </>);

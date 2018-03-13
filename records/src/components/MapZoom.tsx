@@ -6,7 +6,7 @@ import { db, downloadDB, downloadQueryResultAsCSV, loadDb } from "../records/set
 import { getMapZoomStatements, setupCanvasDependentUDFs, showPastMapBrushes, replayBackwardsSession, removeCacheSQL } from "../records/MapZoom/setup";
 import { MapSelection, getRandomInt, Rect, Coords, mapBoundsToTransform, approxEqual } from "../lib/data";
 import { toggleStreaming } from "../lib/streamingPins";
-
+import Chart from "./Chart";
 
 interface MapZoomProps {
   logical: boolean;
@@ -190,19 +190,20 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
         onClick={this.interact(c, brush)}
         disabled={controlsDisabled[c]}
       >{c}</button>);
-    let pendingSvg: JSX.Element;
-    if (pending) {
-      console.log("showing as pending");
-      pendingSvg = <div className="indicatorLine"></div>;
-    }
-    return(<>
+    let pendingClassName = pending ? "indicatorLine" : "";
+    return(<div style={{overflow: "auto"}}>
       {controls}
       <div style={{position: "relative", height, width}}>
-        {pendingSvg}
+      <div className={pendingClassName} style={{height: 5}}></div>
         <canvas style={{position: "absolute"}} ref="canvas" width={width} height={height}
         />
         <svg style={{position: "absolute"}} width={width} height={height}>
           {brushDiv}
+          <Chart
+            width={width * 0.2}
+            height={width * 0.2}
+            series={["Q1", "Q2", "Q3", "Q4"]}
+          />
         </svg>
       </div>
       <button className="btn" onClick={showPastMapBrushes}>Past Brushes</button>
@@ -214,6 +215,6 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
       <button className="btn"onClick={toggleStreaming}>Toggle Streaming</button>
       <button className="btn" onClick={downloadDB}>Download Session</button>
       <input type="file" onChange={this.onFileChange} />
-    </>);
+    </div>);
   }
 }

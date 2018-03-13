@@ -70,7 +70,7 @@ h2 {
 }
 
 .indicatorLine {
-  height: 5px;
+  /* height: 5px; */
   width: 720px; /* for now */
 	background: #FFEA19;
 	/* position: absolute; */

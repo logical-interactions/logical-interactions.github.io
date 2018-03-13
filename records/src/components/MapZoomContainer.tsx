@@ -12,9 +12,9 @@ interface MapZoomContainerProps {
 }
 
 const MAXWIDTH = 800;
+const HEIGHT = 500;
 
 export default class MapZoomContainer extends React.Component<MapZoomContainerProps, undefined> {
-
   componentDidMount() {
     // this mounts only when all children have mounted
     setupMapDB();
@@ -24,21 +24,14 @@ export default class MapZoomContainer extends React.Component<MapZoomContainerPr
   }
 
   render() {
-    return (<>
-    <div style={{float: "left"}}>
-    <>
-      <MapZoom
-        width={MAXWIDTH * 0.7}
-        logical={this.props.logical}
-      />
-    </>
-    </div>
-    <div style={{float: "left"}}>
-      <Chart
-        width={MAXWIDTH * 0.2}
-        series={["Q1", "Q2", "Q3", "Q4"]}
-      />
-    </div>
-    </>);
+    return (<div style={{width: MAXWIDTH, height: HEIGHT}}>
+      <div style={{float: "left"}}>
+        <MapZoom
+          width={MAXWIDTH}
+          height={HEIGHT - 100}
+          logical={this.props.logical}
+        />
+      </div>
+    </div>);
   }
 }

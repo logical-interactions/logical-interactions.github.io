@@ -3,10 +3,12 @@ import * as d3 from "d3";
 
 import { db } from "../records/setup";
 import { Datum } from "../lib/data";
+import { SvgSpinner } from "./SvgSpinner";
 
 interface ChartProps {
   series: string[];
   height?: number;
+  spinnerRadius?: number;
   width?: number;
   marginBottom?: number;
   marginLeft?: number;
@@ -24,6 +26,7 @@ export default class Chart extends React.Component<ChartProps, ChartState> {
   static defaultProps = {
     colorOverride: false,
     height: 200,
+    spinnerRadius: 20,
     marginBottom: 40,
     marginLeft: 45,
     marginRight: 20,
@@ -49,7 +52,7 @@ export default class Chart extends React.Component<ChartProps, ChartState> {
   }
 
   setChartPending(pending: boolean) {
-    // console.log("setChartPending", pending);
+    console.log("setChartPending", pending);
     this.setState({
       pending,
     });
@@ -69,12 +72,17 @@ export default class Chart extends React.Component<ChartProps, ChartState> {
   }
 
   render() {
-    let { width, height, series, marginLeft, marginRight, marginTop, marginBottom } = this.props;
+    let { width, height, series, marginLeft, marginRight, marginTop, marginBottom, spinnerRadius } = this.props;
     let { data, pending } = this.state;
     let spinner: JSX.Element = null;
     let vis: JSX.Element = null;
     if (pending) {
-      spinner = <div className="indicator inline-block"></div>;
+      spinner = <SvgSpinner
+                  color={"#FFEA19"}
+                  cx={width / 2}
+                  radius={spinnerRadius}
+                  cy={spinnerRadius}
+                />;
     }
     if (data) {
       const innerWidth = width - marginLeft - marginRight;
@@ -88,16 +96,18 @@ export default class Chart extends React.Component<ChartProps, ChartState> {
                 .domain([0, d3.max(data)]);
       // get y scale and x positioning
       let bars = data.map((d, i) => <rect x={x(series[i])} y={y(d)} width={x.bandwidth()} height={innerHeight - y(d)} fill={"rgb(255, 192, 203, 0.5)"}></rect>);
-      vis = <svg  width={width} height={height}>
+      vis = <g>
               {bars}
               <g ref={(g) => d3.select(g).call(d3.axisLeft(y).ticks(5, "d"))}></g>
               <g ref={(g) => d3.select(g).call(d3.axisBottom(x).ticks(4))} transform={"translate(0," + innerHeight + ")"}></g>
               {spinner}
-            </svg>;
+            </g>;
+    } else {
+      vis = spinner;
     }
-    return(<>
+    console.log("height", height + spinnerRadius * 3);
+    return(<svg  width={width} height={height + spinnerRadius * 3}>
       {vis}
-      {spinner}
-    </>);
+    </svg>);
   }
 }
