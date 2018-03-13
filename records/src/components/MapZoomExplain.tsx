@@ -48,19 +48,19 @@ export default class MapZoomExplain extends React.Component<undefined, MapZoomEx
       </div>
       <p>What is the framework we used to make that happen? First, there are two user initiated interactions: (1) panning the map and (2) brushing to select the pins. To capture these two interactions, we have some javascript hooks which computes the the specified region of the map via the upper left and lower right corner of the boudning box, so the two tables that store the interactions will look like the following. Ignore the <code>undoe</code> for now.</p>
       <QueryDb
-        key={"defineMapInteractions"}
+        key={"defineMapItx"}
         hideQuery={true}
         query={
           `SELECT sql
           FROM sqlite_master
           WHERE
             type = 'table'
-            AND name = 'mapInteractions'`}
+            AND name = 'mapItx'`}
       />
       <QueryDb
         execute={false}
-        key={"inspectMapInteractions"}
-        query={`SELECT * FROM mapInteractions ORDER BY ts DESC LIMIT 10;`}
+        key={"inspectMapItx"}
+        query={`SELECT * FROM mapItx ORDER BY ts DESC LIMIT 10;`}
         explainTxt={"You can see your past panning and zooming interaction specifications by running the following code"}
       />
       <p>
@@ -111,11 +111,11 @@ export default class MapZoomExplain extends React.Component<undefined, MapZoomEx
         DROP VIEW mapOnlyState;
         CREATE VIEW mapOnlyState AS
           SELECT
-            mapInteractions.itxId,
-            mapInteractions.ts
+            mapItx.itxId,
+            mapItx.ts
           FROM
-            mapInteractions
-            JOIN pinResponses ON pinResponses.itxId = mapInteractions.itxId
+            mapItx
+            JOIN pinResponses ON pinResponses.itxId = mapItx.itxId
             ORDER BY pinResponses.itxId DESC LIMIT 1;
         `}
         explainTxt={"Note the last two lines, instead of previously selecting the most recent interaction, we are selecting the first render."}

@@ -30,7 +30,7 @@ export function toggleStreaming() {
         m.longMax
       FROM
         newMapAndBrushState AS s
-        INNER JOIN mapInteractions AS m ON s.mapItxId = m.itxId;`);
+        INNER JOIN mapItx AS m ON s.mapItxId = m.itxId;`);
       if (r && r[0] && r[0].values) {
         let bounds = r[0].values[0] as number[];
         bounds.map(b => {
@@ -50,7 +50,7 @@ export function toggleStreaming() {
         // pinData is long and lat...
         db.exec(`
           INSERT INTO pinData VALUES ${insertSQL};
-          INSERT INTO streamingData SELECT timeNow();
+          INSERT INTO pinStreamingInstance SELECT timeNow();
         `);
       }
     }, 2000);

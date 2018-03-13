@@ -1,39 +1,45 @@
+
+CREATE VIEW mapOnlyStateNoneBlocking AS
+  SELECT
+    mapItx.itxId,
+    mapItx.ts
+  FROM mapItx
+  ORDER BY itxId DESC LIMIT 1;
+
+CREATE VIEW mapOnlyStateBlocking AS
+  SELECT
+    mapItx.itxId,
+    mapItx.ts
+  FROM mapItx
+    JOIN pinResponses p ON p.itxId = mapItx.itxId
+    ORDER BY p.itxId DESC LIMIT 1;
+
 CREATE VIEW brushOnlyState AS
   SELECT 
-    brushItxItems.itxId,
+    b.itxId,
     brushItx.mapItxId,
-    brushItxItems.ts,
-    brushItxItems.latMin,
-    brushItxItems.latMax,
-    brushItxItems.longMin,
-    brushItxItems.longMax
+    b.ts,
+    b.latMin,
+    b.latMax,
+    b.longMin,
+    b.longMax
   FROM
-    brushItxItems
-    JOIN brushItx ON brushItx.itxId = brushItxItems.itxId,
-    mapOnlyState
+    brushItxItems b
+    JOIN brushItx ON brushItx.itxId = b.itxId,
+    mapOnlyStateNoneBlocking m
   WHERE
-    brushItx.ts > mapOnlyState.ts
-  ORDER BY brushItxItems.ts DESC LIMIT 1;
-
-CREATE VIEW mapOnlyState AS
-  SELECT
-    mapInteractions.itxId,
-    mapInteractions.ts
-  FROM mapInteractions
-  -- ORDER BY 
-    -- itxId DESC LIMIT 1;
-    JOIN pinResponses ON pinResponses.itxId = mapInteractions.itxId
-    ORDER BY pinResponses.itxId DESC LIMIT 1;
+    brushItx.ts > m.ts
+  ORDER BY b.ts DESC LIMIT 1;
 
 -- if brush is earlier than the most recent map state, use everything based on brush
 -- if map is earliest, remove brush (we can also redraw)
 
 CREATE VIEW renderItxsView AS
   SELECT
-    COALESCE(brushOnlyState.mapItxId, mapOnlyState.itxId) AS mapItxId,
+    COALESCE(brushOnlyState.mapItxId, m.itxId) AS mapItxId,
     brushOnlyState.itxId AS brushItxId
   FROM
-    mapOnlyState
+    mapOnlyStateNoneBlocking m
     LEFT OUTER JOIN brushOnlyState;
 
 CREATE VIEW newMapAndBrushState AS
@@ -43,8 +49,8 @@ CREATE VIEW newMapAndBrushState AS
   FROM
     renderItxs ORDER by ts DESC LIMIT 1;
 
-CREATE VIEW pinPending AS
-  SELECT setMapPending(val.pending)
+CREATE VIEW pinPendingState AS
+  SELECT val.pending
   FROM (
     SELECT COALESCE(pinResponses.itxId, 0) AS pending
     FROM newMapAndBrushState AS s
@@ -52,20 +58,27 @@ CREATE VIEW pinPending AS
   ) AS val;
 
 
-CREATE VIEW renderMapState AS
+CREATE VIEW mapState AS
   SELECT
-    log('start', 'renderMapState'),
-    setMapState(m.latMin, m.latMax, m.longMin, m.longMax),
-    setMapBounds(m.latMin, m.latMax, m.longMin, m.longMax)
+    m.latMin,
+    m.latMax,
+    m.longMin,
+    m.longMax
   FROM
     newMapAndBrushState AS s
-    INNER JOIN mapInteractions AS m ON s.mapItxId = m.itxId;
+    INNER JOIN mapItx AS m ON s.mapItxId = m.itxId;
 
-CREATE VIEW renderPinState AS
-  SELECT setPinState(m.latMin, m.latMax, m.longMin, m.longMax, pinData.long, pinData.lat)
+CREATE VIEW pinState AS
+  SELECT
+    m.latMin,
+    m.latMax,
+    m.longMin,
+    m.longMax,
+    pinData.long,
+    pinData.lat
   FROM
     newMapAndBrushState AS s
-    JOIN mapInteractions AS m ON s.mapItxId = m.itxid
+    JOIN mapItx AS m ON s.mapItxId = m.itxid
     JOIN pinData ON 
       pinData.lat < m.latMax
       AND pinData.long < m.longMax
@@ -93,10 +106,10 @@ CREATE VIEW chartUserIds AS
       AND pinData.lat > b.latMin
       AND pinData.long > b.longMin;
 
-CREATE VIEW chartPending AS
+CREATE VIEW chartPendingState AS
   SELECT
     -- if the count is greater than 0, it's still pending
-    setChartPending(COUNT(userId))
+    COUNT(userId) AS leftUserIdCount
   FROM
     chartUserIds
   WHERE userId NOT IN (SELECT userId FROM userData);
@@ -115,7 +128,7 @@ CREATE VIEW currentBrush AS
     b.longMin brushLongMin
   FROM
     newMapAndBrushState AS s
-    JOIN mapInteractions AS m ON s.mapItxId = m.itxId
+    JOIN mapItx AS m ON s.mapItxId = m.itxId
     JOIN brushItxItems AS b ON s.brushItxId = b.itxId
     JOIN (
         SELECT MAX(ts) AS ts
@@ -137,7 +150,7 @@ CREATE VIEW getAllBrushState AS
     b.longMin brushLongMin
   FROM
     renderItxs s
-    JOIN mapInteractions AS m ON s.mapItxId = m.itxId
+    JOIN mapItx AS m ON s.mapItxId = m.itxId
     JOIN brushItxItems AS b ON s.brushItxId = b.itxId
     WHERE b.ts = (
         SELECT MAX(ts) AS ts
@@ -147,9 +160,12 @@ CREATE VIEW getAllBrushState AS
       );
 
 -- assuming that the auto increment starts at 1, this boolean business is fine.
-CREATE VIEW renderChartState AS
+CREATE VIEW chartState AS
   SELECT
-    setChartDataState(AVG(userData.Q1), AVG(userData.Q2), AVG(userData.Q3), AVG(userData.Q4))
+    AVG(userData.Q1) Q1,
+    AVG(userData.Q2) Q2,
+    AVG(userData.Q3) Q3, 
+    AVG(userData.Q4) Q4
   FROM
     chartUserIds
     JOIN userData ON userData.userId = chartUserIds.userId,

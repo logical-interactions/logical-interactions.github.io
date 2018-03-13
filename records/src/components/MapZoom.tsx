@@ -4,7 +4,7 @@ import * as d3 from "d3";
 import { checkBounds, interactionHelper, getTranslatedMapping } from "../lib/helper";
 import { db, downloadDB, downloadQueryResultAsCSV, loadDb } from "../records/setup";
 import { getMapZoomStatements, setupCanvasDependentUDFs, showPastMapBrushes, replayBackwardsSession, removeCacheSQL } from "../records/MapZoom/setup";
-import { MapSelection, getRandomInt, Rect, Coords, mapBoundsToTransform, approxEqual, SCALE, WIDTH, HEIGHT } from "../lib/data";
+import { MapSelection, getRandomInt, Rect, Coords, mapBoundsToTransform, approxEqual } from "../lib/data";
 import { toggleStreaming } from "../lib/streamingPins";
 
 
@@ -12,6 +12,7 @@ interface MapZoomProps {
   logical: boolean;
   width?: number;
   height?: number;
+  scale?: number;
   maxLatency?: number;
   minLatency?: number;
   debuging?: boolean;
@@ -38,6 +39,7 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     debuging: true,
     width: 720,
     height: 450,
+    scale: 1 << 6,
     maxLatency: 4000,
     minLatency: 1000,
   };
@@ -104,21 +106,14 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
   componentDidMount() {
     const canvas = this.refs.canvas as HTMLCanvasElement;
     const ctx = canvas.getContext("2d");
-    // do all the setup here
-    // functions must be defined before view references them
-    setupCanvasDependentUDFs(ctx);
+    let { width, height, scale } = this.props;
+    setupCanvasDependentUDFs(ctx, scale, width, height);
     db.create_function("setMapPending", this.setMapPending);
     db.create_function("setMapBounds", this.setMapBounds);
-    // now pass this canvas reference to draw dots on!
-    // db.create_function("setMapState", this.setMapState);
     window.addEventListener("keydown", this.handleKeyDown);
-    // window.addEventListener("keyup", this.handleKeyUp);
-    // creates a handle to update this component
-
   }
 
-  // so our undo redo logic will by similar to others (checked with Sublime), where a branch is lost from the linear path forward (much like how copy paste's clip board copy is gone after a second copy)
-
+  
   interact(itxType: string, brush: d3.BrushBehavior<{}>) {
     return() => {
       let navSelection = this.props.logical ? this.state.intendedNavSelection : this.state.navSelection;
@@ -163,16 +158,16 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
   }
 
   render() {
-    let { width, height } = this.props;
+    let { width, height, scale } = this.props;
     let { controlsDisabled, pending } = this.state;
     let brushDiv: JSX.Element;
     let brush: d3.BrushBehavior<{}>;
     if (this.state.navSelection) {
-      let t = mapBoundsToTransform(this.state.navSelection, SCALE, WIDTH, HEIGHT);
+      let t = mapBoundsToTransform(this.state.navSelection, scale, width, height);
       // console.log("transformation for render", t);
       // makes more sense to use svg since the brush wouldn't cause a canvas redraw
       // this is really better than the SQL all in approach.
-      let p = getTranslatedMapping(t);
+      let p = getTranslatedMapping(t, scale, width, height);
       brush = d3.brush()
                     .extent([[0, 0], [innerWidth, innerHeight]])
                     .on("start", function() {
@@ -203,11 +198,11 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     }
     return(<>
       {controls}
-      <div style={{position: "relative", height: HEIGHT, width: WIDTH}}>
+      <div style={{position: "relative", height, width}}>
         {pendingSvg}
-        <canvas style={{position: "absolute"}} ref="canvas" width={WIDTH} height={HEIGHT}
+        <canvas style={{position: "absolute"}} ref="canvas" width={width} height={height}
         />
-        <svg style={{position: "absolute"}} width={WIDTH} height={HEIGHT}>
+        <svg style={{position: "absolute"}} width={width} height={height}>
           {brushDiv}
         </svg>
       </div>

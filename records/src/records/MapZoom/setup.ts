@@ -3,7 +3,7 @@ import * as d3ScaleChromatic from "d3-scale-chromatic";
 import { geoMercator, geoPath } from "d3-geo";
 
 import { db, executeFile } from "../setup";
-import { getMapEventData, getUserData, Coords, MapSelection,  mapBoundsToTransform, SCALE, WIDTH, HEIGHT } from "../../lib/data";
+import { getMapEventData, getUserData, Coords, MapSelection,  mapBoundsToTransform } from "../../lib/data";
 import { getTranslatedMapping } from "../../lib/helper";
 import { POP, MAXPOP } from "../../data/pop";
 import { Statement } from "sql.js";
@@ -68,7 +68,7 @@ export function setupMapDB() {
   });
 }
 
-export function setupCanvasDependentUDFs(ctx: CanvasRenderingContext2D) {
+export function setupCanvasDependentUDFs(ctx: CanvasRenderingContext2D, scale: number, width: number, height: number) {
 
   // data needed for canvas drawing map
   // can always keep in the context
@@ -81,8 +81,8 @@ export function setupCanvasDependentUDFs(ctx: CanvasRenderingContext2D) {
       nw: [longMin, latMax] as Coords,
       se: [longMax, latMin] as Coords
     };
-    let t = mapBoundsToTransform(s, SCALE, WIDTH, HEIGHT);
-    let p = getTranslatedMapping(t);
+    let t = mapBoundsToTransform(s, scale, width, height);
+    let p = getTranslatedMapping(t, scale, width, height);
     // hard code for now
     // console.log("Drawing pin", arguments);
     ctx.fillStyle = "red";
@@ -97,8 +97,8 @@ export function setupCanvasDependentUDFs(ctx: CanvasRenderingContext2D) {
       nw: [longMin, latMax] as Coords,
       se: [longMax, latMin] as Coords
     };
-    let t = mapBoundsToTransform(s, SCALE, WIDTH, HEIGHT);
-    let p = getTranslatedMapping(t);
+    let t = mapBoundsToTransform(s, scale, width, height);
+    let p = getTranslatedMapping(t, scale, width, height);
     ctx.fillStyle = "rgba(119,136,153,0.4)";
     let p1 = p([brushLongMin, brushLatMax]);
     let p2 = p([brushLongMax, brushLatMin]);
@@ -111,14 +111,14 @@ export function setupCanvasDependentUDFs(ctx: CanvasRenderingContext2D) {
 
   function setMapState(latMin: number, latMax: number, longMin: number, longMax: number) {
     // console.log("setting map state", arguments);
-    ctx.clearRect(0, 0, WIDTH, HEIGHT);
+    ctx.clearRect(0, 0, width, height);
     let s = {
       nw: [longMin, latMax] as Coords,
       se: [longMax, latMin] as Coords
     };
-    let t = mapBoundsToTransform(s, SCALE, WIDTH, HEIGHT);
+    let t = mapBoundsToTransform(s, scale, width, height);
     // console.log("transformation for render", t);
-    let p = getTranslatedMapping(t);
+    let p = getTranslatedMapping(t, scale, width, height);
     let path = geoPath()
                 .projection(p)
                 .context(ctx);
@@ -161,23 +161,24 @@ export const removeCacheSQL = `
   DELETE FROM pinData;
 `;
 
+// undo redo logic: where a branch is lost from the linear path forward (much like how copy paste's clip board copy is gone after a second copy)
 export const undoSQL = `
 SELECT log('started', 'undo');
-UPDATE mapInteractions
-  SET undoed = 1 WHERE itxId IN (SELECT itxId FROM mapInteractions ORDER BY itxId DESC LIMIT 1);
-INSERT INTO mapInteractions (ts, latMin, latMax, longMin, longMax, undoed)
+UPDATE mapItx
+  SET undoed = 1 WHERE itxId IN (SELECT itxId FROM mapItx ORDER BY itxId DESC LIMIT 1);
+INSERT INTO mapItx (ts, latMin, latMax, longMin, longMax, undoed)
   SELECT timeNow(), latMin, latMax, longMin, longMax, 2
-  FROM mapInteractions
+  FROM mapItx
   WHERE undoed = 0
   ORDER BY itxId DESC LIMIT 1;
-UPDATE mapInteractions
+UPDATE mapItx
   SET undoed = 1
   WHERE itxId IN (
     SELECT itxId
-    FROM mapInteractions
+    FROM mapItx
     WHERE undoed = 0
     ORDER BY itxId DESC LIMIT 1);
-UPDATE mapInteractions
+UPDATE mapItx
   SET undoed = 0 WHERE undoed = 2;
 `;
 
@@ -194,7 +195,7 @@ export function getMapZoomStatements() {
   // return () => {
     if (!stmts) {
     stmts = {
-      insertNavItx: db.prepare("INSERT INTO mapInteractions (ts, longMin, latMax, longMax, latMin) VALUES (?, ?, ?, ?, ?)"),
+      insertNavItx: db.prepare("INSERT INTO mapItx (ts, longMin, latMax, longMax, latMin) VALUES (?, ?, ?, ?, ?)"),
       insertBrushItx: db.prepare(`
         INSERT INTO brushItx (ts, mapItxId)
         SELECT ?, h.mapItxId

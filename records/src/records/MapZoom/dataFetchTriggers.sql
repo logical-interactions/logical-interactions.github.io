@@ -1,14 +1,16 @@
 -- triggers are for data fetching
 -- right now we can force a refresh in db on every single event
 
-CREATE TRIGGER processNavItx AFTER INSERT ON mapInteractions
+CREATE TRIGGER processNavItx AFTER INSERT ON mapItx
   BEGIN
-    INSERT INTO mapRequests
+    INSERT INTO mapCurrentItxId
       SELECT
         NEW.itxId AS itxId,
         timeNow() AS ts
-      FROM (SELECT COALESCE(MAX(ts), 0) AS ts
-      FROM mapRequests) AS m
+      FROM (
+        SELECT COALESCE(MAX(ts), 0) AS ts
+        FROM mapCurrentItxId
+      ) AS m
       WHERE NEW.ts > m.ts + 100;
       -- also update the map state so that there is responsive feedback
     SELECT log(NEW.itxId || ' ' || NEW.latMin || ' ' || NEW.latMax || ' ' || NEW.longMin || ' ' || NEW.longMax, "processNavItx");
@@ -36,7 +38,7 @@ CREATE TRIGGER fetchUserDataFromBrush AFTER INSERT ON brushItxItems
       AND pinData.long > NEW.longMin;
   END;
 
-CREATE TRIGGER fetchUserDataFromStream AFTER INSERT ON streamingData
+CREATE TRIGGER fetchUserDataFromStream AFTER INSERT ON pinStreamingInstance
   BEGIN
     INSERT INTO userDataRequest
     SELECT
@@ -53,9 +55,9 @@ CREATE TRIGGER fetchUserDataFromStream AFTER INSERT ON streamingData
       pinData.userId NOT IN (SELECT userId FROM userDataRequest);
   END;
 
-CREATE TRIGGER processMapRequests AFTER INSERT ON mapRequests
+CREATE TRIGGER processMapState AFTER INSERT ON mapCurrentItxId
   BEGIN
-    SELECT log(NEW.itxId, "processMapRequests");
+    SELECT log(NEW.itxId, "processMapState");
     -- check the cache, which is the pinResponses
     INSERT INTO pinResponses
       SELECT
@@ -65,8 +67,8 @@ CREATE TRIGGER processMapRequests AFTER INSERT ON mapRequests
         JOIN (
           SELECT itx.itxId
           FROM
-            mapInteractions AS newItx
-            JOIN mapInteractions AS itx
+            mapItx AS newItx
+            JOIN mapItx AS itx
               ON newItx.latMin = itx.latMin 
               AND newItx.latMax = itx.latMax 
               AND newItx.longMax = itx.longMax 
@@ -79,14 +81,10 @@ CREATE TRIGGER processMapRequests AFTER INSERT ON mapRequests
     -- https://stackoverflow.com/questions/19337029/insert-if-not-exists-statement-in-sqlite this is cool
     SELECT log(itxId, 'pinResponses cached') from pinResponses WHERE itxId = NEW.itxId;
     SELECT
-      queryPin(NEW.itxId, mapInteractions.latMin, mapInteractions.latMax, mapInteractions.longMin, mapInteractions.longMax)
+      queryPin(NEW.itxId, m.latMin, m.latMax, m.longMin, m.longMax)
     FROM
-      mapInteractions
+      mapItx m
     WHERE
       NOT EXISTS (SELECT itxId from pinResponses WHERE itxId = NEW.itxId)
-      AND mapInteractions.itxId = NEW.itxId;
-    -- this is another way i think
-    -- FROM (SELECT MAX(itxId) AS itxId FROM pinResponses) AS pin 
-    -- JOIN (SELECT MAX(itxId) AS itxId FROM mapRequests) AS map 
-    --   ON pin.itxId < map.itxId
+      AND m.itxId = NEW.itxId;
   END;

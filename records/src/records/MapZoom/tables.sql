@@ -1,4 +1,4 @@
-CREATE TABLE mapInteractions (
+CREATE TABLE mapItx (
   itxId INTEGER PRIMARY KEY,
   ts INTEGER NOT NULL,
   latMin INTEGER NOT NULL,
@@ -24,7 +24,7 @@ CREATE TABLE brushItx(
   mapItxId INTEGER
 );
 
-CREATE TABLE mapRequests (
+CREATE TABLE mapCurrentItxId (
   itxId INTEGER NOT NULL UNIQUE,
   ts INTEGER NOT NULL
 );
@@ -56,14 +56,8 @@ CREATE TABLE pinResponses (
   ts INTEGER
 );
 
-CREATE TABLE streamingData (
+CREATE TABLE pinStreamingInstance (
   ts INTEGER
-);
-
--- TODO: we probably need to log the render data in order to know what the current read situation is.
-CREATE TABLE pinRender(
-  itxId INTEGER NOT NULL UNIQUE,
-  ts INTEGER NOT NULL
 );
 
 CREATE TABLE renderItxs(

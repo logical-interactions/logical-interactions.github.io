@@ -3,12 +3,12 @@ import { Coords, MapSelection } from "./data";
 import * as d3 from "d3";
 import { geoMercator, geoPath } from "d3-geo";
 
-import { mapBoundsToTransform, SCALE, WIDTH, HEIGHT, Transform } from "../lib/data";
+import { mapBoundsToTransform, Transform } from "../lib/data";
 
-export function getTranslatedMapping(t: Transform) {
+export function getTranslatedMapping(t: Transform, scale: number, width: number, height: number) {
   return geoMercator()
-          .scale(SCALE * t.k)
-          .translate([WIDTH - t.x, HEIGHT - t.y]);
+          .scale(scale * t.k)
+          .translate([width - t.x, height - t.y]);
 }
 
 export function readFileSync(filename: string): string {

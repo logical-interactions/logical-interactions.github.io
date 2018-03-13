@@ -1,6 +1,5 @@
 -- events that will cause rendering
 -- mapInteraction: pin, and also forces brushInteractions off
--- mapInteractionsResponse
 -- brushInteraction: chart, but ideally NOT map
 -- brushInteractionResponse: do NOT reeval mapInteraction --- this can sort of be computed?
 
@@ -11,10 +10,10 @@ CREATE TRIGGER refreshAfterPinResponses AFTER INSERT ON pinResponses
     FROM renderItxsView;
   END;
 
-CREATE TRIGGER refreshAfterMapRequests AFTER INSERT ON mapRequests
+CREATE TRIGGER refreshAfterMapItx AFTER INSERT ON mapCurrentItxId
   BEGIN
     INSERT INTO renderItxs
-    SELECT mapItxId, brushItxId, 'mapRequests', timeNow()
+    SELECT mapItxId, brushItxId, 'mapState', timeNow()
     FROM renderItxsView;
   END;
 
@@ -33,10 +32,10 @@ CREATE TRIGGER refreshUserData AFTER INSERT ON userData
     FROM renderItxsView;
   END;
 
-CREATE TRIGGER refreshStreamingData AFTER INSERT ON streamingData
+CREATE TRIGGER refreshPinStreamingInstance AFTER INSERT ON pinStreamingInstance
   BEGIN
     INSERT INTO renderItxs
-    SELECT mapItxId, brushItxId, 'streamingData', timeNow()
+    SELECT mapItxId, brushItxId, 'pinStreamingInstance', timeNow()
     FROM renderItxsView;
   END;
 
@@ -44,10 +43,30 @@ CREATE TRIGGER refreshStreamingData AFTER INSERT ON streamingData
 -- e.g. when it's just brush ItxItems, we just need the brush and the chart
 CREATE TRIGGER refreshUI AFTER INSERT ON renderItxs
   BEGIN
-    SELECT * FROM renderMapState WHERE NEW.cause != 'brushItxItems';
-    SELECT * FROM renderPinState WHERE NEW.cause != 'brushItxItems';
-    SELECT * FROM pinPending;
-    SELECT * FROM renderChartState;
-    SELECT * FROM chartPending;
-    SELECT setBrushState(mapLatMax, mapLongMax, mapLatMin, mapLongMin, brushLatMax, brushLongMax, brushLatMin, brushLongMin) FROM currentBrush;
+    SELECT
+      setMapState(latMin, latMax, longMin, longMax),
+      setMapBounds(latMin, latMax, longMin, longMax)
+    FROM mapState
+    WHERE NEW.cause != 'brushItxItems';
+    
+    SELECT
+      setPinState(latMin,latMax,longMin,longMax,long,lat)
+    FROM pinState
+    WHERE NEW.cause != 'brushItxItems';
+    
+    SELECT
+      setMapPending(pending)
+    FROM pinPendingState;
+    
+    SELECT
+      setChartDataState(Q1, Q2, Q3, Q4)
+    FROM chartState;
+    
+    SELECT
+      setChartPending(leftUserIdCount)
+    FROM chartPendingState;
+    
+    SELECT
+      setBrushState(mapLatMax, mapLongMax, mapLatMin, mapLongMin, brushLatMax, brushLongMax, brushLatMin, brushLongMin)
+    FROM currentBrush;
   END;

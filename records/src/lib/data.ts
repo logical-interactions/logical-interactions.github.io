@@ -3,9 +3,9 @@ import { geoMercator } from "d3-geo";
 
 import { PINS } from "../data/pins";
 
-export const SCALE = 1 << 6;
-export const WIDTH = 700;
-export const HEIGHT = 400;
+// export const SCALE = 1 << 6;
+// export const WIDTH = 700;
+// export const HEIGHT = 400;
 
 const dataLength = 4;
 
@@ -43,20 +43,20 @@ export interface MapSelection {
 // by D3 standards...
 export type Coords = [number, number];
 
-export function mapBoundsToTransform(s: MapSelection, SCALE: number, WIDTH: number, HEIGHT: number) {
+export function mapBoundsToTransform(s: MapSelection, scale: number, width: number, height: number) {
   if (!s) {
     throw new Error("Selection is null");
   }
   let p1 = geoMercator()
-            .scale(SCALE)
-            .translate([WIDTH / 2, HEIGHT / 2]);
+            .scale(scale)
+            .translate([width / 2, height / 2]);
   let pnw = p1(s.nw);
   let pse = p1(s.se);
   let dx = pse[0] - pnw[0];
   let dy = pse[1] - pnw[1];
   // reproject
-  let k = 1 / Math.max(dx / WIDTH, dy / HEIGHT);
-  let p2 = geoMercator().scale(SCALE * k).translate([WIDTH / 2, HEIGHT / 2]);
+  let k = 1 / Math.max(dx / width, dy / height);
+  let p2 = geoMercator().scale(scale * k).translate([width / 2, height / 2]);
   pnw = p2(s.nw);
   pse = p2(s.se);
   let x = (pnw[0] + pse[0]) / 2;
