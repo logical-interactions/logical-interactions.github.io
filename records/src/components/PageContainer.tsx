@@ -4,7 +4,6 @@ import StressTest from "./StressTest";
 import MapZoomExplain from "./MapZoomExplain";
 import XFilterExplain from "./XFilterExplain";
 import { SvgSpinner } from "./SvgSpinner";
-
   // let applications = (<>
   //   <h2>Throttling and Caching</h2>
   //   <h2>Undo/Redo, Logging</h2>

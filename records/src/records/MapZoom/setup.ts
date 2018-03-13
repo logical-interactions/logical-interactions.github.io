@@ -30,7 +30,7 @@ export function setupMapDB() {
   }
 
   function processPinResponse(response: any) {
-    console.log("received response", response);
+    // console.log("received response", response);
     const {selection, data, itxId} = response;
     if (!data) {
       throw new Error("Pin data should be defined");
@@ -92,6 +92,12 @@ export function setupCanvasDependentUDFs(ctx: CanvasRenderingContext2D, scale: n
     ctx.fill();
   }
 
+  function renderText(text: string) {
+    ctx.font = "20px arial";
+    ctx.fillStyle = "black";
+    ctx.fillText(text, width - 100, height - 100);
+  }
+
   function setBrushState(latMax: number, longMax: number, latMin: number, longMin: number, brushLatMax: number, brushLongMax: number, brushLatMin: number, brushLongMin: number) {
     let s = {
       nw: [longMin, latMax] as Coords,
@@ -150,7 +156,7 @@ export function setupCanvasDependentUDFs(ctx: CanvasRenderingContext2D, scale: n
     }
   }
 
-  let UDFs: any[] = [setPinState, setMapState, setBrushState];
+  let UDFs: any[] = [setPinState, setMapState, setBrushState, renderText];
   UDFs.forEach((f) => {
     db.create_function(f.name, f);
   });
@@ -245,6 +251,7 @@ export function replayBackwardsSession(waitTime: number, end?: any) {
     let repeatId = window.setInterval(() => {
       db.exec(`
         INSERT INTO renderItxs VALUES (${itxIds[counter][0]}, ${itxIds[counter][1]}, 'replay', timeNow());
+        SELECT renderText('step ${itxIds.length - counter}');
       `);
       counter += 1;
       if (counter === itxIds.length) {
@@ -259,3 +266,15 @@ export function replayBackwardsSession(waitTime: number, end?: any) {
     return null;
   }
 }
+
+export const switchToBlocking = `
+  DROP VIEW mapOnlyState;
+  CREATE VIEW mapOnlyState AS
+    SELECT * FROM mapOnlyStateBlocking;
+`;
+
+export const switchToNoneBlocking = `
+  DROP VIEW mapOnlyState;
+  CREATE VIEW mapOnlyState AS
+    SELECT * FROM mapOnlyStateNoneBlocking;
+`;

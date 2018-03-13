@@ -52,7 +52,7 @@ export default class Chart extends React.Component<ChartProps, ChartState> {
   }
 
   setChartPending(pending: boolean) {
-    console.log("setChartPending", pending);
+    // console.log("setChartPending", pending);
     this.setState({
       pending,
     });
@@ -105,7 +105,7 @@ export default class Chart extends React.Component<ChartProps, ChartState> {
     } else {
       vis = spinner;
     }
-    console.log("height", height + spinnerRadius * 3);
+    // console.log("height", height + spinnerRadius * 3);
     return(<svg  width={width} height={height + spinnerRadius * 3}>
       {vis}
     </svg>);

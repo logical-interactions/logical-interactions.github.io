@@ -14,6 +14,9 @@ CREATE VIEW mapOnlyStateBlocking AS
     JOIN pinResponses p ON p.itxId = mapItx.itxId
     ORDER BY p.itxId DESC LIMIT 1;
 
+CREATE VIEW mapOnlyState AS
+  SELECT * FROM mapOnlyStateNoneBlocking;
+
 CREATE VIEW brushOnlyState AS
   SELECT 
     b.itxId,
@@ -26,7 +29,7 @@ CREATE VIEW brushOnlyState AS
   FROM
     brushItxItems b
     JOIN brushItx ON brushItx.itxId = b.itxId,
-    mapOnlyStateNoneBlocking m
+    mapOnlyState m
   WHERE
     brushItx.ts > m.ts
   ORDER BY b.ts DESC LIMIT 1;
@@ -39,7 +42,7 @@ CREATE VIEW renderItxsView AS
     COALESCE(brushOnlyState.mapItxId, m.itxId) AS mapItxId,
     brushOnlyState.itxId AS brushItxId
   FROM
-    mapOnlyStateNoneBlocking m
+    mapOnlyState m
     LEFT OUTER JOIN brushOnlyState;
 
 CREATE VIEW newMapAndBrushState AS

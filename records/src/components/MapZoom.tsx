@@ -28,6 +28,7 @@ interface MapZoomState {
   // pins: PinState;
   controlsDisabled: {[index: string]: boolean};
   replayIntervalId: number;
+  streaming: boolean;
   // worldData: any[];
 }
 
@@ -50,11 +51,13 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     this.setMapBounds = this.setMapBounds.bind(this);
     this.interact = this.interact.bind(this);
     this.replay = this.replay.bind(this);
+    this.handleStreaming = this.handleStreaming.bind(this);
     this.setReplayIntervalNull = this.setReplayIntervalNull.bind(this);
     this.state = {
       replayIntervalId: null,
       shiftDown: false,
       navSelection: null,
+      streaming: false,
       intendedNavSelection: null,
       controlsDisabled: {
         "in": false,
@@ -71,7 +74,7 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
   }
 
   setMapPending(pending: number) {
-    console.log("PIN PENDING", pending);
+    // console.log("PIN PENDING", pending);
     this.setState({
       pending: (pending > 0) ? false : true
     });
@@ -113,6 +116,13 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
     window.addEventListener("keydown", this.handleKeyDown);
   }
 
+  handleStreaming() {
+    this.setState(prevState => ({
+      streaming: !prevState.streaming
+    }));
+    toggleStreaming();
+  }
+
   interact(itxType: string, brush: d3.BrushBehavior<{}>) {
     return() => {
       let navSelection = this.props.logical ? this.state.intendedNavSelection : this.state.navSelection;
@@ -147,7 +157,7 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
       window.clearInterval(this.state.replayIntervalId);
       this.setState({replayIntervalId: null});
     } else {
-      let replayIntervalId = replayBackwardsSession(2000, this.setReplayIntervalNull);
+      let replayIntervalId = replayBackwardsSession(1000, this.setReplayIntervalNull);
       this.setState({replayIntervalId});
     }
   }
@@ -186,7 +196,7 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
                     });
       brushDiv = <g ref={ g => d3.select(g).call(brush) } className="brush"></g>;
     }
-    let controls = ["in", "out", "left", "right", "up", "down"].map((c) => <button
+    let controls = ["in", "out", "left", "right", "up", "down"].map((c) => <button className="btn" style={{color: "purple"}}
         onClick={this.interact(c, brush)}
         disabled={controlsDisabled[c]}
       >{c}</button>);
@@ -207,14 +217,15 @@ export default class MapZoom extends React.Component<MapZoomProps, MapZoomState>
         </svg>
       </div>
       <button className="btn" onClick={showPastMapBrushes}>Past Brushes</button>
-      <button className="btn" onClick={() => downloadQueryResultAsCSV(`SELECT * FROM userData`)}>Export Brush Data</button>
       <button className="btn" onClick={this.replay}>Animate Past</button>
+      <button className="btn"onClick={this.handleStreaming}>{this.state.streaming ? "Pause" : "Start"} Streaming</button>
+      <br/>
+      <button className="btn" onClick={() => downloadQueryResultAsCSV(`SELECT * FROM userData`)}>Export Brush Data</button>
       <button className="btn" onClick={() => {
         db.exec(removeCacheSQL);
       }}>Clear Cache</button>
-      <button className="btn"onClick={toggleStreaming}>Toggle Streaming</button>
       <button className="btn" onClick={downloadDB}>Download Session</button>
-      <input type="file" onChange={this.onFileChange} />
+      <label>Upload Session<input type="file" onChange={this.onFileChange} /></label>
     </div>);
   }
 }

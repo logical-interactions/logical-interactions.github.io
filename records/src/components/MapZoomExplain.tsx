@@ -4,7 +4,7 @@ import QueryDb from "./QueryDb";
 import MapZoomContainer from "./MapZoomContainer";
 import { toggleStreaming } from "../lib/streamingPins";
 import { mapZoomLatency } from "../lib/data";
-import { removeCacheSQL } from "../records/MapZoom/setup";
+import { removeCacheSQL, switchToBlocking, switchToNoneBlocking } from "../records/MapZoom/setup";
 
 interface MapZoomExplainState {
   // delay in mili seconds
@@ -17,7 +17,6 @@ interface MapZoomExplainState {
 export default class MapZoomExplain extends React.Component<undefined, MapZoomExplainState> {
   constructor(props: undefined) {
     super(props);
-    this.handleStreaming = this.handleStreaming.bind(this);
     this.makeLogical = this.makeLogical.bind(this);
     this.state = {
       delay: 2000,
@@ -29,13 +28,6 @@ export default class MapZoomExplain extends React.Component<undefined, MapZoomEx
 
   makeLogical() {
     this.setState({isLogical: true});
-  }
-
-  handleStreaming() {
-    this.setState(prevState => ({
-      streaming: !prevState.streaming
-    }));
-    toggleStreaming();
   }
 
   render() {
@@ -88,58 +80,69 @@ export default class MapZoomExplain extends React.Component<undefined, MapZoomEx
       <p>
         Notice how you can still interact with the map when the pin results are being loaded. Can't see it? Press the button to make the pins load slower.
       </p>
-      <button onClick={() => {
+      <button className="btn" onClick={() => {
         let l = mapZoomLatency("pin");
         mapZoomLatency("pin", l.min + 2000, l.max + 2000);
       }}>Make pin loading slower</button>
-      <p>What we did here is that d</p>
+      <p>What we did here is that we are allowing the state of the map to be defined by the most recent interaction regardless of whether its data sdepencicies have loaded as below.</p>
       <QueryDb
-        key={"defineBrushItx"}
+        key={"definemapOnlyStateNoneBlocking"}
         hideQuery={true}
+        execute={true}
         query={
           `SELECT name, sql
           FROM sqlite_master
           WHERE
             type = 'view'
-            AND name = 'mapOnlyState'`}
+            AND name = 'mapOnlyStateNoneBlocking'`}
       />
       <p>
         Let's say somehow you want the panning to block, that is, do not render the map until the pins have loaded, and also disable brushing, then you can do the following.
       </p>
       <QueryDb
-        query={`
-        DROP VIEW mapOnlyState;
-        CREATE VIEW mapOnlyState AS
-          SELECT
-            mapItx.itxId,
-            mapItx.ts
-          FROM
-            mapItx
-            JOIN pinResponses ON pinResponses.itxId = mapItx.itxId
-            ORDER BY pinResponses.itxId DESC LIMIT 1;
-        `}
-        explainTxt={"Note the last two lines, instead of previously selecting the most recent interaction, we are selecting the first render."}
+        hideQuery={true}
+        execute={true}
+        query={`SELECT name, sql
+        FROM sqlite_master
+        WHERE
+          type = 'view'
+          AND name = 'mapOnlyStateBlocking'`}
+        explainTxt={`The following code fines mapOnlyStateBlocking, which is a view that "blocks" state from being updated until the pins have loaded locally, it decides what interaction defines the current state by selecting the most recently loaded pin.`}
+        key={"seeMapOnlyStateBlocking"}
+      />
+      <p>
+        You can switch back and fourth between the following options to test it out.
+      </p>
+      <QueryDb
+        query={switchToBlocking}
+        hideQuery={true}
         key={"changeToBlocking"}
+        buttonTxt={"change to blocking map navigation"}
+      />
+      <QueryDb
+        query={switchToNoneBlocking}
+        hideQuery={true}
+        key={"changeToNoneBlocking"}
+        buttonTxt={"change to none blocking map navigation"}
       />
       <p>
         At this point perhaps a lot of the pins are already cached, so again you cannot see the effects of latency, well, we can clear the cache by simply running the following queries.
       </p>
       <QueryDb
         query={removeCacheSQL}
-      />}
+      />
       <p>
-        Note also that since the current map state does not change in the React component, even if the button is pressed multiple times, because the derived data space specification would be the same.  In order to implement blocking and allow users to navigate, we can change the interactions to "intentions" and evaluate on the server side, or alternatively push the temporary state to the client state.  If the data is not knowable by the client, then this has to be done on the server. In this case, it is knowable. We've instrumented the React code to toggle between these two options. Click on the button to see the effect
+        These query highlights the aspects of "blocking" that is focused on the rendering, what about the interaction input?  Let's first take a look at how one implements interactions.  For the map, a React component carries the current state of the map, and since the map is blocked from moving until the pins are loaded, pressing the zoom in/out or pan will all be the same interactions, resulting in the same result.  However, if the map navigation is non blocking, then the React state is up to date with the interaction, so if left is pressed 3 times, it will move 3 times left.  Lastly, there is a third option to allow for new interactions while the rendering is blocked, we call this <i>logical interaction</i>, the idea is that the client maintains another separate piece of state, just for map navigation, where it can update independently of the database state, unmanaged. Then even if the loading is blocked, the interactions precedes in the background, so once again, when left is pressed 3 times, then regardless of whether the rendering is blocked, the map will eventaully move 3 to the left, instead of just one.
       </p>
-      <button onClick={this.makeLogical}>Separate interaction intention (logical interaction)</button>
+      <button className="btn" onClick={this.makeLogical}>Separate interaction intention (logical interaction)</button>
       <p>
         As you can see, data dependent controls are pretty hard to reason about both for the developer and the users in the face of high latency and asynchrony, even with our framework, because the application logic is more complex.  We encourage designing with data <i>independent</i> controls.
       </p>
       <p>
-        To enable streaming, we can simply insert into the <code>pinData</code> table.  We implemented an (emulated) pulling function from the server to update the pins, click to see the effect on the visualization.
+        To enable streaming, we can simply insert into the <code>pinData</code> table.  We implemented an (emulated) pulling function from the server to update the pins, click the Start Streaming button under the visualization to see the effect on the visualization.  Notice how if you already have a brush there, if a new pin falls into the selected region, then the chart data is automatically updated.
       </p>
-      <button onClick={this.handleStreaming}>{this.state.streaming ? "Pause" : "Start"} Streaming </button>
       <p>
-        The astute reader might point out that this is the simple case of streaming, where the mapping from pixel space to data space (the scale) of the interaction input is not affected by the streaming data. The framework offers a few declarative solutions.  One is whenever an interaction starts (note not necessarily rendered), freeze the current state of the UI and disallow new streamed in data to update, until the user is done with the interaction and expresses a wish to continue, releasing the "lock" on the screen.  Another option is that since interactions are specified in data space, we are guaranteed to have the correct visualization of input, so the streaming updates the screen, but also updates the interaction's pixel mapping.  If the scenario is such that the selection is dependent on <b>time</b>, we recommend the first solution, and the if the interaction is only dependnet on the scale and the scale doesn't change much, the second option could offer more "real time" exerpience. #TODO: implement two quick examples.
+        The relational model of interaction also makes manipulating the state of the visualization very simple.  Check out the functionalities of the buttons below the visualization to see their effect.v
       </p>
     </>
     );

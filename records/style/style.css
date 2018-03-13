@@ -115,16 +115,16 @@ colgroup {
 }
 
 .btn {
-  border-radius: 28px;
+  border-radius: 15px;
   font-family: Arial;
   color: #ffffff;
-  font-size: 15px;
-  background: #aa34d9;
-  padding: 5px 10px 5px 10px;
+  font-size: 12px;
+  background:  #c0c0c0;;
+  padding: 3px 6px 3px 6px;
   text-decoration: none;
 }
 
 .btn:hover {
-  background: #fc3cfc;
+  background:  #ebebeb;;
   text-decoration: none;
 }
