@@ -5,8 +5,11 @@ import { readFileSync } from "../lib/helper";
 
 const ISPROD = true;
 
+console.log("DB setup file executing");
+
 // DB set up
 export let db = new sql.Database();
+
 // this will hopefully make things faster
 // read https://sqlite.org/pragma.html
 // db.run(`PRAGMA main.synchronous = 0`);
@@ -33,11 +36,6 @@ function d(sql: string) {
   }
 }
 (<any>window).d = d;
-
-let UDFs: any[] = [timeNow, log, assertNoBigger];
-UDFs.forEach((f) => {
-  db.create_function(f.name, f);
-});
 
 export function executeFile(folder: string, fn: string) {
   let path = ISPROD ? "./dist/sql" : "/src/records";
@@ -70,6 +68,12 @@ function assertNoBigger(v1: number, v2: number, msg: string) {
     throw new Error(`${v1} is larger than ${v2}, ${msg}`);
   }
 }
+
+let UDFs: any[] = [timeNow, log, assertNoBigger];
+UDFs.forEach((f) => {
+  console.log("[UDF] shared setup", f.name);
+  db.create_function(f.name, f);
+});
 
 function _downloadHelper(blob: Blob, name: string) {
   let a = document.createElement("a");
