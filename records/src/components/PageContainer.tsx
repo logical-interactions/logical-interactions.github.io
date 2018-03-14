@@ -21,6 +21,9 @@ export const PageContainer = () => (<>
     This post is about how we can tame the complexity of creating data-processing interactions frontend applications.
   </h2>
   <p>
+    UIs are getting increasingly complex, not only do we have visual analytics on steroids with new startups like MapD and Graphyistry, but also new processing mechanism such as <a href="https://codepen.io/btholt/pen/JMwQYg">using speach recognition to drive a voice-run calculator</a> d
+  </p>
+  <p>
     The primary insight is ... #FIXME
   </p>
   <p>
@@ -28,8 +31,8 @@ export const PageContainer = () => (<>
   </p>
   <MapZoomExplain
   />
-  {/* <XFilterExplain
-  /> */}
+  <XFilterExplain
+  />
   {/* <Test /> */}
   {/* <StressTest /> */}
   {/* <svg width={100} height={200}>

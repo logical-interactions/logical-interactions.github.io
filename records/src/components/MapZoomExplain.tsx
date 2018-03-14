@@ -32,6 +32,7 @@ export default class MapZoomExplain extends React.Component<undefined, MapZoomEx
 
   render() {
     return (<>
+      <h2>Map Navigation and Brushing Interaction Example</h2>
       <p>Here, we have a scenario where in real time, a user is browsing login actvities of users, and they can select the dots to get some aggreated dataabout what the set of users selected.</p>
       <div style={{position: "sticky", top: 0, backgroundColor: "white"}}>
         <MapZoomContainer
