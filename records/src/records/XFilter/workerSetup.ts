@@ -11,7 +11,7 @@ export function xFilterWorker(): Promise<Worker> {
   return new Promise((resolve, reject) => {
     if (!worker) {
       worker = new Worker("/dist/worker.sql.js");
-      fetch("/data/flight_small.db")
+      fetch("./dist/flight_small.db")
       .then(response => {
         if (response.status !== 200) {
           console.log(`There was a problem: ${response.status}`);

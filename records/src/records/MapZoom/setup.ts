@@ -141,7 +141,7 @@ export function setupCanvasDependentUDFs(ctx: CanvasRenderingContext2D, scale: n
       ctx.fill();
     }
     if (!worldDataLoaded) {
-      fetch("/dist/world.json")
+      fetch("./dist/world.json")
         .then(response => {
           if (response.status !== 200) {
             console.log(`There was a problem: ${response.status}`);
