@@ -4,7 +4,7 @@ import * as React from "react";
 // we can show its very easy to keep separateion of concerns
 
 import { Indicator } from "./Indicator";
-import { XFilterChart } from "./XFilterChart";
+import XFilterChart from "./XFilterChart";
 import { db } from "../records/setup";
 import { parseChartData, setupXFilterDB, XFILTERCHARTS } from "../records/XFilter/setup";
 

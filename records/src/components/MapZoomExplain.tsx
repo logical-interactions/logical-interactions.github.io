@@ -143,7 +143,10 @@ export default class MapZoomExplain extends React.Component<undefined, MapZoomEx
         To enable streaming, we can simply insert into the <code>pinData</code> table.  We implemented an (emulated) pulling function from the server to update the pins, click the Start Streaming button under the visualization to see the effect on the visualization.  Notice how if you already have a brush there, if a new pin falls into the selected region, then the chart data is automatically updated.
       </p>
       <p>
-        The relational model of interaction also makes manipulating the state of the visualization very simple.  Check out the functionalities of the buttons below the visualization to see their effect.v
+        The relational model of interaction also makes manipulating the state of the visualization very simple.  Check out the functionalities of the buttons below the visualization to see their effect.  You can download the session and open it with my SQL client that is compatible with SQLite (e.g. <a href="https://sqlite.org/cli.html">sqlite3 command line</a>, or via <a href="http://pandas.pydata.org/pandas-docs/stable/io.html#reading-tables">pandas on Python notebook</a>).
+      </p>
+      <p>
+        You can also use these queries to construct animations --- often, a finding comes from a process and not the final visualization, this makes possible richer ways to create illustrations to communicate.  Instead of having a set of static charts, now you can savean interaction session and playing it step by step to communicate the finding, without any additional work!
       </p>
     </>
     );
