@@ -1,12 +1,13 @@
+-- not on chartData because that would be triggered too many times
 CREATE TRIGGER xFilterAtomicResponse AFTER INSERT ON chartDataAtomic
 BEGIN
   -- if all the charts are here
   SELECT log(NEW.requestId, 'xFilterAtomicResponse');
-  INSERT INTO xFilterResponse
+  INSERT INTO xFilterResponse (requestId, ts, dataId)
   SELECT NEW.requestId, timeNow(), NEW.requestId
   FROM (
     SELECT GROUP_CONCAT(DISTINCT chart) AS val
-    FROM chartDataAtomic d
+    FROM chartData d
     WHERE d.requestId = NEW.requestId) charts
   WHERE checkAtomic(charts.val) = 1;
 END;

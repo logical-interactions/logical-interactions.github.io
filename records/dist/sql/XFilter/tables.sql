@@ -22,10 +22,13 @@ CREATE TABLE xFilterRequest (
 );
 
 CREATE TABLE xFilterResponse (
-  requestId INTEGER NOT NULL UNIQUE,
+  requestId INTEGER NOT NULL,
   ts INTEGER NOT NULL,
   -- can be a previous requestId, or the currentone
-  dataId INTEGER NOT NULL
+  dataId INTEGER NOT NULL,
+  -- optional
+  chart TEXT,
+  UNIQUE(requestId, chart)
 );
 
 -- caching at the interaction level, for undo-redo
@@ -35,7 +38,7 @@ CREATE TABLE chartData (
   requestId INTEGER NOT NULL,
   bin INTEGER NOT NULL,
   count INTEGER NOT NULL,
-  chart INTEGER NOT NULL,
+  chart TEXT NOT NULL,
   UNIQUE(requestId, chart, bin)
 );
 
@@ -47,7 +50,9 @@ CREATE TABLE chartDataAtomic (
 
 -- this assumes atomic render
 CREATE TABLE xFilterRender (
-  itxId INTEGER NOT NULL UNIQUE,
+  itxId INTEGER,
+  -- requestId INTEGER,
+  -- chart INTEGER,
   ts INTEGER NOT NULL
 );
 

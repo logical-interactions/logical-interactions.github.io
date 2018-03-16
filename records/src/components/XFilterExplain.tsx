@@ -4,6 +4,8 @@ import QueryDb from "./QueryDb";
 
 import XFilterContainer from "./XFilterContainer";
 
+import { getXFilterChroniclesSQL } from "../records/XFilter/setup";
+
 interface XFilterExplainState {
 
 }
@@ -29,6 +31,12 @@ export default class XFilterExplain extends React.Component<undefined, XFilterEx
       <p>
         We actually have the asynchronous version that talks to a SQL backend (or worker, both can be considered  remotes so far as asynchrony is concerned), and compared with <a href="https://github.com/mapd/mapd-crossfilter">the source code of MapD's asynchronous crossfilter</a>, (we think) ours offer a much simpler way to model the interaction and associated processes. Now let's take a look at how it's implemented.
       </p>
+      <p>
+        On top of the asynchronous version, we also implemented what we call "Chronicles", a design patterns that shouls the most recent interactions, to help you see more things when there is high latency (we have a post <a href="http://logical-interactions.github.io/chronicles">here</a>). Since the idea is to show some recent past, we can do this simply by extending the number of past interactions allowed. The code is below, where the LIMIT specifies the "buffer size".
+      </p>
+      <code>
+        {getXFilterChroniclesSQL(3)}
+      </code>
       <p>
         Through experience, we found that handing none data-centric transformations, such as layout and imperative manipulation, are not intuitive or simple with vanilla relational algebra.  However, the relational engine could work with imperative functions as well. Take the example of the zoom implementation --- since the transformation does not really require any new data and is just changing the scale.
       </p>
