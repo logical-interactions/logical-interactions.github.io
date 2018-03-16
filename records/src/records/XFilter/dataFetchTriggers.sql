@@ -58,6 +58,20 @@ BEGIN
     AND hourLow = NEW.hourLow AND hourHigh = NEW.hourHigh
     AND delayLow = NEW.delayLow AND delayHigh = NEW.delayHigh
     AND distanceLow = NEW.distanceLow AND distanceHigh = NEW.distanceHigh;
+  -- also insert the immediate interaction
+  -- assume it was on maxItxId
+  INSERT INTO chartData
+  SELECT 
+    NEW.requestId,
+    d.bin,
+    d.count,
+    d.chart
+  FROM
+    chartData d
+    JOIN (SELECT itxId, low, high FROM currentItx ORDER BY itxId LIMIT 1) c
+    JOIN xFilterRequest r ON c.itxId = r.itxId AND r.requestId = d.requestId
+  WHERE d.bin < c.high AND d.bin > c.low;
+  -- now query
   SELECT
     queryWorker(NEW.requestId)
   WHERE

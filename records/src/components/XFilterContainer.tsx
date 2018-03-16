@@ -13,7 +13,7 @@ import { parseChartData, setupXFilterDB, XFILTERCHARTS, initialStateSQL, getXFil
 interface XFilterContainerState {
   // this will be inefficient since react does not know what actually changed and will likely refresh everything
   baseData: {[index: string]: {x: number, y: number}[]};
-  data: {[index: string]: {x: number, y: number}[]}[];
+  data: {[index: string]: {[index: string]: {x: number, y: number}[]}};
   pending: boolean;
   bufferSize: number;
   itxIdSet: number[];
@@ -107,34 +107,35 @@ export default class XFilterContainer extends React.Component<undefined, XFilter
     let charts: JSX.Element[] = [];
     if (baseData) {
       if (data) {
-        data.forEach(d => {
+        let keys = Object.keys(data).map(v => parseInt(v, 10)).sort().reverse();
+        for (let i = 0; i < keys.length; i++) {
+          let d = data[keys[i]];
           let aBuffer = Object.keys(baseData).map(k => {
             return <XFilterChart
               baseData={baseData[k]}
               xFilterData={d[k]}
+              control= {i === 0}
               chart={k}
               key={k}
-              pending={false}
+              pending={d[k] ? false : true}
             />;
           });
           charts.push(<>
             {aBuffer}
             <div style={{clear: "both"}}></div>
           </>);
-        });
+        }
       } else {
         charts = Object.keys(baseData).map(k => {
           return <XFilterChart
             baseData={baseData[k]}
+            control={true}
             xFilterData={null}
             chart={k}
             key={k}
-            pending={false}
+            pending={true}
           />;
         });
-      }
-      if (pending) {
-        spinner = <><Indicator />Processing Request</>;
       }
     } else {
       spinner = <><Indicator />Loading Initial Data...</>;

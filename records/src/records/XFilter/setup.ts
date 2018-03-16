@@ -10,25 +10,26 @@ export const XFILTERCHARTS = ["hour", "delay", "distance"];
 export function parseChartData(res: QueryResults[]) {
   if (res[0] && res[0].values && res[0].values.length > 0 ) {
     let cols = res[0].columns;
-    if ((cols[0] !== "chart") || (cols[1] !== "bin") || (cols[2] !== "count") || (cols[3]!== "itxId")) {
+    if ((cols[0] !== "chart") || (cols[1] !== "bin") || (cols[2] !== "count") || (cols[3] !== "itxId")) {
       throw new Error("Section do not match");
     }
     let v = res[0].values;
-    let itxId = v[0][3];
-    let itxOffset = 0;
-    let data: {[index: string]: {x: number, y: number}[]}[] = [];
+    let itxId = -1;
+    let data: {[index: string]: {[index: string]: {x: number, y: number}[]}} = {};
     v.forEach(e => {
-      if (e[3] !== itxId) {
-        data.push({
+      // so annoying
+      let itxId = (e[3] as number).toString(10);
+      if (!(itxId in data)) {
+        data[itxId] = {
           hour: [],
           delay: [],
           distance: []
-        });
-        itxOffset += 1;
+        };
       }
       let chart = e[0] as string;
-      data[itxOffset][chart].push({x: e[1] as number, y: e[2] as number});
+      data[itxId][chart].push({x: e[1] as number, y: e[2] as number});
     });
+    console.log("returning data", data);
     return {
       data
     };

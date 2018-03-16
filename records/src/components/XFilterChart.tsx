@@ -13,6 +13,7 @@ interface XFilterChartProps {
   baseData: {x: number, y: number}[];
   xFilterData: {x: number, y: number}[];
   pending: boolean;
+  control: boolean;
   // doesn't quite work with chronicles yet
   chart: string;
   baseFill?: string;
@@ -69,7 +70,7 @@ export default class XFilterChart extends React.Component<XFilterChartProps, XFi
 // export const XFilterChart = (props: XFilterChartProps) => {
   // props = bindDefault(props, defaultProps);
   render() {
-    let { chart, width, height, baseFill, marginLeft, marginRight, marginTop, marginBottom, baseData, xFilterData, pending, selectFill, maxZoomScale } = this.props;
+    let { chart, width, height, baseFill, marginLeft, marginRight, marginTop, marginBottom, baseData, xFilterData, pending, selectFill, maxZoomScale, control } = this.props;
     let { scale } = this.state;
     // console.log(`[XFilterChart] ${chart}`, baseData, xFilterData);
     let stmts = getXFilterStmts();
@@ -108,21 +109,27 @@ export default class XFilterChart extends React.Component<XFilterChartProps, XFi
     let xAxis = d3.axisBottom(x).ticks(4);
     let baseBars = baseData.map((d, i) => <rect x={x(d.x)} y={y(d.y)} width={bandwidth} height={innerHeight - y(d.y)} fill={baseFill}></rect>);
     let selectBars = (xFilterData ? xFilterData : []).map((d, i) => <rect x={x(d.x)} y={y(d.y)} width={bandwidth} height={innerHeight - y(d.y)} fill={selectFill}></rect>);
-    let brush = d3.brushX()
-                  .extent([[0, 0], [innerWidth, innerHeight]])
-                  .on("start", function() {
-                    // TODO
-                    console.log("brush started");
-                  })
-                  .on("end", function() {
-                    const s = d3.brushSelection(this) as [number, number];
-                    if (s !== null) {
-                      let v1 = x.invert(s[0]);
-                      let v2 = x.invert(s[1]);
-                      stmts.insertBrushItx.run([+new Date(), Math.min(v1, v2), Math.max(v1, v2), chart]);
-                    }
-                  });
-    let brushDiv = <g ref={ g => d3.select(g).call(brush) }></g>;
+    if (!xFilterData) {
+      spinner = <><Indicator />Processing Request</>;
+    }
+    let brushDiv = null;
+    if (control) {
+      let brush = d3.brushX()
+                    .extent([[0, 0], [innerWidth, innerHeight]])
+                    .on("start", function() {
+                      // TODO
+                      console.log("brush started");
+                    })
+                    .on("end", function() {
+                      const s = d3.brushSelection(this) as [number, number];
+                      if (s !== null) {
+                        let v1 = x.invert(s[0]);
+                        let v2 = x.invert(s[1]);
+                        stmts.insertBrushItx.run([+new Date(), Math.min(v1, v2), Math.max(v1, v2), chart]);
+                      }
+                    });
+      brushDiv = <g ref={ g => d3.select(g).call(brush) }></g>;
+    }
     vis = <svg width={width} height={height} ref={(g) => {d3.select(g).call(zoom); }} style={{cursor: "ns-resize"}}>
             <g  transform={`translate(${marginLeft}, ${marginTop})`} >
               {baseBars}
