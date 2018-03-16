@@ -4,7 +4,7 @@ import QueryDb from "./QueryDb";
 import MapZoomContainer from "./MapZoomContainer";
 import { toggleStreaming } from "../lib/streamingPins";
 import { mapZoomLatency } from "../lib/data";
-import { removeCacheSQL, switchToBlocking, switchToNoneBlocking } from "../records/MapZoom/setup";
+import { removeCacheSQL, switchToBlocking, switchToNoneBlocking, undoSQL } from "../records/MapZoom/setup";
 
 interface MapZoomExplainState {
   // delay in mili seconds
@@ -31,7 +31,7 @@ export default class MapZoomExplain extends React.Component<undefined, MapZoomEx
   }
 
   render() {
-    return (<>
+    return (<div>
       <h2>Map Navigation and Brushing Interaction Example</h2>
       <p>Here, we have a scenario where in real time, a user is browsing login actvities of users, and they can select the dots to get some aggreated dataabout what the set of users selected.</p>
       <div style={{position: "sticky", top: 0, backgroundColor: "white"}}>
@@ -143,12 +143,18 @@ export default class MapZoomExplain extends React.Component<undefined, MapZoomEx
         To enable streaming, we can simply insert into the <code>pinData</code> table.  We implemented an (emulated) pulling function from the server to update the pins, click the Start Streaming button under the visualization to see the effect on the visualization.  Notice how if you already have a brush there, if a new pin falls into the selected region, then the chart data is automatically updated.
       </p>
       <p>
+        Of couse, you can also easily (ok, maybe relatively!) implement undo. As an example, we implemented the undo from map---all it takes here is the following SQL code. On the high level, we have a few options: (1) destructively remove the most recent interaction, but unless it's a simpel interaction, deleting things usually might lead to weird logical bugs, pass (2) create a new interaction on behalf of the user that is the specification of the previous interaction, this has more predicatable behaviors. In order to do that, we need an extra column to remeber whether an interaction was undoed, and set its bit to true if it has been undo, that way when the user press undo again, we proceed instead of repeating the same interaction.  The 2 you see is a temporary way to keep track of the most recent interaction so as not to set that to undoed as well. You can also create a temporary table for it, but that's just implementation details.
+      </p>
+      <code>
+        {undoSQL}
+      </code>
+      <p>
         The relational model of interaction also makes manipulating the state of the visualization very simple.  Check out the functionalities of the buttons below the visualization to see their effect.  You can download the session and open it with my SQL client that is compatible with SQLite (e.g. <a href="https://sqlite.org/cli.html">sqlite3 command line</a>, or via <a href="http://pandas.pydata.org/pandas-docs/stable/io.html#reading-tables">pandas on Python notebook</a>).
       </p>
       <p>
         You can also use these queries to construct animations --- often, a finding comes from a process and not the final visualization, this makes possible richer ways to create illustrations to communicate.  Instead of having a set of static charts, now you can savean interaction session and playing it step by step to communicate the finding, without any additional work!
       </p>
-    </>
+    </div>
     );
   }
 }

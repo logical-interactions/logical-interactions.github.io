@@ -40,15 +40,15 @@ export default class XFilterChart extends React.Component<XFilterChartProps, XFi
     colorOverride: false,
     baseFill: "rgb(255, 192, 203, 0.5)",
     selectFill: "rgb(176, 224, 230, 0.8)",
-    height: 100,
+    height: 150,
     marginBottom: 40,
     marginLeft: 45,
     marginRight: 20,
     marginTop: 20,
-    width: 200,
+    width: 220,
     showLabel: false,
     showAxesLabels: true,
-    maxZoomScale: 20,
+    maxZoomScale: 5,
   };
   constructor(props: XFilterChartProps) {
     super(props);
@@ -59,9 +59,12 @@ export default class XFilterChart extends React.Component<XFilterChartProps, XFi
   }
   zoomed() {
     // console.log("zoom called, setting scale to ", d3.event.transform.k);
-    this.setState({
-      scale: d3.event.transform.k
-    });
+    let scale = d3.event.transform.k;
+    if (Math.abs(scale - this.state.scale) > 0.05 * scale) {
+      this.setState({
+        scale
+      });
+    }
   }
 // export const XFilterChart = (props: XFilterChartProps) => {
   // props = bindDefault(props, defaultProps);
@@ -86,12 +89,13 @@ export default class XFilterChart extends React.Component<XFilterChartProps, XFi
               .domain([d3.min(baseData, (d) => d.x), d3.max(baseData, (d) => d.x)]);
     if (scale > 1) {
       // console.log("old data", baseData.length, baseData);
-      let maxVal = d3.max(baseData, (d) => d.x);
-      baseData = baseData.filter((d) => d.x < (maxVal / maxZoomScale * (maxZoomScale - scale + 1)));
-      // console.log("new data", baseData.length, baseData);
+      let maxVal = d3.max(baseData, (d) => d.y);
+      let limit = maxVal / maxZoomScale * (maxZoomScale - scale + 1);
+      baseData = baseData.filter((d) => {return d.y < limit; });
+      // console.log("with limit", limit, "and scale", scale, "new data", baseData.length, baseData);
     }
     let y = d3.scaleLinear()
-              .rangeRound([innerHeight, 0 - innerHeight * (scale - 1)])
+              .rangeRound([innerHeight, 0])
               .domain([0, d3.max(baseData, (d) => d.y)]);
     // get y scale and x positioning
     // let tX = x;
@@ -100,8 +104,8 @@ export default class XFilterChart extends React.Component<XFilterChartProps, XFi
     //   tX = transform.rescaleX(x);
     //   tY = transform.rescaleX(y);
     // }
-    let xAxis = d3.axisLeft(y).ticks(5, "d");
-    let yAxis = d3.axisBottom(x).ticks(4);
+    let yAxis = d3.axisLeft(y).ticks(5, "d");
+    let xAxis = d3.axisBottom(x).ticks(4);
     let baseBars = baseData.map((d, i) => <rect x={x(d.x)} y={y(d.y)} width={bandwidth} height={innerHeight - y(d.y)} fill={baseFill}></rect>);
     let selectBars = (xFilterData ? xFilterData : []).map((d, i) => <rect x={x(d.x)} y={y(d.y)} width={bandwidth} height={innerHeight - y(d.y)} fill={selectFill}></rect>);
     let brush = d3.brushX()
@@ -119,23 +123,23 @@ export default class XFilterChart extends React.Component<XFilterChartProps, XFi
                     }
                   });
     let brushDiv = <g ref={ g => d3.select(g).call(brush) }></g>;
-    vis = <svg width={width} height={height} ref={(g) => {d3.select(g).call(zoom); }}>
+    vis = <svg width={width} height={height} ref={(g) => {d3.select(g).call(zoom); }} style={{cursor: "ns-resize"}}>
             <g  transform={`translate(${marginLeft}, ${marginTop})`} >
               {baseBars}
               {selectBars}
-              <g ref={(g) => {d3.select(g).call(xAxis); }}></g>
-              <g ref={(g) => { d3.select(g).call(yAxis); }} transform={"translate(0," + innerHeight + ")"}></g>
+              <g ref={(g) => {d3.select(g).call(yAxis); }}></g>
+              <g ref={(g) => { d3.select(g).call(xAxis); }} transform={"translate(0," + innerHeight + ")"}></g>
               {brushDiv}
               {spinner}
             </g>
           </svg>;
     let zoom = d3.zoom()
-                 .scaleExtent([1, 10])
+                 .scaleExtent([1, maxZoomScale])
                  .translateExtent([[0, -100], [width, height]])
                  .on("zoom", this.zoomed);
 
     // console.log("brush", brushDiv);
-    return(<div>
+    return(<div style={{float: "left"}}>
       {vis}
     </div>);
   }

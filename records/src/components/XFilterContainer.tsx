@@ -6,15 +6,18 @@ import * as React from "react";
 import { Indicator } from "./Indicator";
 import XFilterChart from "./XFilterChart";
 import { db } from "../records/setup";
-import { parseChartData, setupXFilterDB, XFILTERCHARTS } from "../records/XFilter/setup";
+import { parseChartData, setupXFilterDB, XFILTERCHARTS, initialStateSQL, getXFilterChroniclesSQL } from "../records/XFilter/setup";
 
 // this is a good example of custom state management, where the parent manages children states
 
 interface XFilterContainerState {
   // this will be inefficient since react does not know what actually changed and will likely refresh everything
   baseData: {[index: string]: {x: number, y: number}[]};
-  data: {[index: string]: {x: number, y: number}[]};
+  data: {[index: string]: {x: number, y: number}[]}[];
   pending: boolean;
+  bufferSize: number;
+  itxIdSet: number[];
+  additionalLatency: number;
 }
 
 export default class XFilterContainer extends React.Component<undefined, XFilterContainerState> {
@@ -26,6 +29,7 @@ export default class XFilterContainer extends React.Component<undefined, XFilter
     super(props);
     this.refreshXFilterData = this.refreshXFilterData.bind(this);
     this.setPending = this.setPending.bind(this);
+    this.changeBuffer = this.changeBuffer.bind(this);
     setupXFilterDB();
     db.create_function("refreshXFilter", this.refreshXFilterData);
     db.create_function("setXFilterPending", this.setPending);
@@ -37,8 +41,11 @@ export default class XFilterContainer extends React.Component<undefined, XFilter
     `);
     this.state = {
       baseData: null,
-      data: {},
+      data: null,
+      itxIdSet: [],
       pending: true,
+      additionalLatency: 0,
+      bufferSize: 1,
     };
   }
 
@@ -49,46 +56,26 @@ export default class XFilterContainer extends React.Component<undefined, XFilter
     // fetch from the db
     // this is different from map since it's more like "pull" based.
     // then update state
-    console.log("[Component] refreshXFilterData called", "background: 'yellow'");
+    // console.log("[Component] refreshXFilterData called", "background: 'yellow'");
     if (!this.state.baseData) {
       // try fetching itgroup_concat
       // chart,
       // GROUP_CONCAT('(' || bin || '&'|| count || ')', ';') AS values
-      let baseRes = db.exec(`
-        SELECT
-          d.chart, d.bin, d.count
-        FROM
-          chartData d
-          JOIN xFilterRequest r ON d.requestId = r.requestId
-        WHERE
-          r.hourLow IS NULL AND r.hourHigh IS NULL
-          AND r.delayLow IS NULL AND r.delayHigh IS NULL
-          AND r.distanceLow IS NULL AND r.distanceHigh IS NULL;
-      `);
+      let baseRes = db.exec(initialStateSQL);
       let baseDataR = parseChartData(baseRes);
-      console.log("response", baseRes, baseDataR);
+      // console.log("response", baseRes, baseDataR);
       if (baseDataR.data) {
         this.setState({
-          baseData: baseDataR.data,
+          baseData: baseDataR.data[0],
         });
       }
     }
-    let res = db.exec(`
-      SELECT
-        d.chart,
-        d.bin,
-        d.count,
-        req.itxId
-      FROM
-        xFilterResponse res
-        JOIN xFilterRequest req ON res.requestId = req.requestId
-        JOIN chartData d ON d.requestId = res.dataId
-      WHERE req.itxId = (SELECT MAX(itxId) FROM currentItx);
-    `);
+    let query = getXFilterChroniclesSQL(this.state.bufferSize);
+    let res = db.exec(query);
     let dataR = parseChartData(res);
     if (dataR.data) {
       let pending = false;
-      db.exec(`INSERT INTO xFilterRender (itxId, ts) VALUES (${dataR.itxId}, ${+new Date()})`);
+      db.exec(`INSERT INTO xFilterRender (ts) VALUES (${+new Date()})`);
       this.setState((prevState) => {
         return {
           data: dataR.data,
@@ -109,30 +96,62 @@ export default class XFilterContainer extends React.Component<undefined, XFilter
     });
   }
 
+  changeBuffer(e: any) {
+    this.setState({bufferSize: e.target.value});
+  }
+
   render() {
     // TODO add pending
     let {baseData, data, pending} = this.state;
     let spinner: JSX.Element;
-    let charts: JSX.Element[];
+    let charts: JSX.Element[] = [];
     if (baseData) {
-      charts = Object.keys(baseData).map(k => {
-        return <XFilterChart
-          baseData={baseData[k]}
-          xFilterData={data[k]}
-          chart={k}
-          key={k}
-          pending={false}
-        />;
-      });
+      if (data) {
+        data.forEach(d => {
+          let aBuffer = Object.keys(baseData).map(k => {
+            return <XFilterChart
+              baseData={baseData[k]}
+              xFilterData={d[k]}
+              chart={k}
+              key={k}
+              pending={false}
+            />;
+          });
+          charts.push(<>
+            {aBuffer}
+            <div style={{clear: "both"}}></div>
+          </>);
+        });
+      } else {
+        charts = Object.keys(baseData).map(k => {
+          return <XFilterChart
+            baseData={baseData[k]}
+            xFilterData={null}
+            chart={k}
+            key={k}
+            pending={false}
+          />;
+        });
+      }
       if (pending) {
         spinner = <><Indicator />Processing Request</>;
       }
     } else {
       spinner = <><Indicator />Loading Initial Data...</>;
     }
-    return (<>
-      {charts}
-      {spinner}
-      </>);
+    return (
+      <div style={{position: "sticky", top: 0, backgroundColor: "white"}}>
+        {charts}
+        {spinner}
+        <select
+          value={this.state.bufferSize}
+          onChange={this.changeBuffer}
+        >
+        <option value={1}>1</option>
+        <option value={2}>2</option>
+        <option value={3}>3</option>
+        <option value={4}>4</option>
+        </select>
+      </div>);
   }
 }

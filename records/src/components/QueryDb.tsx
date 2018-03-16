@@ -29,19 +29,25 @@ export default class QueryDb extends React.Component<QueryDbProps, QueryDbState>
     this.handleChange = this.handleChange.bind(this);
     this.executeQuery = this.executeQuery.bind(this);
     let result = null;
-    console.log("DEBUG, [QueryDb]", props.query);
-    if (props.execute) {
-      if (!this.props.query) {
-        throw new Error("Automatically executing QueryDB should have predefined query");
-      }
-      console.log("executed querydb at constructor time");
-      result = db.exec(this.props.query)[0];
-    }
+    // console.log("DEBUG, [QueryDb]", props.query);
     this.state = {
       query: props.query,
       result,
-      queried: props.execute ? true : false,
+      queried: false,
     };
+  }
+  componentDidMount() {
+    if (this.props.execute) {
+      if (!this.props.query) {
+        throw new Error("Automatically executing QueryDB should have predefined query");
+      }
+      let result = db.exec(this.props.query)[0];
+      // console.log("executed querydb at constructor time with result", result, "for query", this.props.query);
+      if (!result) {
+        throw new Error(`Expected query ${this.props.query} did not result result`);
+      }
+      this.setState({result, queried: true});
+    }
   }
   handleChange(event: any) {
     this.setState({query: event.target.value});

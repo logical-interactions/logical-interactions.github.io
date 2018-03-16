@@ -97,6 +97,7 @@ export function downloadDB() {
   let blob = new Blob([dRaw]);
   _downloadHelper(blob,  "session.db");
 }
+(<any>window).downloadDB = downloadDB;
 
 export function downloadQueryResultAsCSV(query: string) {
   let csvContent = "";

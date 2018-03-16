@@ -29,7 +29,7 @@ export function xFilterWorker(): Promise<Worker> {
       });
 
       worker.onmessage = function(event) {
-        console.log(`[Worker] ${event.data.id}`, event);
+        // console.log(`[Worker] ${event.data.id}`, event);
         // this is tied to the queryWorker in setup.ts
         let args = event.data.id.split(":");
         let cmd = args[0];

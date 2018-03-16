@@ -10,30 +10,31 @@ export const XFILTERCHARTS = ["hour", "delay", "distance"];
 export function parseChartData(res: QueryResults[]) {
   if (res[0] && res[0].values && res[0].values.length > 0 ) {
     let cols = res[0].columns;
-    if ((cols[0] !== "chart") || (cols[1] !== "bin") || (cols[2] !== "count")) {
+    if ((cols[0] !== "chart") || (cols[1] !== "bin") || (cols[2] !== "count") || (cols[3]!== "itxId")) {
       throw new Error("Section do not match");
     }
     let v = res[0].values;
-    let itxId = null;
-    if (cols[3] === "itxId") {
-      itxId = v[0][3];
-    }
-    let data: {[index: string]: {x: number, y: number}[]} = {
-      hour: [],
-      delay: [],
-      distance: []
-    };
+    let itxId = v[0][3];
+    let itxOffset = 0;
+    let data: {[index: string]: {x: number, y: number}[]}[] = [];
     v.forEach(e => {
+      if (e[3] !== itxId) {
+        data.push({
+          hour: [],
+          delay: [],
+          distance: []
+        });
+        itxOffset += 1;
+      }
       let chart = e[0] as string;
-      data[chart].push({x: e[1] as number, y: e[2] as number});
+      data[itxOffset][chart].push({x: e[1] as number, y: e[2] as number});
     });
     return {
-      data, itxId
+      data
     };
   }
   return {
-    data: null,
-    itxId: null
+    data: null
   };
 }
 
@@ -49,7 +50,7 @@ export function setupXFilterDB() {
     let isAtomic = XFILTERCHARTS.reduce((acc, val) => {
       return acc && (charts.indexOf(val) > -1);
     }, true);
-    console.log("Xfilter atomic", isAtomic);
+    // console.log("Xfilter atomic", isAtomic);
     if (isAtomic) {
       return 1;
     } else {
@@ -131,3 +132,32 @@ export function updateComponents() {
   // res.values
 }
 
+// the 0 is so that we can reuse parsing on the javascript side
+// #WATCH: this might be an expensive query
+export const initialStateSQL = `
+SELECT
+  d.chart, d.bin, d.count, 0 AS itxId
+FROM
+  chartData d
+  JOIN xFilterRequest r ON d.requestId = r.requestId
+WHERE
+  r.hourLow IS NULL AND r.hourHigh IS NULL
+  AND r.delayLow IS NULL AND r.delayHigh IS NULL
+  AND r.distanceLow IS NULL AND r.distanceHigh IS NULL;`;
+
+export function getXFilterChroniclesSQL(buffer: number) {
+  return `
+  SELECT
+    d.chart,
+    d.bin,
+    d.count,
+    req.itxId AS itxId
+  FROM
+    xFilterResponse res
+    JOIN xFilterRequest req ON res.requestId = req.requestId
+    JOIN chartData d ON d.requestId = res.dataId
+  WHERE req.itxId IN (
+      SELECT itxId FROM currentItx ORDER BY itxId DESC LIMIT ${buffer}
+    )
+  ORDER BY itxId DESC;`;
+}

@@ -24,10 +24,8 @@ export const PageContainer = () => (<>
   <p>
     We will walk through two main examples to illustrate how the framework is applied. The first example focues on asynchrony, and the second example focuses on the expressiveness and simplicity of using SQL to drive interactions.f
   </p>
-  <MapZoomExplain
-  />
-  <XFilterExplain
-  />
+  {/* <MapZoomExplain/> */}
+  <XFilterExplain/>
   <p>
     Of course, using sql.js is a lot of Javascript (a whopping 2.7 MB!), and initiating the first query takes over a second, furthermore, since SQLite does not offer materialized views, many of the queries need to be recomputed and may be inefficient, at least compared to custom implementations.  However none of these are fundamental limiations.  In fact, there are a lot of techniques we could borrow from database research, such as materialized views, to make things faster, and PL techniques to potentially compile the operators down to a small set of code and prune out the unessary code and related logic (e.g. get rid of index managing code if we are not going to be using indices, as an example).
   </p>

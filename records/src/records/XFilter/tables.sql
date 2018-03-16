@@ -47,7 +47,7 @@ CREATE TABLE chartDataAtomic (
 
 -- this assumes atomic render
 CREATE TABLE xFilterRender (
-  itxId INTEGER NOT NULL UNIQUE,
+  itxId INTEGER,
   ts INTEGER NOT NULL
 );
 
