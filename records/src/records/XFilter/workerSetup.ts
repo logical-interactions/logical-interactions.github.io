@@ -10,7 +10,7 @@ let setup = false;
 export function xFilterWorker(): Promise<Worker> {
   return new Promise((resolve, reject) => {
     if (!worker) {
-      worker = new Worker("/dist/worker.sql.js");
+      worker = new Worker("./dist/worker.sql.js");
       fetch("./dist/flight_small.db")
       .then(response => {
         if (response.status !== 200) {
