@@ -65,15 +65,29 @@ BEGIN
     NEW.requestId,
     d.bin,
     d.count,
-    d.chart
+    c.chart
   FROM
     chartData d
-    JOIN (SELECT itxId, low, high FROM currentItx ORDER BY itxId LIMIT 1) c
-    JOIN xFilterRequest r ON c.itxId = r.itxId AND r.requestId = d.requestId
+    JOIN (
+        SELECT chart, low, high FROM currentItx ORDER BY itxId DESC LIMIT 1
+      ) c ON c.chart = d.chart
+    JOIN (SELECT MAX(itxId) itxId FROM xFilterRender) render
+    JOIN xFilterRequest r ON
+      render.itxId = r.itxId 
+      AND r.requestId = d.requestId
   WHERE d.bin < c.high AND d.bin > c.low;
   -- now query
   SELECT
-    queryWorker(NEW.requestId)
+    queryWorker(NEW.requestId, COALESCE(c.chart, ""))
+  FROM
+    (SELECT 1)
+    LEFT OUTER JOIN (
+      SELECT chart AS chart
+      FROM currentItx
+      -- this is goign to be expensive...
+      -- but basically skip the first interaction
+      WHERE ts > (SELECT MIN(ts) FROM xBrushItx)
+      ORDER BY itxId DESC LIMIT 1) c
   WHERE
     NEW.requestId NOT IN (SELECT dataId FROM xFilterResponse);
 END;

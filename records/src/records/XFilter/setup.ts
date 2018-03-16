@@ -87,7 +87,7 @@ export function getXFilterStmts() {
 // the input should already be from a group_concat
 // they can just specify the remote
 
-export function queryWorker(requestId: number) {
+export function queryWorker(requestId: number, skipTable: string) {
   console.log("worker doing job", requestId);
   let sharedTable = "xFilterRequest";
   // now get the values for
@@ -114,11 +114,11 @@ export function queryWorker(requestId: number) {
     ${definition};
     INSERT INTO ${sharedTable} VALUES ${tableRes.values.map((d) => `(${d.map((v) => v ? v : "null").join(", ")})`)};
   `;
-  console.log("sharesql", shareSql);
+  // console.log("sharesql", shareSql);
   let workerPromise = xFilterWorker();
   workerPromise.then(worker => {
     worker.postMessage({
-      id: `insertThenShare:${requestId}`,
+      id: `insertThenShare:${requestId}:${skipTable}`,
       action: "exec",
       sql: shareSql
     });

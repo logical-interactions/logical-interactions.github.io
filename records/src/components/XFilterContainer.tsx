@@ -49,24 +49,21 @@ export default class XFilterContainer extends React.Component<undefined, XFilter
     };
   }
 
-  // componentDidMount() {
-  // }
-
   refreshXFilterData() {
     // fetch from the db
     // this is different from map since it's more like "pull" based.
-    // then update state
-    // console.log("[Component] refreshXFilterData called", "background: 'yellow'");
     if (!this.state.baseData) {
       // try fetching itgroup_concat
-      // chart,
-      // GROUP_CONCAT('(' || bin || '&'|| count || ')', ';') AS values
       let baseRes = db.exec(initialStateSQL);
       let baseDataR = parseChartData(baseRes);
-      // console.log("response", baseRes, baseDataR);
       if (baseDataR.data) {
+        if (Object.keys(baseDataR.data).length !== 1) {
+          throw new Error("Basedata result should be exactly 1");
+        }
+        let itxId = Object.keys(baseDataR.data)[0];
+        db.exec(`INSERT INTO xFilterRender (itxId, ts) VALUES (${itxId}, ${+new Date()})`);
         this.setState({
-          baseData: baseDataR.data[0],
+          baseData: baseDataR.data[itxId],
         });
       }
     }
@@ -74,8 +71,11 @@ export default class XFilterContainer extends React.Component<undefined, XFilter
     let res = db.exec(query);
     let dataR = parseChartData(res);
     if (dataR.data) {
+      // FIXME the pending right now is too coarse grained
       let pending = false;
-      db.exec(`INSERT INTO xFilterRender (ts) VALUES (${+new Date()})`);
+      let maxItxId = Math.max(...Object.keys(dataR.data).map(v => parseInt(v, 10)));
+      db.exec(`INSERT INTO xFilterRender (itxId, ts) VALUES (${maxItxId}, ${+new Date()})`);
+      console.log("for xFitlerRend, we have the id", maxItxId, "and values", dataR.data);
       this.setState((prevState) => {
         return {
           data: dataR.data,

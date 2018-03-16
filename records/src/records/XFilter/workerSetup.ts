@@ -62,17 +62,20 @@ export function xFilterWorker(): Promise<Worker> {
               throw new Error("Need to setup worker DB before using");
             }
             let requestId = args[1];
+            let skipTable = args[2];
+            console.log(`[Worker: insertThenShare] querying db to share data for requestId ${requestId}, except ${skipTable}`);
             ["hour", "delay", "distance"].map((n) => {
-              let querySql = `
-                SELECT * FROM ${n}ChartDataView;
-              `;
-              console.log("[Worker] querying db to share data");
-              // this is emulating a callback
-              worker.postMessage({
-                id: `share:${requestId}:${n}`,
-                action: "exec",
-                sql: querySql
-              });
+              if (n !== skipTable) {
+                let querySql = `
+                  SELECT * FROM ${n}ChartDataView;
+                `;
+                // this is emulating a callback
+                worker.postMessage({
+                  id: `share:${requestId}:${n}`,
+                  action: "exec",
+                  sql: querySql
+                });
+              }
             });
             break;
           }
