@@ -40,7 +40,8 @@ export function xFilterWorker(): Promise<Worker> {
               throw new Error("Should not open worker DB twice");
             }
             opened = true;
-            let setupSql = readFileSync(`/src/records/XFilter/workerViews.sql`);
+            // /src/records/XFilter/workerViews.sql
+            let setupSql = readFileSync(`./dist/sql/XFilter/workerViews.sql`);
             worker.postMessage({
               id: "setup",
               action: "exec",
