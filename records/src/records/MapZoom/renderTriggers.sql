@@ -46,13 +46,11 @@ CREATE TRIGGER refreshUI AFTER INSERT ON renderItxs
     SELECT
       setMapState(latMin, latMax, longMin, longMax),
       setMapBounds(latMin, latMax, longMin, longMax)
-    FROM mapState
-    WHERE NEW.cause != 'brushItxItems';
+    FROM mapState;
     
     SELECT
       setPinState(latMin,latMax,longMin,longMax,long,lat)
-    FROM pinState
-    WHERE NEW.cause != 'brushItxItems';
+    FROM pinState;
     
     SELECT
       setMapPending(pending)
