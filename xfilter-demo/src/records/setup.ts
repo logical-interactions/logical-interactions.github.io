@@ -3,7 +3,7 @@ import * as d3 from "d3";
 import { Database } from "sql.js";
 import { readFileSync } from "../lib/helper";
 
-const ISPROD = false;
+const ISPROD = true;
 
 console.log("DB setup file executing");
 
