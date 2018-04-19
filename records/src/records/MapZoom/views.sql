@@ -34,8 +34,6 @@ CREATE VIEW brushOnlyState AS
     brushItx.ts > m.ts
   ORDER BY b.ts DESC LIMIT 1;
 
--- if brush is earlier than the most recent map state, use everything based on brush
--- if map is earliest, remove brush (we can also redraw)
 
 CREATE VIEW renderItxsView AS
   SELECT
@@ -52,6 +50,7 @@ CREATE VIEW newMapAndBrushState AS
   FROM
     renderItxs ORDER by ts DESC LIMIT 1;
 
+-- FIXME: the outer select should not be needed.
 CREATE VIEW pinPendingState AS
   SELECT val.pending
   FROM (

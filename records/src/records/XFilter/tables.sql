@@ -9,7 +9,7 @@ CREATE TABLE xBrushItx (
 
 -- name: filters
 CREATE TABLE xFilterRequest (
-  -- this will be the id that fdirectly triggered the interaction
+  -- this will be the id that directly triggered the interaction
   requestId INTEGER PRIMARY KEY,
   -- optional
   itxId INTEGER,

@@ -13,8 +13,8 @@ export const chartScatterName = "chartScatter";
 export const aSeries = ["low", "middle", "high"];
 export const bSeries = ["bad", "average", "good"];
 
-export function setupLineChartDial() {
-  ["tables", "views", "static", "triggers"].map(f => {
+export function setupDial() {
+  ["static", "tables", "views", "triggers"].map(f => {
      executeFile("streaming", f);
   });
   setupInitialData(100);
@@ -45,7 +45,7 @@ export function setBarChartStateHelper(name: string, c: BarChart) {
 }
 
 export function getNextData(low: number, high: number) {
-  db.run(`insert into itx values (${+Date.now()}, ${low}, ${high}, ${"\'window\'"})`);
+  db.run(`insert into itx (ts, low, high, itxType) values (${+Date.now()}, ${low}, ${high}, ${"\'window\'"})`);
 }
 
 // generate data to populate, preprocessing step

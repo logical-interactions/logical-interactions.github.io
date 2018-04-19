@@ -24,6 +24,7 @@ CREATE TABLE brushItx(
   mapItxId INTEGER
 );
 
+-- this is for throttling
 CREATE TABLE mapCurrentItxId (
   itxId INTEGER NOT NULL UNIQUE,
   ts INTEGER NOT NULL

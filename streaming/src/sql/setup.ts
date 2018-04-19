@@ -3,7 +3,7 @@ import * as d3 from "d3";
 import { Database } from "sql.js";
 import { readFileSync } from "../lib/helper";
 
-const ISPROD = true;
+const ISPROD = false;
 
 console.log("DB setup file executing");
 
@@ -46,7 +46,7 @@ function d(sql: string) {
 (<any>window).d = d;
 
 export function executeFile(folder: string, fn: string) {
-  let path = ISPROD ? "./dist/sql" : "/src/records";
+  let path = ISPROD ? "./dist/sql" : "/src/sql";
   let setupSql = readFileSync(`${path}/${folder}/${fn}.sql`);
   let scripts = setupSql.split(";\n\n");
   scripts.forEach((s, i) => {

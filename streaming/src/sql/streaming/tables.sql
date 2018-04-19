@@ -6,23 +6,7 @@ create table itx (
   low INTEGER,
   high INTEGER,
   -- window or brush
-  itxType TEXT,
-);
-
-CREATE TABLE chartAData (
-  requestId INTEGER NOT NULL,
-  bin INTEGER NOT NULL,
-  count INTEGER NOT NULL,
-  chart TEXT NOT NULL,
-  UNIQUE(requestId, chart, bin)
-);
-
-CREATE TABLE chartBData (
-  requestId INTEGER NOT NULL,
-  bin INTEGER NOT NULL,
-  count INTEGER NOT NULL,
-  chart TEXT NOT NULL,
-  UNIQUE(requestId, chart, bin)
+  itxType TEXT
 );
 
 CREATE TABLE brushItxRender (

@@ -145,9 +145,9 @@ export default class MapZoomExplain extends React.Component<undefined, MapZoomEx
       <p>
         Of couse, you can also easily (ok, maybe relatively!) implement undo. As an example, we implemented the undo from map---all it takes here is the following SQL code. On the high level, we have a few options: (1) destructively remove the most recent interaction, but unless it's a simpel interaction, deleting things usually might lead to weird logical bugs, pass (2) create a new interaction on behalf of the user that is the specification of the previous interaction, this has more predicatable behaviors. In order to do that, we need an extra column to remeber whether an interaction was undoed, and set its bit to true if it has been undo, that way when the user press undo again, we proceed instead of repeating the same interaction.  The 2 you see is a temporary way to keep track of the most recent interaction so as not to set that to undoed as well. You can also create a temporary table for it, but that's just implementation details.
       </p>
-      <code>
+      <pre><code className="language-sql">
         {undoSQL}
-      </code>
+      </code></pre>
       <p>
         The relational model of interaction also makes manipulating the state of the visualization very simple.  Check out the functionalities of the buttons below the visualization to see their effect.  You can download the session and open it with my SQL client that is compatible with SQLite (e.g. <a href="https://sqlite.org/cli.html">sqlite3 command line</a>, or via <a href="http://pandas.pydata.org/pandas-docs/stable/io.html#reading-tables">pandas on Python notebook</a>).
       </p>
