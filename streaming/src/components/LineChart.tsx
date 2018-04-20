@@ -93,9 +93,14 @@ export default class LineChart extends React.Component<LineChartProps, LineChart
         .on("end", function() {
           // [[x0, y0]
           const s = d3.brushSelection(this) as [number, number];
-          let sx = s.map(x.invert);
-          console.log("brushed", d3.brushSelection(this), "mapped", sx);
-          brushItx(sx[0], sx[1]);
+          if (s === null) {
+            // this is a deselection
+            brushItx(-1, -1);
+          } else {
+            let sx = s.map(x.invert);
+            console.log("brushed", d3.brushSelection(this), "mapped", sx);
+            brushItx(sx[0], sx[1]);
+          }
         });
 
       vis = <g>
