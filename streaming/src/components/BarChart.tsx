@@ -33,7 +33,7 @@ export default class BarChart extends React.Component<ChartProps, ChartState> {
     marginLeft: 45,
     marginRight: 20,
     marginTop: 20,
-    width: 300,
+    width: 200,
     showLabel: false,
     showAxesLabels: true,
   };
@@ -60,6 +60,7 @@ export default class BarChart extends React.Component<ChartProps, ChartState> {
   }
 
   setChartDataState(data: number[]) {
+    console.log(`bar chart ${this.props.chartName}`, data);
     this.setState({
       data,
     });

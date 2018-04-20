@@ -27,7 +27,7 @@ export default class VisContainer extends React.Component<undefined, VisContaine
     let maxTime = db.exec(`select max(ts) from events`)[0].values[0][0] as number;
     this.state = {
       start: 0,
-      interval: 10,
+      interval: 100,
       maxTime
     };
   }
