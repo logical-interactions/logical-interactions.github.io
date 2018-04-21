@@ -4,10 +4,12 @@ import * as d3 from "d3";
 import { db } from "../sql/setup";
 import { brushItx } from "../sql/streaming/customSetup";
 import { Datum } from "../lib/data";
+import { Designs } from "../lib/helper";
 import { SvgSpinner } from "./SvgSpinner";
 
 
 interface LineChartProps {
+  design: Designs;
   height?: number;
   spinnerRadius?: number;
   width?: number;
@@ -21,10 +23,20 @@ interface LineChartProps {
 interface LineChartState {
   data: Datum[];
   pending: boolean;
+  filter: {
+    low: number;
+    high: number;
+    pixelLow: number;
+    pixelHigh: number;
+  };
 }
 
 export default class LineChart extends React.Component<LineChartProps, LineChartState> {
+  // these brushing pattern is really ugly
+  // think about better abstractions around these
   brushG: SVGGElement;
+  brush: d3.BrushBehavior<{}>;
+  x: d3.ScaleLinear<number, number>;
   static defaultProps = {
     colorOverride: false,
     height: 200,
@@ -40,9 +52,11 @@ export default class LineChart extends React.Component<LineChartProps, LineChart
   constructor(props: LineChartProps) {
     super(props);
     this.setLineChartPendingState = this.setLineChartPendingState.bind(this);
+    this.removeBrush = this.removeBrush.bind(this);
     this.state = {
       data: null,
       pending: false,
+      filter: null,
     };
   }
 
@@ -60,6 +74,41 @@ export default class LineChart extends React.Component<LineChartProps, LineChart
   setLineChartDataState(data: Datum[]) {
     console.log("setting line chart state", data);
     this.setState({data});
+  }
+
+  removeBrush() {
+    d3.select(this.brushG).call(this.brush.move, null);
+  }
+
+  // huge hack...
+  refreshBrushPosition() {
+    // also move the brush position
+    d3.select(this.brushG).call(this.brush.move, [this.state.filter.low, this.state.filter.high].map(this.x));
+  }
+
+  reEvalBrush() {
+    console.log("re-evaluated brushed");
+    let low = this.x.invert(this.state.filter.pixelLow);
+    let high = this.x.invert(this.state.filter.pixelHigh);
+    this.setState((prevState) => {
+      return {
+        filter: {
+          low,
+          high,
+          pixelLow: prevState.filter.pixelLow,
+          pixelHigh: prevState.filter.pixelHigh
+        }
+      };
+    });
+    brushItx(low, high);
+  }
+
+  updateBrushState(isEmpty: boolean, low: number, high: number, pixelLow: number, pixelHigh: number) {
+    if (isEmpty) {
+      this.setState({filter: null});
+    } else {
+      this.setState({filter: {low, high, pixelHigh, pixelLow}});
+    }
   }
 
   render() {
@@ -87,7 +136,15 @@ export default class LineChart extends React.Component<LineChartProps, LineChart
       let x = d3.scaleLinear()
                 .rangeRound([0, innerWidth])
                 .domain(d3.extent(data, (d) => d.x));
-      let line = d3.line<Datum>().x((d) => x(d.x)).y((d) => y(d.y))(data);
+      this.x = x;
+      let lineMapping = d3.line<Datum>().x((d) => x(d.x)).y((d) => y(d.y));
+      let line = lineMapping(data);
+      let brushedLine = null;
+      if (this.state.filter && (this.props.design === Designs.CONSISTENT)) {
+        brushedLine = lineMapping(data.filter((d) => ((d.x < this.state.filter.high) && (d.x > this.state.filter.low))));
+      }
+      // this is kinda questionable
+      let update = this.updateBrushState;
       let brush = d3.brushX()
         .extent([[0, 0], [innerWidth, innerHeight]])
         .on("end", function() {
@@ -100,15 +157,19 @@ export default class LineChart extends React.Component<LineChartProps, LineChart
             let sx = s.map(x.invert);
             console.log("brushed", d3.brushSelection(this), "mapped", sx);
             brushItx(sx[0], sx[1]);
+            update(sx[0], sx[1], s[0], s[1]);
           }
         });
 
+      this.brush = brush;
+
       vis = <g>
         <path stroke="steelblue" fill="none" stroke-wdith="1.5" d={line}></path>
+        <path stroke="red" fill="none" stroke-wdith="1.5" d={brushedLine}></path>
         <g ref={ g => {
             this.brushG = g;
-            (window as any).brushG = g;
-            (window as any).brush = brush;
+            // (window as any).brushG = g;
+            // (window as any).brush = brush;
             d3.select(g).call(brush);
           } }></g>
         <g ref={(g) => d3.select(g).call(d3.axisLeft(y).ticks(5))}></g>

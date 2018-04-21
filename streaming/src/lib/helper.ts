@@ -1,3 +1,11 @@
+export enum Designs {
+  REMOVE,
+  CONSISTENT,
+  // lock would be interesting to implement
+  LOCK,
+  FIXED
+}
+
 export function readFileSync(filename: string): string {
   let request = new XMLHttpRequest();
   request.open("GET", filename, false);  // `false` makes the request synchronous
