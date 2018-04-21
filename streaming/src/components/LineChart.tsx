@@ -10,6 +10,7 @@ import { SvgSpinner } from "./SvgSpinner";
 
 interface LineChartProps {
   design: Designs;
+  clearLockInterval: () => void;
   height?: number;
   spinnerRadius?: number;
   width?: number;
@@ -52,6 +53,7 @@ export default class LineChart extends React.Component<LineChartProps, LineChart
   constructor(props: LineChartProps) {
     super(props);
     this.setLineChartPendingState = this.setLineChartPendingState.bind(this);
+    this.updateBrushState = this.updateBrushState.bind(this);
     this.removeBrush = this.removeBrush.bind(this);
     this.state = {
       data: null,
@@ -72,7 +74,7 @@ export default class LineChart extends React.Component<LineChartProps, LineChart
   }
 
   setLineChartDataState(data: Datum[]) {
-    console.log("setting line chart state", data);
+    // console.log("setting line chart state", data);
     this.setState({data});
   }
 
@@ -87,7 +89,6 @@ export default class LineChart extends React.Component<LineChartProps, LineChart
   }
 
   reEvalBrush() {
-    console.log("re-evaluated brushed");
     let low = this.x.invert(this.state.filter.pixelLow);
     let high = this.x.invert(this.state.filter.pixelHigh);
     this.setState((prevState) => {
@@ -101,6 +102,7 @@ export default class LineChart extends React.Component<LineChartProps, LineChart
       };
     });
     brushItx(low, high);
+    console.log("re-evaluated brushed", low, high);
   }
 
   updateBrushState(isEmpty: boolean, low: number, high: number, pixelLow: number, pixelHigh: number) {
@@ -140,24 +142,30 @@ export default class LineChart extends React.Component<LineChartProps, LineChart
       let lineMapping = d3.line<Datum>().x((d) => x(d.x)).y((d) => y(d.y));
       let line = lineMapping(data);
       let brushedLine = null;
-      if (this.state.filter && (this.props.design === Designs.CONSISTENT)) {
+      if (this.state.filter && (this.props.design !== Designs.REMOVE)) {
         brushedLine = lineMapping(data.filter((d) => ((d.x < this.state.filter.high) && (d.x > this.state.filter.low))));
       }
       // this is kinda questionable
       let update = this.updateBrushState;
+      let clearLockInterval = this.props.clearLockInterval;
       let brush = d3.brushX()
         .extent([[0, 0], [innerWidth, innerHeight]])
         .on("end", function() {
           // [[x0, y0]
           const s = d3.brushSelection(this) as [number, number];
+          console.log("source event", d3.event.sourceEvent);
           if (s === null) {
-            // this is a deselection
-            brushItx(-1, -1);
+            // only reset if it's user initated
+            if ((d3.event.sourceEvent) && (d3.event.sourceEvent.type === "mouseup")) {
+              brushItx(-1, -1);
+              update(true, -1, -1, -1, -1);
+              clearLockInterval();
+            }
           } else {
             let sx = s.map(x.invert);
             console.log("brushed", d3.brushSelection(this), "mapped", sx);
             brushItx(sx[0], sx[1]);
-            update(sx[0], sx[1], s[0], s[1]);
+            update(false, sx[0], sx[1], s[0], s[1]);
           }
         });
 
