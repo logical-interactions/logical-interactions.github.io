@@ -1,0 +1,45 @@
+{
+  "name": "logical-interactions.github.io",
+  "version": "1.0.0",
+  "description": "website for logical interactions",
+  "main": "index.js",
+  "scripts": {
+    "start": "node_modules/.bin/webpack-dev-server",
+    "build": "node_modules/.bin/webpack -p && cp src/records/XFilter/*.sql dist/sql/XFilter/",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/logical-interactions/logical-interactions.github.io.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/logical-interactions/logical-interactions.github.io/issues"
+  },
+  "homepage": "https://github.com/logical-interactions/logical-interactions.github.io#readme",
+  "dependencies": {
+    "@types/d3": "^4.12.0",
+    "@types/d3-scale-chromatic": "^1.1.0",
+    "@types/react": "^16.0.31",
+    "@types/react-dom": "^16.0.3",
+    "@types/sql.js": "0.0.29",
+    "d3": "^4.12.0",
+    "d3-scale-chromatic": "^1.1.1",
+    "normalize.css": "^7.0.0",
+    "npm": "^5.7.1",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
+    "sql.js": "^0.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^8.5.1",
+    "awesome-typescript-loader": "^3.4.1",
+    "source-map-loader": "^0.2.3",
+    "tslint": "^5.8.0",
+    "tslint-loader": "^3.5.3",
+    "typescript": "^2.6.2",
+    "webpack": "^3.10.0",
+    "webpack-dev-server": "^2.9.7"
+  }
+}
