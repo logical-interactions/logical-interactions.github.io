@@ -2,6 +2,7 @@ import * as React from "react";
 import * as d3 from "d3";
 
 import { db } from "../sql/setup";
+import { getFormattedTime } from "../lib/helper";
 
 interface TableViewProps {
   headers: string[];
@@ -30,14 +31,23 @@ export default class TableView extends React.Component<TableViewProps, TableView
 
     let ele: JSX.Element = null;
     if (records) {
-      let headersTr = <tr>headers.map(c => <td>c</td>)</tr>;
-      let table = records.map(r => <tr>{r.map(c => <td>c</td>)}</tr>);
+      let headersTr = <tr>{headers.map(c => <td>{c}</td>)}</tr>;
+      let table = records.map(r => <tr>{r.map((c, i) => {
+        if (i === 0) {
+          // we know this is time
+          return <td>{getFormattedTime(c)}</td>;
+        } else if (i === 1) {
+          // we know this is a real value
+          return <td>{Math.round(c)}</td>;
+        }
+        return <td>{c}</td>;
+      })}</tr>);
       ele = <table>
         {headersTr}
         {table}
       </table>;
     }
 
-    return ele;
+    return <div padding-top={30}>{ele}</div>;
   }
 }

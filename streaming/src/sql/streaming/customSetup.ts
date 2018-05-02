@@ -11,8 +11,8 @@ export const chartAName = "chartA";
 export const chartBName = "chartB";
 export const chartScatterName = "chartScatter";
 
-export const aSeries = ["low", "middle", "high"];
-export const bSeries = ["bad", "average", "good"];
+export const aSeries = ["east coast", "west coast", "other"];
+export const bSeries = ["m", "f", "undefined"];
 
 export const series: {[index: string]: string[]} = {
   "chartAData": aSeries,
@@ -27,19 +27,19 @@ export function setupDial() {
   const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   // generate data to populate, preprocessing step
   // logic needs fixing
-  function insertSomeEvent() {
+  function insertSomeEvent(delay = 1000, timeOffset = 0) {
     let normal = d3.randomNormal(10, 5);
     let val = normal();
     let id = [1, 1, 1].map(v => possible.charAt(Math.floor(Math.random() * possible.length))).join("");
     let a = aSeries[Math.floor(Math.random() * 3)];
     let b = bSeries[Math.floor(Math.random() * 3)];
     setTimeout(() => {
-      inserEventStmt.run([+new Date(), val, id, a, b]);
-    }, Math.random() * 1000);
+      inserEventStmt.run([+new Date() - timeOffset, val, id, a, b]);
+    }, Math.random() * delay);
   }
 
   const insertUserStmt = db.prepare(`INSERT INTO user (ts, id, c, d) VALUES (?, ?, ?, ?)`);
-  function inserSomeUserInfo() {
+  function inserSomeUserInfo(delay = 1000) {
     let normal = d3.randomNormal(10, 2);
     // for existing users in events
     // now get some data from events
@@ -57,11 +57,18 @@ export function setupDial() {
       }
       setTimeout(() => {
         insertUserStmt.run([+new Date(), id, c, d]);
-      }, Math.random() * 1000);
+      }, Math.random() * delay);
     } else {
-      debugger;
+      // debugger;
       console.log("Weird that there is no events");
     }
+  }
+  // do a bunch to start
+  for (let i = 0; i < 10; i ++) {
+    insertSomeEvent(0, i * 10000 + Math.random() * 5000);
+  }
+  for (let i = 0; i < 5; i ++) {
+    inserSomeUserInfo(i);
   }
   let eventItv = window.setInterval(insertSomeEvent, 5000);
   (<any>window).eventItv = eventItv;
@@ -102,7 +109,7 @@ export function setTimelineStateHelper(c: Timeline) {
 export function setTableViewHelper(c: TableView) {
   // get visible tables
   // not very fancy and screen aware yet...
-  let r = db.exec(`select * from filteredDataView`);
+  let r = db.exec(`select * from filteredDataTableView`);
   if (r.length > 0) {
     c.setTableViewValues(r[0].values);
   }
@@ -126,8 +133,8 @@ export function setWindow(low: number, high: number) {
   db.run(`insert into itx (ts, low, high, itxType) values (${+Date.now()}, ${low}, ${high}, ${"\'window\'"})`);
 }
 
-export function removeBrush() {
-  db.run(`insert into itx (ts, low, high, itxType) values (${+Date.now()}, -1, -1, \'userBrush\')`);
+export function removeBrush(itxType = "userBrush") {
+  db.run(`insert into itx (ts, low, high, itxType) values (${+Date.now()}, -1, -1, \'${itxType}\')`);
 }
 
 export function brushItx(low: number, high: number, relativeLow: number, relativeHigh: number, itxFixType: string) {

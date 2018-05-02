@@ -4,13 +4,13 @@ import * as d3 from "d3";
 import { db } from "../sql/setup";
 import { brushItx, removeBrush } from "../sql/streaming/customSetup";
 import { Datum } from "../lib/data";
-import { SelectionDesign } from "../lib/helper";
+import { getFormattedTime, SelectionDesign } from "../lib/helper";
 import { SvgSpinner } from "./SvgSpinner";
 
 
 interface LineChartProps {
   design: SelectionDesign;
-  // clearLockInterval: () => void;
+  label: string;
   height?: number;
   spinnerRadius?: number;
   width?: number;
@@ -35,25 +35,26 @@ export default class LineChart extends React.Component<LineChartProps, LineChart
   x: d3.ScaleLinear<number, number>;
   static defaultProps = {
     colorOverride: false,
-    height: 200,
+    height: 150,
     spinnerRadius: 20,
     marginBottom: 40,
     marginLeft: 45,
     marginRight: 20,
     marginTop: 20,
     width: 200,
-    showLabel: false,
-    showAxesLabels: true,
   };
   constructor(props: LineChartProps) {
     super(props);
-    this.removeBrush = this.removeBrush.bind(this);
+    this.removeBrushPixels = this.removeBrushPixels.bind(this);
     this.state = {
       data: null,
       low: null,
       high: null
     };
   }
+  // componentDidMount() {
+  //   db.create_function("removeBrushPixels", this.removeBrushPixels);
+  // }
 
   setLineChartDataState(data: Datum[]) {
     // console.log("setting line chart state", data);
@@ -65,7 +66,7 @@ export default class LineChart extends React.Component<LineChartProps, LineChart
     this.setState({low, high});
   }
 
-  removeBrush() {
+  removeBrushPixels() {
     // if the last interaction was a fixed one, do NOT remove
     let r = db.exec(`select itxFixType from currentUserBrush`);
     if ((r.length > 0) && r[0].values && (r[0].values[0][0] === "data")) {
@@ -134,7 +135,16 @@ export default class LineChart extends React.Component<LineChartProps, LineChart
             d3.select(g).call(brush);
           } }></g>
         <g ref={(g) => d3.select(g).call(d3.axisLeft(y).ticks(5))}></g>
-        <g ref={(g) => d3.select(g).call(d3.axisBottom(x).ticks(4))} transform={"translate(0," + innerHeight + ")"}></g>
+        <g ref={(g) => d3.select(g).call(
+                           d3.axisBottom(x)
+                             .ticks(4)
+                             .tickFormat(getFormattedTime))
+                             .selectAll("text")
+                               .attr("transform", "rotate(-35)")
+                               .style("text-anchor", "end")
+                               .attr("dx", "-.8em")
+                               .attr("dy", ".15em")
+                } transform={"translate(0," + innerHeight + ")"}></g>
         {spinner}
       </g>;
     }

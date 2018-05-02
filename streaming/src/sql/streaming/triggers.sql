@@ -16,6 +16,17 @@ end;
 
 create trigger dataTrigger after insert on events
 begin
+  insert into itx (ts, low, high, itxType)
+  select 
+    timeNow(),
+    (c.high - c.low) * b.relativeLow + c.low,
+    (c.high - c.low) * b.relativeHigh + c.low,
+    'reactiveBrush'
+  from 
+    currentUserBrush b,
+    currentWindow c
+  where 
+    b.itxFixType = 'scale';
   select refreshAllCharts();
 end;
 

@@ -8,6 +8,7 @@ import { SvgSpinner } from "./SvgSpinner";
 
 interface ChartProps {
   chartName: string;
+  label: string;
   series: string[];
   height?: number;
   spinnerRadius?: number;
@@ -27,15 +28,13 @@ interface ChartState {
 export default class BarChart extends React.Component<ChartProps, ChartState> {
   static defaultProps = {
     colorOverride: false,
-    height: 200,
+    height: 150,
     spinnerRadius: 20,
     marginBottom: 40,
     marginLeft: 45,
     marginRight: 20,
     marginTop: 20,
     width: 200,
-    showLabel: false,
-    showAxesLabels: true,
   };
 
   constructor(props: ChartProps) {
@@ -60,7 +59,7 @@ export default class BarChart extends React.Component<ChartProps, ChartState> {
   }
 
   setChartDataState(data: number[]) {
-    console.log(`bar chart ${this.props.chartName}`, data);
+    // console.log(`bar chart ${this.props.chartName}`, data);
     this.setState({
       data,
     });
@@ -93,8 +92,14 @@ export default class BarChart extends React.Component<ChartProps, ChartState> {
       let bars = data.map((d, i) => <rect x={x(series[i])} y={y(d)} width={x.bandwidth()} height={innerHeight - y(d)} fill={"rgb(255, 192, 203, 0.5)"}></rect>);
       vis = <g>
               {bars}
-              <g ref={(g) => d3.select(g).call(d3.axisLeft(y).ticks(5, "d"))}></g>
-              <g ref={(g) => d3.select(g).call(d3.axisBottom(x).ticks(4))} transform={"translate(0," + innerHeight + ")"}></g>
+              <g ref={(g) => d3.select(g).call(d3.axisLeft(y).ticks(5))}></g>
+              <g ref={(g) => d3.select(g).call(d3.axisBottom(x).ticks(4))
+                               .selectAll("text")
+                                  .attr("transform", "rotate(-35)")
+                                  .style("text-anchor", "end")
+                                  .attr("dx", "-.8em")
+                                  .attr("dy", ".15em")
+                    } transform={"translate(0," + innerHeight + ")"}></g>
               {spinner}
             </g>;
     } else {
@@ -102,7 +107,9 @@ export default class BarChart extends React.Component<ChartProps, ChartState> {
     }
     // console.log("height", height + spinnerRadius * 3);
     return(<svg  width={width} height={height + spinnerRadius * 3}>
-      {vis}
+      <g transform={"translate(" + marginLeft + "," + marginTop + ")"}>
+        {vis}
+      </g>
     </svg>);
   }
 }

@@ -96,24 +96,27 @@ export default class VisContainer extends React.Component<VisContainerProps, Vis
       <LineChart
         ref={l => this.lineChart = l}
         design={this.state.design}
+        label={"Sales"}
         // clearLockInterval={this.clearLockInterval}
       />
       <BarChart
         ref={b => this.chartA = b}
         chartName={chartAName}
         series={aSeries}
+        label={"Location Distribution"}
       />
       <BarChart
         ref={b => this.chartB = b}
         chartName={chartBName}
         series={bSeries}
+        label={"Gender Distribution"}
       />
       <Timeline
         ref={t => this.timeline = t}
       />
       <TableView
         ref={t => this.tableView = t}
-        headers={["time", "sales", "demographic", "campain"]}
+        headers={["time", "sales", "id", "demographic", "gender"]}
       />
     </>);
   }

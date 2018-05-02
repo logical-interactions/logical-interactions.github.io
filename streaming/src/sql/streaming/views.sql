@@ -18,7 +18,7 @@ create view currentWindowUser AS
 -- the past 10 secon data
 create view currentWindow AS
   select
-    coalesce(u.low, max(e.ts) - 10*1000) as low,
+    coalesce(u.low, max(e.ts) - 120*1000) as low,
     coalesce(u.high, max(e.ts)) as high
   from events e
   left outer join currentWindowUser u;
@@ -42,6 +42,10 @@ create view filteredDataView AS
   select e.*
   from events e, currentFilter b
   where e.ts < b.high and e.ts > b.low;
+  
+create view filteredDataTableView as
+  select * from filteredDataView e
+  order by e.ts desc;
 
 -- 
 -- below are only used for frame mappings
@@ -55,12 +59,22 @@ create view allBrushes AS
   from itx
   where itxType != 'window'; 
 
-create view chartTimeData AS
-  select e.ts, e.val
+-- group by minutes
+create view chartTimeDataBase AS
+  select
+    -- group by 20 second chunks
+    round(e.ts / 20000, 0) * 20000 as bin,
+    e.ts,
+    e.val
   from
     events e 
     join currentWindow c 
     on e.ts < c.high and e.ts > c.low;
+
+create view chartTimeData AS
+select bin, sum(val)
+from chartTimeDataBase
+group by bin;
 
 create view chartAData AS
   SELECT
