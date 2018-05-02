@@ -14,3 +14,12 @@ begin
   select refreshAllCharts();
 end;
 
+create trigger dataTrigger after insert on events
+begin
+  select refreshAllCharts();
+end;
+
+create trigger userDataTrigger after insert on user
+begin
+  select refreshAllCharts();
+end;

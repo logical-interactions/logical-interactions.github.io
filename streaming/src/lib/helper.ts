@@ -3,6 +3,10 @@ export enum SelectionDesign {
   scale
 }
 
+export function getFormattedTime(num: number) {
+  return new Date(num).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit", second: "2-digit"});
+}
+
 export function readFileSync(filename: string): string {
   let request = new XMLHttpRequest();
   request.open("GET", filename, false);  // `false` makes the request synchronous

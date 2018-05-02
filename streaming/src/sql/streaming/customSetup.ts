@@ -5,6 +5,7 @@ import BarChart from "../../components/BarChart";
 import LineChart from "../../components/LineChart";
 import Timeline from "../../components/Timeline";
 import { brush } from "d3";
+import TableView from "../../components/TableView";
 
 export const chartAName = "chartA";
 export const chartBName = "chartB";
@@ -22,7 +23,16 @@ export function setupDial() {
   ["static", "tables", "views", "triggers"].map(f => {
      executeFile("streaming", f);
   });
-  setupInitialData(1000);
+  window.setInterval(insertSomeEvent, 1000);
+  window.setInterval(inserSomeUserInfo, 1000);
+}
+
+function _getTwoNums(s: string) {
+  let r = db.exec(s);
+  if (r.length > 0) {
+    return r[0].values[0] as number[];
+  }
+  return [null, null];
 }
 
 export function setLineChartStateHelper(c: LineChart) {
@@ -35,24 +45,25 @@ export function setLineChartStateHelper(c: LineChart) {
     }
   }
   // also need to set the new filter if any
-  let r2 = db.exec(`select low, high from currentBrush`);
-  if (r2.length > 0) {
-    let d = r2[0].values[0] as number[];
-    if (d) {
-      c.setLineChartFilter(d[0], d[1]);
-    }
-  }
+  let r2 = _getTwoNums(`select low, high from currentBrush`);
+  c.setLineChartFilter(r2[0], r2[1]);
 }
 
 export function setTimelineStateHelper(c: Timeline) {
-  let r1 = db.exec(`select * from allHistoryRange`);
-  let r2 = db.exec(`select low, high from currentBrush`);
-  if ((r1.length > 0) && (r2.length > 0)) {
-    let allRange = r1[0].values[0] as number[];
-    let brushRange = r2[0].values[0] as number[];
-    c.setTimelineState(allRange[0], allRange[1], brushRange[0], brushRange[1]);
+  let all = _getTwoNums(`select * from allHistoryRange`);
+  let brush = _getTwoNums(`select low, high from currentBrush`);
+  c.setTimelineState(all[0], all[1], brush[0], brush[1]);
+  // let r3 = db.exec(`select * from allBrushes`);
+  // TODO
+}
+
+export function setTableViewHelper(c: TableView) {
+  // get visible tables
+  // not very fancy and screen aware yet...
+  let r = db.exec(`select * from filteredDataView`);
+  if (r.length > 0) {
+    c.setTableViewValues(r[0].values);
   }
-  let r3 = db.exec(`select * from allBrushes`);
 }
 
 export function setBarChartStateHelper(name: string, c: BarChart) {
@@ -69,7 +80,7 @@ export function setBarChartStateHelper(name: string, c: BarChart) {
   }
 }
 
-export function getNextData(low: number, high: number) {
+export function setWindow(low: number, high: number) {
   db.run(`insert into itx (ts, low, high, itxType) values (${+Date.now()}, ${low}, ${high}, ${"\'window\'"})`);
 }
 
@@ -81,16 +92,43 @@ export function brushItx(low: number, high: number, relativeLow: number, relativ
   db.run(`insert into itx (ts, low, high, relativeLow, relativeHigh, itxType, itxFixType) values (${+Date.now()}, ${low}, ${high}, ${relativeLow}, ${relativeHigh}, \'userBrush\', \'${itxFixType}\')`);
 }
 
+const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 // generate data to populate, preprocessing step
 // logic needs fixing
-export function setupInitialData(total: number) {
-  let stmt = db.prepare(`INSERT INTO events (ts, val, a, b, c, d) VALUES (?, ?, ?, ?, ?, ?)`);
-  for (let i = 0; i < total; i ++) {
-    let val = d3.randomNormal(10, 5)();
-    let a = aSeries[Math.floor(Math.random() * 3)];
-    let b = bSeries[Math.floor(Math.random() * 3)];
-    let c = Math.random() * 2;
+const inserEventStmt = db.prepare(`INSERT INTO events (ts, val, id, a, b) VALUES (?, ?, ?, ?, ?)`);
+export function insertSomeEvent() {
+  let normal = d3.randomNormal(10, 5);
+  let val = normal();
+  let id = [1, 1, 1].map(v => possible.charAt(Math.floor(Math.random() * possible.length))).join("");
+  let a = aSeries[Math.floor(Math.random() * 3)];
+  let b = bSeries[Math.floor(Math.random() * 3)];
+  setTimeout(() => {
+    inserEventStmt.run([+new Date(), val, id, a, b]);
+  }, Math.random() * 1000);
+}
+
+const insertUserStmt = db.prepare(`INSERT INTO user (ts, id, c, d)`);
+export function inserSomeUserInfo() {
+  let normal = d3.randomNormal(10, 2);
+  // for existing users in events
+  // now get some data from events
+  // and populate with user
+  let r = db.exec(`SELECT id FROM events ORDER BY RANDOM() LIMIT 1`);
+  if (r.length > 0) {
+    let c = normal();
     let d = c + Math.random();
-    stmt.run([i, val, a, b, c, d]);
+    // try inserting
+    let id = r[0].values[0][0];
+    let r2 = db.exec(`select c, d from user where id = ${id}`);
+    if (r2.length > 0) {
+      c = r2[0].values[0][0] as number + Math.random();
+      d = r2[0].values[0][1] as number + Math.random();
+    }
+    setTimeout(() => {
+      inserEventStmt.run([+new Date(), id, c, d]);
+    }, Math.random() * 1000);
+  } else {
+    debugger;
+    console.log("Weird that there is no events");
   }
 }

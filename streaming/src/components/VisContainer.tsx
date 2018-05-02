@@ -6,8 +6,9 @@ import { SelectionDesign } from "../lib/helper";
 import LineChart from "./LineChart";
 import BarChart from "./Barchart";
 import Timeline from "./Timeline";
+import TableView from "./TableView";
 
-import { aSeries, bSeries, chartAName, chartBName, chartScatterName, getNextData, setBarChartStateHelper, setLineChartStateHelper, setTimelineStateHelper, setupDial } from "../sql/streaming/customSetup";
+import { aSeries, bSeries, chartAName, chartBName, chartScatterName, setWindow, setBarChartStateHelper, setLineChartStateHelper, setTimelineStateHelper, setTableViewHelper, setupDial } from "../sql/streaming/customSetup";
 
 interface VisContainerProps {
   interval?: number;
@@ -25,6 +26,7 @@ export default class VisContainer extends React.Component<VisContainerProps, Vis
   chartA: BarChart;
   chartB: BarChart;
   timeline: Timeline;
+  tableView: TableView;
 
   static defaultProps = {
     interval: 100
@@ -47,13 +49,15 @@ export default class VisContainer extends React.Component<VisContainerProps, Vis
   }
   componentDidMount() {
     db.create_function("refreshAllCharts", this.refreshAllCharts);
-    getNextData(this.state.start, this.props.interval);
+    setWindow(this.state.start, this.props.interval);
   }
+
   refreshAllCharts() {
     setLineChartStateHelper(this.lineChart);
     setBarChartStateHelper("chartAData", this.chartA);
     setBarChartStateHelper("chartBData", this.chartB);
     setTimelineStateHelper(this.timeline);
+    setTableViewHelper(this.tableView);
   }
 
   newWindow() {
@@ -61,9 +65,8 @@ export default class VisContainer extends React.Component<VisContainerProps, Vis
     this.setState(prevState => {
       let start = prevState.start + interval / 2;
       let end = start + interval;
-      // let lockIntervalCount = prevState.lockIntervalCount + 1;
       console.log("new window!", start, end);
-      getNextData(start, end);
+      setWindow(start, end);
       return {
         start,
         end,
@@ -106,6 +109,10 @@ export default class VisContainer extends React.Component<VisContainerProps, Vis
       />
       <Timeline
         ref={t => this.timeline = t}
+      />
+      <TableView
+        ref={t => this.tableView = t}
+        headers={["time", "sales", "demographic", "campain"]}
       />
     </>);
   }
