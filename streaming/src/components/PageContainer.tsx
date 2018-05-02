@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import VisContainer from "./VisContainer";
-import { Designs } from "../lib/helper";
+import { SelectionDesign } from "../lib/helper";
 
 export const PageContainer = () => (<>
   <VisContainer

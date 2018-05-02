@@ -52,9 +52,17 @@ export default class EventsIllustration extends React.Component<EventsIllustrati
           break;
         case Events.render:
           node = <circle cx={x(e.ts)} key={e.ts} cy={height - marginBottom} r={5} fill="green"></circle>;
-          let itx = events.filter((e2) => {return e2.itxid === e.itxid; })[0];
-          let line = <line key={e.ts} x1={x(itx.ts)} y1={marginTop} x2={x(e.ts)} y2={height - marginBottom} strokeWidth={1} stroke={"black"} fillOpacity={0.5}></line>;
-          correspondenceSvg.push(line);
+          let temp = events.filter((e2) => (e2.itxid === e.itxid) && (e2.event === Events.interaction));
+          if (temp.length > 1) {
+            debugger;
+            throw new Error();
+          }
+          if (temp.length > 0) {
+            let itx = temp[0];
+            // console.log("itxid", e.itxid, "selections", itx.selection);
+            let line = <line key={e.ts} x1={x(itx.ts)} y1={marginTop} x2={x(e.ts)} y2={height - marginBottom} data-itxid={e.itxid} strokeWidth={1} stroke={"black"} fillOpacity={0.5}></line>;
+            correspondenceSvg.push(line);
+          }
           break;
         case Events.discard:
           node = <text key={e.ts} x={x(e.ts)} y={height - marginBottom - 10} fontSize={15} fill="red">X</text>;

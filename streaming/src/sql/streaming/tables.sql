@@ -3,13 +3,19 @@
 create table itx (
   sn INTEGER PRIMARY KEY,
   ts INTEGER NOT NULL,
-  low INTEGER,
-  high INTEGER,
-  -- window or brush
-  itxType TEXT
+  low INTEGER NOT NULL,
+  high INTEGER NOT NULL,
+  relativeLow INTEGER,
+  relativeHigh INTEGER,
+  -- window, userBrush, reactiveBrush
+  itxType TEXT NOT NULL,
+  -- ugh this is caps for random reasons... 
+  -- scale or data
+  itxFixType TEXT
 );
 
-CREATE TABLE brushItxRender (
-  itxId INTEGER,
-  ts INTEGER NOT NULL
-);
+-- create table itxTracking (
+--   ts INTEGER NOT NULL,
+--   -- "enter" or "exit"
+--   itxType TEXT
+-- );

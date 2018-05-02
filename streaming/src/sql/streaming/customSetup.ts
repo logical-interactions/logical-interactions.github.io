@@ -3,8 +3,8 @@ import { db, executeFile } from "../setup";
 import { QueryResults } from "sql.js";
 import BarChart from "../../components/BarChart";
 import LineChart from "../../components/LineChart";
-
-// create the tables
+import Timeline from "../../components/Timeline";
+import { brush } from "d3";
 
 export const chartAName = "chartA";
 export const chartBName = "chartB";
@@ -25,12 +25,8 @@ export function setupDial() {
   setupInitialData(1000);
 }
 
-// create the UDFs
-
-// streaming
-
-export function setLineChartStateHelper(name: string, c: LineChart) {
-  let r = db.exec(`select * from ${name}`);
+export function setLineChartStateHelper(c: LineChart) {
+  let r = db.exec(`select * from chartTimeData`);
   if (r.length > 0) {
     let dataRaw = r[0].values as number[][];
     if (dataRaw) {
@@ -38,6 +34,25 @@ export function setLineChartStateHelper(name: string, c: LineChart) {
       c.setLineChartDataState(dataRaw.map((d) => ({x: d[0], y: d[1]})));
     }
   }
+  // also need to set the new filter if any
+  let r2 = db.exec(`select low, high from currentBrush`);
+  if (r2.length > 0) {
+    let d = r2[0].values[0] as number[];
+    if (d) {
+      c.setLineChartFilter(d[0], d[1]);
+    }
+  }
+}
+
+export function setTimelineStateHelper(c: Timeline) {
+  let r1 = db.exec(`select * from allHistoryRange`);
+  let r2 = db.exec(`select low, high from currentBrush`);
+  if ((r1.length > 0) && (r2.length > 0)) {
+    let allRange = r1[0].values[0] as number[];
+    let brushRange = r2[0].values[0] as number[];
+    c.setTimelineState(allRange[0], allRange[1], brushRange[0], brushRange[1]);
+  }
+  let r3 = db.exec(`select * from allBrushes`);
 }
 
 export function setBarChartStateHelper(name: string, c: BarChart) {
@@ -58,8 +73,12 @@ export function getNextData(low: number, high: number) {
   db.run(`insert into itx (ts, low, high, itxType) values (${+Date.now()}, ${low}, ${high}, ${"\'window\'"})`);
 }
 
-export function brushItx(low: number, high: number) {
-  db.run(`insert into itx (ts, low, high, itxType) values (${+Date.now()}, ${low}, ${high}, ${"\'brush\'"})`);
+export function removeBrush() {
+  db.run(`insert into itx (ts, low, high, itxType) values (${+Date.now()}, -1, -1, \'userBrush\')`);
+}
+
+export function brushItx(low: number, high: number, relativeLow: number, relativeHigh: number, itxFixType: string) {
+  db.run(`insert into itx (ts, low, high, relativeLow, relativeHigh, itxType, itxFixType) values (${+Date.now()}, ${low}, ${high}, ${relativeLow}, ${relativeHigh}, \'userBrush\', \'${itxFixType}\')`);
 }
 
 // generate data to populate, preprocessing step

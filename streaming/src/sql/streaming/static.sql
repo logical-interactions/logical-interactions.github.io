@@ -6,4 +6,4 @@ create table events (
   b TEXT,
   c INTEGER,
   d INTEGER
-)
+);

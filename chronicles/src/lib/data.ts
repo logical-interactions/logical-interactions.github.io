@@ -103,13 +103,13 @@ export function filterFlightData(sourceData: XFilterDatum[], s: XFilterSelection
     let subData = sourceData.filter(e => {
       let out = 0;
       keys.forEach((k) => {
-        if (k !== k1) {
+        // if (k !== k1) {
           if ((e[k] > s[k][1]) || (e[k] < s[k][0])) {
             // console.log("filtered out", e[k]);
             out += 1;
             return false;
           }
-        }
+        // }
       });
       if (out === 0) {
         return true;

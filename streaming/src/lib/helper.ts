@@ -1,9 +1,6 @@
-export enum Designs {
-  REMOVE,
-  CONSISTENT,
-  // lock would be interesting to implement
-  LOCK,
-  FIXED
+export enum SelectionDesign {
+  data,
+  scale
 }
 
 export function readFileSync(filename: string): string {

@@ -116,6 +116,14 @@ export default class PageContainer extends React.Component<undefined, PageContai
       <p>
         To give you a better sense of what is going on with regards to the interaction requests and responses, we illustrate an "interaction timeline" to the right, where on the top row you will see the "accepted" interactions in blue, and "rejected" interactions in red cross. Your interactions may be rejected because the interface is busy processing your last response. And on the bottom row, the received responses of your interaction.
       </p>
+      <p>This is an example without any latency</p>
+      <SingleBufferContainer
+        ref={c => this.s1 = c}
+        policy={"blocking"}
+        invalidate={false}
+        avgDelay={0}
+        varDelay={0}
+      />
       <p>
         To make the set up more realistic, assign yourself a task of finding the maximum value of the year 2010 across the months, or see if it ever crosses 80, or maybe even try to grasp the basic trend across the months in the year 2010.
       </p>

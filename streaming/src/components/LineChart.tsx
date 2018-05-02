@@ -2,15 +2,15 @@ import * as React from "react";
 import * as d3 from "d3";
 
 import { db } from "../sql/setup";
-import { brushItx } from "../sql/streaming/customSetup";
+import { brushItx, removeBrush } from "../sql/streaming/customSetup";
 import { Datum } from "../lib/data";
-import { Designs } from "../lib/helper";
+import { SelectionDesign } from "../lib/helper";
 import { SvgSpinner } from "./SvgSpinner";
 
 
 interface LineChartProps {
-  design: Designs;
-  clearLockInterval: () => void;
+  design: SelectionDesign;
+  // clearLockInterval: () => void;
   height?: number;
   spinnerRadius?: number;
   width?: number;
@@ -23,13 +23,8 @@ interface LineChartProps {
 
 interface LineChartState {
   data: Datum[];
-  pending: boolean;
-  filter: {
-    low: number;
-    high: number;
-    pixelLow: number;
-    pixelHigh: number;
-  };
+  low: number;
+  high: number;
 }
 
 export default class LineChart extends React.Component<LineChartProps, LineChartState> {
@@ -52,25 +47,12 @@ export default class LineChart extends React.Component<LineChartProps, LineChart
   };
   constructor(props: LineChartProps) {
     super(props);
-    this.setLineChartPendingState = this.setLineChartPendingState.bind(this);
-    this.updateBrushState = this.updateBrushState.bind(this);
     this.removeBrush = this.removeBrush.bind(this);
     this.state = {
       data: null,
-      pending: false,
-      filter: null,
+      low: null,
+      high: null
     };
-  }
-
-  // componentDidMount() {
-  //   db.create_function("setLineChartPendingState", this.setLineChartPendingState);
-  //   db.create_function("setLineChartDataState", this.setLineChartDataState);
-  // }
-
-  setLineChartPendingState(pending: boolean) {
-    this.setState({
-      pending,
-    });
   }
 
   setLineChartDataState(data: Datum[]) {
@@ -78,55 +60,25 @@ export default class LineChart extends React.Component<LineChartProps, LineChart
     this.setState({data});
   }
 
+  setLineChartFilter(low: number, high: number) {
+    console.log(`Setting the filter low and highs`, low, high);
+    this.setState({low, high});
+  }
+
   removeBrush() {
-    d3.select(this.brushG).call(this.brush.move, null);
-  }
-
-  // huge hack...
-  refreshBrushPosition() {
-    // also move the brush position
-    d3.select(this.brushG).call(this.brush.move, [this.state.filter.low, this.state.filter.high].map(this.x));
-  }
-
-  reEvalBrush() {
-    let low = this.x.invert(this.state.filter.pixelLow);
-    let high = this.x.invert(this.state.filter.pixelHigh);
-    this.setState((prevState) => {
-      return {
-        filter: {
-          low,
-          high,
-          pixelLow: prevState.filter.pixelLow,
-          pixelHigh: prevState.filter.pixelHigh
-        }
-      };
-    });
-    brushItx(low, high);
-    console.log("re-evaluated brushed", low, high);
-  }
-
-  updateBrushState(isEmpty: boolean, low: number, high: number, pixelLow: number, pixelHigh: number) {
-    if (isEmpty) {
-      this.setState({filter: null});
-    } else {
-      this.setState({filter: {low, high, pixelHigh, pixelLow}});
+    // if the last interaction was a fixed one, do NOT remove
+    let r = db.exec(`select itxFixType from currentUserBrush`);
+    if ((r.length > 0) && r[0].values && (r[0].values[0][0] === "data")) {
+      d3.select(this.brushG).call(this.brush.move, null);
     }
   }
+
 
   render() {
     let { width, height, marginLeft, marginRight, marginTop, marginBottom, spinnerRadius } = this.props;
-    let { data, pending } = this.state;
+    let { data } = this.state;
     let spinner: JSX.Element = null;
     let vis: JSX.Element = null;
-
-    if (pending) {
-      spinner = <SvgSpinner
-                  color={"#FFEA19"}
-                  cx={width / 2}
-                  radius={spinnerRadius}
-                  cy={spinnerRadius}
-                />;
-    }
 
     const innerWidth = width - marginLeft - marginRight;
     const innerHeight = height - marginTop - marginBottom;
@@ -142,30 +94,31 @@ export default class LineChart extends React.Component<LineChartProps, LineChart
       let lineMapping = d3.line<Datum>().x((d) => x(d.x)).y((d) => y(d.y));
       let line = lineMapping(data);
       let brushedLine = null;
-      if (this.state.filter && (this.props.design !== Designs.REMOVE)) {
-        brushedLine = lineMapping(data.filter((d) => ((d.x < this.state.filter.high) && (d.x > this.state.filter.low))));
+      if (this.state.low && this.state.high) {
+        brushedLine = lineMapping(data.filter((d) => ((d.x < this.state.high) && (d.x > this.state.low))));
       }
-      // this is kinda questionable
-      let update = this.updateBrushState;
-      let clearLockInterval = this.props.clearLockInterval;
+
+      // let update = this.updateBrushState;
+      // let clearLockInterval = this.props.clearLockInterval;
       let brush = d3.brushX()
         .extent([[0, 0], [innerWidth, innerHeight]])
         .on("end", function() {
+          let itxFixType = "data";
+          if (window.event && (window.event as KeyboardEvent).shiftKey) {
+            itxFixType = "scale";
+          }
           // [[x0, y0]
           const s = d3.brushSelection(this) as [number, number];
           console.log("source event", d3.event.sourceEvent);
           if (s === null) {
             // only reset if it's user initated
             if ((d3.event.sourceEvent) && (d3.event.sourceEvent.type === "mouseup")) {
-              brushItx(-1, -1);
-              update(true, -1, -1, -1, -1);
-              clearLockInterval();
+              removeBrush();
             }
           } else {
             let sx = s.map(x.invert);
             console.log("brushed", d3.brushSelection(this), "mapped", sx);
-            brushItx(sx[0], sx[1]);
-            update(false, sx[0], sx[1], s[0], s[1]);
+            brushItx(sx[0], sx[1], s[0] / innerWidth, s[1] / innerWidth, itxFixType);
           }
         });
 
