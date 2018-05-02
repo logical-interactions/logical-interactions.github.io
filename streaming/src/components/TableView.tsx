@@ -28,12 +28,16 @@ export default class TableView extends React.Component<TableViewProps, TableView
     let { headers } = this.props;
     let { records } = this.state;
 
-    let headersTr = <tr>headers.map(c => <td>c</td>)</tr>;
-    let table = records.map(r => <tr>{r.map(c => <td>c</td>)}</tr>);
-
-    return <table>
+    let ele: JSX.Element = null;
+    if (records) {
+      let headersTr = <tr>headers.map(c => <td>c</td>)</tr>;
+      let table = records.map(r => <tr>{r.map(c => <td>c</td>)}</tr>);
+      ele = <table>
         {headersTr}
         {table}
       </table>;
+    }
+
+    return ele;
   }
 }

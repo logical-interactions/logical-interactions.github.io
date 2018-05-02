@@ -23,8 +23,50 @@ export function setupDial() {
   ["static", "tables", "views", "triggers"].map(f => {
      executeFile("streaming", f);
   });
-  window.setInterval(insertSomeEvent, 1000);
-  window.setInterval(inserSomeUserInfo, 1000);
+  const inserEventStmt = db.prepare(`INSERT INTO events (ts, val, id, a, b) VALUES (?, ?, ?, ?, ?)`);
+  const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  // generate data to populate, preprocessing step
+  // logic needs fixing
+  function insertSomeEvent() {
+    let normal = d3.randomNormal(10, 5);
+    let val = normal();
+    let id = [1, 1, 1].map(v => possible.charAt(Math.floor(Math.random() * possible.length))).join("");
+    let a = aSeries[Math.floor(Math.random() * 3)];
+    let b = bSeries[Math.floor(Math.random() * 3)];
+    setTimeout(() => {
+      inserEventStmt.run([+new Date(), val, id, a, b]);
+    }, Math.random() * 1000);
+  }
+
+  const insertUserStmt = db.prepare(`INSERT INTO user (ts, id, c, d) VALUES (?, ?, ?, ?)`);
+  function inserSomeUserInfo() {
+    let normal = d3.randomNormal(10, 2);
+    // for existing users in events
+    // now get some data from events
+    // and populate with user
+    let r = db.exec(`SELECT id FROM events ORDER BY RANDOM() LIMIT 1`);
+    if (r.length > 0) {
+      let c = normal();
+      let d = c + Math.random();
+      // try inserting
+      let id = r[0].values[0][0];
+      let r2 = db.exec(`select c, d from user where id = \'${id}\'`);
+      if (r2.length > 0) {
+        c = r2[0].values[0][0] as number + Math.random();
+        d = r2[0].values[0][1] as number + Math.random();
+      }
+      setTimeout(() => {
+        insertUserStmt.run([+new Date(), id, c, d]);
+      }, Math.random() * 1000);
+    } else {
+      debugger;
+      console.log("Weird that there is no events");
+    }
+  }
+  let eventItv = window.setInterval(insertSomeEvent, 5000);
+  (<any>window).eventItv = eventItv;
+  let userItv = window.setInterval(inserSomeUserInfo, 5000);
+  (<any>window).userItv = userItv;
 }
 
 function _getTwoNums(s: string) {
@@ -90,45 +132,4 @@ export function removeBrush() {
 
 export function brushItx(low: number, high: number, relativeLow: number, relativeHigh: number, itxFixType: string) {
   db.run(`insert into itx (ts, low, high, relativeLow, relativeHigh, itxType, itxFixType) values (${+Date.now()}, ${low}, ${high}, ${relativeLow}, ${relativeHigh}, \'userBrush\', \'${itxFixType}\')`);
-}
-
-const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-// generate data to populate, preprocessing step
-// logic needs fixing
-const inserEventStmt = db.prepare(`INSERT INTO events (ts, val, id, a, b) VALUES (?, ?, ?, ?, ?)`);
-export function insertSomeEvent() {
-  let normal = d3.randomNormal(10, 5);
-  let val = normal();
-  let id = [1, 1, 1].map(v => possible.charAt(Math.floor(Math.random() * possible.length))).join("");
-  let a = aSeries[Math.floor(Math.random() * 3)];
-  let b = bSeries[Math.floor(Math.random() * 3)];
-  setTimeout(() => {
-    inserEventStmt.run([+new Date(), val, id, a, b]);
-  }, Math.random() * 1000);
-}
-
-const insertUserStmt = db.prepare(`INSERT INTO user (ts, id, c, d)`);
-export function inserSomeUserInfo() {
-  let normal = d3.randomNormal(10, 2);
-  // for existing users in events
-  // now get some data from events
-  // and populate with user
-  let r = db.exec(`SELECT id FROM events ORDER BY RANDOM() LIMIT 1`);
-  if (r.length > 0) {
-    let c = normal();
-    let d = c + Math.random();
-    // try inserting
-    let id = r[0].values[0][0];
-    let r2 = db.exec(`select c, d from user where id = ${id}`);
-    if (r2.length > 0) {
-      c = r2[0].values[0][0] as number + Math.random();
-      d = r2[0].values[0][1] as number + Math.random();
-    }
-    setTimeout(() => {
-      inserEventStmt.run([+new Date(), id, c, d]);
-    }, Math.random() * 1000);
-  } else {
-    debugger;
-    console.log("Weird that there is no events");
-  }
 }

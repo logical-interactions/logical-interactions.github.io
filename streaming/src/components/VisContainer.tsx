@@ -18,7 +18,7 @@ interface VisContainerState {
   design: SelectionDesign;
   start: number;
   end: number;
-  maxTime: number;
+  // maxTime: number;
 }
 
 export default class VisContainer extends React.Component<VisContainerProps, VisContainerState> {
@@ -35,21 +35,22 @@ export default class VisContainer extends React.Component<VisContainerProps, Vis
   constructor(props: VisContainerProps) {
     super(props);
     this.refreshAllCharts = this.refreshAllCharts.bind(this);
-    this.newWindow = this.newWindow.bind(this);
+    // this.newWindow = this.newWindow.bind(this);
     this.changeDesign = this.changeDesign.bind(this);
     this.refreshAllCharts = this.refreshAllCharts.bind(this);
-    setupDial();
-    let maxTime = db.exec(`select max(ts) from events`)[0].values[0][0] as number;
+
+    // let maxTime = db.exec(`select max(ts) from events`)[0].values[0][0] as number;
     this.state = {
       start: 0,
       end: props.interval,
       design: SelectionDesign.data,
-      maxTime,
+      // maxTime,
     };
   }
   componentDidMount() {
     db.create_function("refreshAllCharts", this.refreshAllCharts);
-    setWindow(this.state.start, this.props.interval);
+    setupDial();
+    // setWindow(this.state.start, this.props.interval);
   }
 
   refreshAllCharts() {
@@ -60,20 +61,20 @@ export default class VisContainer extends React.Component<VisContainerProps, Vis
     setTableViewHelper(this.tableView);
   }
 
-  newWindow() {
-    let { interval } = this.props;
-    this.setState(prevState => {
-      let start = prevState.start + interval / 2;
-      let end = start + interval;
-      console.log("new window!", start, end);
-      setWindow(start, end);
-      return {
-        start,
-        end,
-      };
-    });
-    this.lineChart.removeBrush();
-  }
+  // newWindow() {
+  //   let { interval } = this.props;
+  //   this.setState(prevState => {
+  //     let start = prevState.start + interval / 2;
+  //     let end = start + interval;
+  //     console.log("new window!", start, end);
+  //     setWindow(start, end);
+  //     return {
+  //       start,
+  //       end,
+  //     };
+  //   });
+  //   this.lineChart.removeBrush();
+  // }
 
 
   changeDesign(e: any) {
@@ -86,11 +87,11 @@ export default class VisContainer extends React.Component<VisContainerProps, Vis
   render() {
     // see if there are new data
     let newDataDisabled = false;
-    if (this.state.maxTime < this.state.start + this.props.interval) {
-      newDataDisabled = true;
-    }
+    // if (this.state.maxTime < this.state.start + this.props.interval) {
+    //   newDataDisabled = true;
+    // }
     return (<>
-      <button onClick={this.newWindow} disabled={newDataDisabled}>New Data</button>
+      {/* <button onClick={this.newWindow} disabled={newDataDisabled}>New Data</button> */}
 
       <LineChart
         ref={l => this.lineChart = l}

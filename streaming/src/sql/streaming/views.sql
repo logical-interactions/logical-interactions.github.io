@@ -17,21 +17,25 @@ create view currentWindowUser AS
 
 -- the past 10 secon data
 create view currentWindow AS
-  select max(ts) - 10*1000, max(ts)
-  from events
-  left outer join currentWindowUser;
+  select
+    coalesce(u.low, max(e.ts) - 10*1000) as low,
+    coalesce(u.high, max(e.ts)) as high
+  from events e
+  left outer join currentWindowUser u;
 
 create view visibleBrush AS
-  select b.sn
+  select b.low, b.high
   from currentBrush b join currentWindow w
     on b.high > w.low;
 
 -- take most recent itx
 -- unless there is currently a brush in view
 create view currentFilter AS
-  select * 
-  from itx
-  where sn = (select coalesce(b.sn, w.sn) from currentWindow w left outer join visibleBrush b);
+  select
+    coalesce(b.low, w.low) as low,
+    coalesce(b.high, w.high) as high
+  from currentWindow w
+    left outer join visibleBrush b;
 
 -- data should be filtering others
 create view filteredDataView AS

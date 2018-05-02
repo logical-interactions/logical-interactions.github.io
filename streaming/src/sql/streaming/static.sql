@@ -7,7 +7,7 @@ create table events (
   -- demographic
   a TEXT,
   -- ad campaign
-  b TEXT,
+  b TEXT
 );
 
 -- new values of the user time spent on side and number of links can change

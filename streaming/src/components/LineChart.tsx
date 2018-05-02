@@ -61,7 +61,7 @@ export default class LineChart extends React.Component<LineChartProps, LineChart
   }
 
   setLineChartFilter(low: number, high: number) {
-    console.log(`Setting the filter low and highs`, low, high);
+    // console.log(`Setting the filter low and highs`, low, high);
     this.setState({low, high});
   }
 

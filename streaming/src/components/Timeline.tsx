@@ -104,9 +104,9 @@ export default class Timeline extends React.Component<TimelineProps, TimelineSta
       </g>;
     }
     let timeline = <svg width={lineWidth + margin.left + margin.right} height={height}>
-      <text x="0" y={height} font-size="20">{minTime}</text>
+      <text x="0" y={height} font-size="20">{getFormattedTime(minTime)}</text>
       <line x1={margin.left} y1={height / 2} x2={lineWidth} y2={height / 2} stroke="gray" stroke-width="5"></line>
-      <text x={margin.left + lineWidth + 10} y={height} font-size="20">{maxTime}</text>
+      <text x={margin.left + lineWidth + 10} y={height} font-size="20">{getFormattedTime(maxTime)}</text>
       {brushSvg}
     </svg>;
     return timeline;
