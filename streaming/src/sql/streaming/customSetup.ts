@@ -6,6 +6,7 @@ import LineChart from "../../components/LineChart";
 import Timeline from "../../components/Timeline";
 import { brush } from "d3";
 import TableView from "../../components/TableView";
+import { getFormattedTime } from "../../lib/helper";
 
 export const chartAName = "chartA";
 export const chartBName = "chartB";
@@ -65,12 +66,12 @@ export function setupDial() {
   }
   // do a bunch to start
   for (let i = 0; i < 10; i ++) {
-    insertSomeEvent(0, i * 10000 + Math.random() * 5000);
+    insertSomeEvent(0, i * 10000 + Math.round(Math.random() * 5000));
   }
   for (let i = 0; i < 5; i ++) {
     inserSomeUserInfo(i);
   }
-  let eventItv = window.setInterval(insertSomeEvent, 5000);
+  let eventItv = window.setInterval(insertSomeEvent, 1000);
   (<any>window).eventItv = eventItv;
   let userItv = window.setInterval(inserSomeUserInfo, 5000);
   (<any>window).userItv = userItv;
@@ -100,7 +101,13 @@ export function setLineChartStateHelper(c: LineChart) {
 
 export function setTimelineStateHelper(c: Timeline) {
   let all = _getTwoNums(`select * from allHistoryRange`);
-  let brush = _getTwoNums(`select low, high from currentBrush`);
+  let brush = _getTwoNums(`select low, high from currentFilter`);
+  // console.log(getFormattedTime(all[0]), getFormattedTime(all[1]), getFormattedTime(brush[0]),   getFormattedTime(brush[1]));
+  // console.log(all[0], all[1], brush[0], brush[1]);
+  if ((brush[0] < all[0]) || (brush[1] > all[1])) {
+    // throw new Error("values out of bounds");
+    console.log("value out of bounds");
+  }
   c.setTimelineState(all[0], all[1], brush[0], brush[1]);
   // let r3 = db.exec(`select * from allBrushes`);
   // TODO

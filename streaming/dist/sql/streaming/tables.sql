@@ -1,0 +1,21 @@
+-- low and high of -1 are indication of clearing brush.
+
+create table itx (
+  sn INTEGER PRIMARY KEY,
+  ts INTEGER NOT NULL,
+  low INTEGER NOT NULL,
+  high INTEGER NOT NULL,
+  relativeLow INTEGER,
+  relativeHigh INTEGER,
+  -- window, userBrush, reactiveBrush
+  itxType TEXT NOT NULL,
+  -- ugh this is caps for random reasons... 
+  -- scale or data
+  itxFixType TEXT
+);
+
+-- create table itxTracking (
+--   ts INTEGER NOT NULL,
+--   -- "enter" or "exit"
+--   itxType TEXT
+-- );

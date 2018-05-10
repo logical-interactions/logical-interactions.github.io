@@ -31,23 +31,25 @@ export default class TableView extends React.Component<TableViewProps, TableView
 
     let ele: JSX.Element = null;
     if (records) {
-      let headersTr = <tr>{headers.map(c => <td>{c}</td>)}</tr>;
+      let headersTr = <thead><tr>{headers.map(c => <th scope="col">{c}</th>)}</tr></thead>;
       let table = records.map(r => <tr>{r.map((c, i) => {
         if (i === 0) {
           // we know this is time
-          return <td>{getFormattedTime(c)}</td>;
+          return <th scope="row">{getFormattedTime(c)}</th>;
         } else if (i === 1) {
           // we know this is a real value
           return <td>{Math.round(c)}</td>;
         }
         return <td>{c}</td>;
       })}</tr>);
-      ele = <table>
+      ele = <table className="table">
         {headersTr}
-        {table}
+        <tbody>
+          {table}
+        </tbody>
       </table>;
     }
 
-    return <div padding-top={30}>{ele}</div>;
+    return <div style={{padding: 30, width: 700}}>{ele}</div>;
   }
 }

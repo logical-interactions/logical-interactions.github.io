@@ -27,11 +27,11 @@ interface TimelineState {
 export default class Timeline extends React.Component<TimelineProps, TimelineState> {
   static defaultProps = {
     height: 50,
-    lineWidth: 400,
+    lineWidth: 600,
     fontSize: 14,
     margin: {
       left: 50,
-      right: 70
+      right: 50
     }
   };
   constructor(props: TimelineProps) {
@@ -96,9 +96,14 @@ export default class Timeline extends React.Component<TimelineProps, TimelineSta
                     }
                   });
 
-    if (minWindow && maxWindow) {
+    if (((minWindow - minTime) > 0) && maxWindow) {
       let brushStart = x(minWindow);
       let brushEnd = x(maxWindow);
+      // if ((brushStart < 0) || (brushEnd < 0)) {
+      //   // shouldn't happen
+      //   console.log(minWindow - minTime);
+      //   debugger;
+      // }
       brushSvg = <g><text x={brushStart} y={height} font-size={fontSize}>{getFormattedTime(minWindow)}</text>
       <text x={brushEnd} y={20} font-size={fontSize}>{getFormattedTime(maxWindow)}</text>
       <g ref={ g => {

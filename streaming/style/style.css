@@ -93,7 +93,7 @@ h2 {
   fill-opacity: .125;
 }
 
-table {
+/* table {
   border-top: double;
   border-bottom: double;
   border-right: blank
@@ -109,7 +109,7 @@ table td {
 table tr { 
   border: solid;
   border-width: 1px 0;
-}
+} */
 colgroup {
   border-right: solid
 }

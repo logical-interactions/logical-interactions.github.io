@@ -35,13 +35,13 @@ export default class LineChart extends React.Component<LineChartProps, LineChart
   x: d3.ScaleLinear<number, number>;
   static defaultProps = {
     colorOverride: false,
-    height: 150,
+    height: 200,
     spinnerRadius: 20,
     marginBottom: 40,
-    marginLeft: 45,
-    marginRight: 20,
+    marginLeft: 50,
+    marginRight: 50,
     marginTop: 20,
-    width: 200,
+    width: 600,
   };
   constructor(props: LineChartProps) {
     super(props);

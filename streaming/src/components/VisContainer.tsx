@@ -92,7 +92,30 @@ export default class VisContainer extends React.Component<VisContainerProps, Vis
     // }
     return (<>
       {/* <button onClick={this.newWindow} disabled={newDataDisabled}>New Data</button> */}
-
+      <h1>
+        Interaction on Quicksand
+      </h1>
+      <p>
+        Directly brushing on streaming data is confusing.  We have created a few different types of brushes to help stablizing visual representations in streaming data analytics.  They are instrumented on the <b>line chart</b>.  In addition to the selections on the line chart, you can also brush on the timeline to select a specific region of time, which will also update the chart data in the linechart.
+      </p>
+      <p>
+        The data is randomly generated on the client. It emulates monitoring "sales" data.  For each new "sales" event, the sum of the prices of items sold per minute is aggregated in the linechart, and the bar charts show the distribution of the attributes associated with these sales events.
+      </p>
+      <h2>
+        Brush: "Scale Section"
+      </h2>
+      <p>
+        Here, brushing the data will only select the period of time, and as the scale slides left due to streaming data, the selected region will slowly disappear.
+      </p>
+      <h2>
+        Shift-Brush: "Clipped Scale Selection"
+      </h2>
+      <p>
+        The clip selection is fixed to the chart, and forces the charts to reactively update when there are new data that falls into the selected region. This interaction is good for monitoring, if for any reason the existing streaming interaction is not set up to your liking.
+      </p>
+      <p>
+        The clip brushed region will also show up as a brush in the line chart, which can give a visual hint about where in time you are compared to the most recent point in the data stream.
+      </p>
       <LineChart
         ref={l => this.lineChart = l}
         design={this.state.design}

@@ -31,10 +31,10 @@ export default class BarChart extends React.Component<ChartProps, ChartState> {
     height: 150,
     spinnerRadius: 20,
     marginBottom: 40,
-    marginLeft: 45,
-    marginRight: 20,
+    marginLeft: 50,
+    marginRight: 25,
     marginTop: 20,
-    width: 200,
+    width: 300,
   };
 
   constructor(props: ChartProps) {
