@@ -106,7 +106,7 @@ export function setTimelineStateHelper(c: Timeline) {
   // console.log(all[0], all[1], brush[0], brush[1]);
   if ((brush[0] < all[0]) || (brush[1] > all[1])) {
     // throw new Error("values out of bounds");
-    console.log("value out of bounds");
+    // console.log("value out of bounds");
   }
   c.setTimelineState(all[0], all[1], brush[0], brush[1]);
   // let r3 = db.exec(`select * from allBrushes`);
@@ -146,4 +146,12 @@ export function removeBrush(itxType = "userBrush") {
 
 export function brushItx(low: number, high: number, relativeLow: number, relativeHigh: number, itxFixType: string) {
   db.run(`insert into itx (ts, low, high, relativeLow, relativeHigh, itxType, itxFixType) values (${+Date.now()}, ${low}, ${high}, ${relativeLow}, ${relativeHigh}, \'userBrush\', \'${itxFixType}\')`);
+}
+
+export function brushStartItx() {
+  db.run(`insert into itxBlockingHelper (ts, eType) values (${+Date.now()}, \'start\')`);
+}
+
+export function brushEndItx() {
+  db.run(`insert into itxBlockingHelper (ts, eType) values (${+Date.now()}, \'end\')`);
 }

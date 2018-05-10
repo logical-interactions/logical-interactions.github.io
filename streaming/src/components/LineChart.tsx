@@ -2,7 +2,7 @@ import * as React from "react";
 import * as d3 from "d3";
 
 import { db } from "../sql/setup";
-import { brushItx, removeBrush } from "../sql/streaming/customSetup";
+import { brushItx, removeBrush, brushStartItx, brushEndItx } from "../sql/streaming/customSetup";
 import { Datum } from "../lib/data";
 import { getFormattedTime, SelectionDesign } from "../lib/helper";
 import { SvgSpinner } from "./SvgSpinner";
@@ -52,9 +52,9 @@ export default class LineChart extends React.Component<LineChartProps, LineChart
       high: null
     };
   }
-  // componentDidMount() {
-  //   db.create_function("removeBrushPixels", this.removeBrushPixels);
-  // }
+  componentDidMount() {
+    db.create_function("removeBrushPixels", this.removeBrushPixels);
+  }
 
   setLineChartDataState(data: Datum[]) {
     // console.log("setting line chart state", data);
@@ -68,10 +68,10 @@ export default class LineChart extends React.Component<LineChartProps, LineChart
 
   removeBrushPixels() {
     // if the last interaction was a fixed one, do NOT remove
-    let r = db.exec(`select itxFixType from currentUserBrush`);
-    if ((r.length > 0) && r[0].values && (r[0].values[0][0] === "data")) {
-      d3.select(this.brushG).call(this.brush.move, null);
-    }
+    // let r = db.exec(`select itxFixType from currentUserBrush`);
+    // if ((r.length > 0) && r[0].values && (r[0].values[0][0] === "data")) {
+    d3.select(this.brushG).call(this.brush.move, null);
+    // }
   }
 
 
@@ -98,15 +98,24 @@ export default class LineChart extends React.Component<LineChartProps, LineChart
       if (this.state.low && this.state.high) {
         brushedLine = lineMapping(data.filter((d) => ((d.x < this.state.high) && (d.x > this.state.low))));
       }
-
+      let removeBrushPixelsAlias = this.removeBrushPixels;
       // let update = this.updateBrushState;
       // let clearLockInterval = this.props.clearLockInterval;
       let brush = d3.brushX()
         .extent([[0, 0], [innerWidth, innerHeight]])
+        .on("start", function() {
+          // say that the brush has started, and the data should NOT render
+          if ((d3.event.sourceEvent) && (d3.event.sourceEvent.type === "mousedown")) {
+            brushStartItx();
+          }
+        })
         .on("end", function() {
           let itxFixType = "data";
-          if (window.event && (window.event as KeyboardEvent).shiftKey) {
-            itxFixType = "scale";
+          if ((d3.event.sourceEvent) && (d3.event.sourceEvent.type === "mouseup")) {
+            if ((window.event as KeyboardEvent).shiftKey) {
+              itxFixType = "scale";
+            }
+            brushEndItx();
           }
           // [[x0, y0]
           const s = d3.brushSelection(this) as [number, number];

@@ -88,8 +88,8 @@ export default class BarChart extends React.Component<ChartProps, ChartState> {
       let y = d3.scaleLinear()
                 .rangeRound([innerHeight, 0])
                 .domain([0, d3.max(data)]);
-      // get y scale and x positioning
-      let bars = data.map((d, i) => <rect x={x(series[i])} y={y(d)} width={x.bandwidth()} height={innerHeight - y(d)} fill={"rgb(255, 192, 203, 0.5)"}></rect>);
+      // get y scale and x positioning ?
+      let bars = data.map((d, i) => <rect x={x(series[i])} y={y(d) ? y(d) : 0} width={x.bandwidth()} height={innerHeight - y(d)} fill={"rgb(255, 192, 203, 0.5)"}></rect>);
       vis = <g>
               {bars}
               <g ref={(g) => d3.select(g).call(d3.axisLeft(y).ticks(5))}></g>

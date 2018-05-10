@@ -11,6 +11,7 @@ begin
   where 
     b.itxFixType = 'scale'
     and NEW.itxType = 'window';
+  select removeBrushPixels() where new.itxFixType = 'data';
   select refreshAllCharts();
 end;
 
@@ -29,7 +30,8 @@ begin
     currentWindow c
   where 
     b.itxFixType = 'scale';
-  select refreshAllCharts();
+  select refreshAllCharts()
+  where (select count(*) from itxBlockingHelper where eType='start') = (select count(*) from itxBlockingHelper where eType='end');
 end;
 
 create trigger userDataTrigger after insert on user

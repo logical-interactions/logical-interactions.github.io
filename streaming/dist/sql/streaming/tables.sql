@@ -14,6 +14,12 @@ create table itx (
   itxFixType TEXT
 );
 
+create table itxBlockingHelper (
+  ts INTEGER NOT NULL,
+  -- either start or end
+  eType TEXT NOT NULL
+);
+
 -- create table itxTracking (
 --   ts INTEGER NOT NULL,
 --   -- "enter" or "exit"
