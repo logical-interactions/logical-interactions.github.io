@@ -85,6 +85,18 @@ function _getTwoNums(s: string) {
   return [null, null];
 }
 
+export function setScatterPlotStateHelper(c: ScatterPlot) {
+  let r = db.exec(`select * from chartTimeData`);
+  if (r.length > 0) {
+    let dataRaw = r[0].values as number[][];
+    if (dataRaw) {
+      c.setScatterPlotDataState(dataRaw.map((d) => ({x: d[0], y: d[1]})));
+    }
+  }
+  let r2 = _getTwoNums(`select low, high from currentBrush`);
+  c.setScatterPlotFilter(r2[0], r2[1]);
+}
+
 export function setLineChartStateHelper(c: LineChart) {
   let r = db.exec(`select * from chartTimeData`);
   if (r.length > 0) {

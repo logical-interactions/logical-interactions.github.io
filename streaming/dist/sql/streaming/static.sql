@@ -20,3 +20,5 @@ create table user (
   -- number of links clicked
   d INTEGER
 );
+
+--modify events table to include timestamp/id for different values of data at different times
