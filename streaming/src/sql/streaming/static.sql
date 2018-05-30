@@ -20,3 +20,10 @@ create table user (
   -- number of links clicked
   d INTEGER
 );
+
+create table scatterdata (
+  ts INTEGER,
+  id TEXT,
+  xval INTEGER,
+  yval INTEGER
+);

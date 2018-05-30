@@ -22,3 +22,9 @@ create table user (
 );
 
 --modify events table to include timestamp/id for different values of data at different times
+create table scatter (
+  id TEXT,
+  ts INTEGER,
+  xval INTEGER,
+  yval INTEGER
+);

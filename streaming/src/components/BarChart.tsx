@@ -63,6 +63,7 @@ export default class BarChart extends React.Component<ChartProps, ChartState> {
     this.setState({
       data,
     });
+    console.log("data: ",data)
   }
 
   render() {
