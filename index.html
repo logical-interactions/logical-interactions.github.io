@@ -1,0 +1,111 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title></title>
+    <meta name="viewport" content="width=device-width">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <style>
+    * {
+      font-family: Arial;
+    }
+    .wrapper {
+      padding: 10%
+    }
+    .abstract {
+      padding-left: 20px
+    }
+    .about {
+      color: #9297b3 
+    }
+    footer {
+      float:left;
+      position:fixed;
+      bottom:50px;
+      -webkit-font-smoothing:subpixel-antialiased;
+    }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Using Interaction History to Support Data-Intensive Visualizations</h1>
+        <p>
+          Interactive visualizations increasingly need to deal with tasks that extend over a period of time.
+          Tasks span time due to the application processing requests over large datasets and streaming real-time data, or be due to the user reacting to updates and specifying an interaction.
+          These tasks often overlap in time, because modern interactive visualizations strive to provide responsive interfaces with fluid interactions, allowing the users to initiate new interactions while others are still incomplete.
+          These overlaps of tasks cause events to be interleaved and no longer synchronous.
+          If the interleaved events are handled as if events were synchronous, users will be confused by the application.
+          Developers need to create programs robust against all permutations of asynchronous events so that users can make sense of the evolving state of a visualization.
+          However, current programming model only handles the most recent event, and reply on mutating state to reason about the past.
+        </p>
+        <p>
+          To meet these challenges, we model the state of the interactive visualization as a relational query over a history of user interactions and data updates---DIEL(<b>D</b>ata <b>I</b>nteraction <b>E</b>vent <b>L</b>og).
+          We find that having the event history as a fundamental primitive not only simplifies handling overlapping timespans but also facilitates visual analytic provenance functionalities, such as undo/redo.
+        </p>
+        <p>
+          The DIEL model not only enables an efficient domain-specific language but also a set of new designs that powered by event history.
+          Concretely, the research agenda of the project are as follows, with related projects listed following.
+        </p>
+        <ul>
+          <li>Timespans in Interaction Lifecycles</li>
+          <li>A Model of the State of Interactive Visualization UIs in Time</li>
+          <li>Consistency Model of Human in the Loop Concurrent Executions</li>
+          <li>A DSL Implementation of the Model</li>
+          <li>Novel Design Challenges and Opportunities of Overlapping Timespans</li>
+        </ul>
+      </header>
+      <div class="section">
+        <h3>Managing Asynchronous Interaction Timespans with Event History</h3>
+        <p>
+          <b>Status:</b>In Submission
+        </p>
+        <div class="abstract">
+        <p>
+          Conceptually, when developers do not have access to past events, they will need to maintain derived state to store the required information from the past in variables.  As shown in the earlier sections, user-friendly interaction designs often need to handle a single event in the context of past events.
+          This means that the values of variables dependent on multiple asynchronous event sources, captured in event handling and callback functions.
+          Having the programming logic scattered across event handlers can be difficult to write, debug, maintain, and change.
+          Furthermore, the scattered logic also makes the control flow difficult to follow, as the change in mutable variables may cause additional event handling.
+        </p>
+        <p>
+          Can better isolate the application logic, reduce the amount of imperative variable update logic, and make the program less prone to error? This project provides a possible solution!
+        </p>
+        </div>
+      </div>
+      <div class="section">
+        <h3>Making Sense of Asynchrony in Interactive Data Visualizations</h3>
+        <p>
+          <b>Status:</b>In Submission. <a href="http://logical-interactions.github.io/chronicles">demo</a>
+        </p>
+        <div class="abstract">
+        <p>
+          Asynchronous interfaces allow users to concurrently issue requests while existing ones are processed. While it is widely used to support non-blocking input when there is latency, it's not clear if people can make use of asynchrony as the data is updating, since the UI updates dynamically and the changes can be hard to interpret. Interactive data visualization presents an interesting context for studying the effects of asynchronous interfaces since interactions are frequent, task latencies can vary widely, and results often require interpretation.
+        </p>
+        <p>
+          This project studies the effects of introducing asynchrony into interactive visualizations, under different latencies, and with different tasks. We observe that traditional asynchronous interfaces, where results update in place, induce users to wait for the result before interacting, not taking advantage of the asynchronous rendering of the results. However, when results are rendered cumulatively over the recent history, users perform asynchronous interactions and get faster task completion times.
+        </p>
+        </div>
+      </div>
+      <div class="section">
+        <h3>A DeVIL-ish Approach to Inconsistency in Interactive Visualizations</h3>
+        <p>
+          <b>Status:</b>Published <a href="http://people.eecs.berkeley.edu/%7Eyifanwu/assets/devil.pdf">PDF</a>, <a href="https://www.youtube.com/watch?v=IZe3yvVMwqM">talk</a>(<a
+          href="http://people.eecs.berkeley.edu/%7Eyifanwu/assets/frontend_consitency_strangeloop_yifanwu.pdf">slides</a>)</p>
+        <div class="abstract">
+        <p>
+          Problems of concurrency have been well studied in databases and distributed systems. However, state-of-the-art frontend architectures are still event-oriented, which is problematic for dealing with concurrent tasks.
+          We begin by illustrating how the quest for increased interactivity and scale in data visualization can lead to unintended, confusing or undesirable user experiences (inconsistencies). We show how our declarative approach naturally lets us borrow consistency strategies from the database literature, freeing programmers from the need to build ad-hoc mechanisms to achieve consistency in their applications.
+        </p>
+        </div>
+      </div>
+      <div class="about">
+        <h2>About</h2>
+        <p>The projects are lead by PI <a href="http://db.cs.berkeley.edu/jmh/">Joe Hellerstein</a> and <a href="http://www.cs.columbia.edu/~ewu/">Eugene Wu</a>, with current graduate students researchers <a href="http://people.eecs.berkeley.edu/~yifanwu/">Yifan Wu</a>, and in the past Larry Xu, as well as collaboration with <a href="http://www.cs.tufts.edu/~remco/">Prof. Remco Chang</a>.  The team consists of experience with database and human computer interaction (HCI)---we use ideas from databases to tackle problems in HCI and have found that the HCI progress in turn helps alleviate performance requirement in databases and systems at large.</p>
+        <p>This work is supported by the National Science Foundation under Grant No. III-1564351</p>
+      </div>
+    </div>
+</body>
+</html>
