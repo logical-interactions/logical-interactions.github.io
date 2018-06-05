@@ -2,7 +2,7 @@ import * as React from "react";
 import * as d3 from "d3";
 
 import { db } from "../sql/setup";
-import { brushItx, removeBrush, brushStartItx, brushEndItx } from "../sql/streaming/customSetup";
+import { scatterBrushItx, removeBrush, brushStartItx, brushEndItx } from "../sql/streaming/customSetup";
 import { Datum } from "../lib/data";
 import { getFormattedTime, SelectionDesign } from "../lib/helper";
 import { SvgSpinner } from "./SvgSpinner";
@@ -23,8 +23,10 @@ interface ScatterPlotProps {
 
 interface ScatterPlotState {
   data: Datum[];
-  low: number;
-  high: number;
+  xlow: number;
+  ylow: number;
+  xhigh: number;
+  yhigh: number;
 }
 
 export default class ScatterPlot extends React.Component<ScatterPlotProps, ScatterPlotState> {
@@ -33,6 +35,7 @@ export default class ScatterPlot extends React.Component<ScatterPlotProps, Scatt
   brushG: SVGGElement;
   brush: d3.BrushBehavior<{}>;
   x: d3.ScaleLinear<number, number>;
+  y: d3.ScaleLinear<number, number>;
   static defaultProps = {
     colorOverride: false,
     height: 200,
@@ -48,8 +51,10 @@ export default class ScatterPlot extends React.Component<ScatterPlotProps, Scatt
     this.removeBrushPixels = this.removeBrushPixels.bind(this);
     this.state = {
       data: null,
-      low: null,
-      high: null
+      xlow: null,
+      ylow: null,
+      xhigh: null,
+      yhigh: null
     };
   }
   componentDidMount() {
@@ -61,9 +66,9 @@ export default class ScatterPlot extends React.Component<ScatterPlotProps, Scatt
     this.setState({data});
   }
 
-  setScatterPlotFilter(low: number, high: number) {
+  setScatterPlotFilter(xlow: number, ylow: number, xhigh: number, yhigh: number) {
     // console.log(`Setting the filter low and highs`, low, high);
-    this.setState({low, high});
+    this.setState({xlow, ylow, xhigh, yhigh});
     // here, make 2 different filters for the two possibilities of selection:
     // 1: scale selection; the filter should preserve the brushed field; any data points
     //    that fall within it at any point in time are the selected points
@@ -99,19 +104,22 @@ export default class ScatterPlot extends React.Component<ScatterPlotProps, Scatt
                 .rangeRound([0, innerWidth])
                 .domain(d3.extent(data, (d) => d.x));
       this.x = x;
+      this.y = y;
       //download typescript
       //svg circle
-      let points = data.map((d, i) => <circle cx={x(series[i])} cy={y(d) ? y(d) : 0} r="10" fill={"rgb(255, 192, 203, 0.5)"}></circle>);
+      let points = data.map((d) => <circle cx={d.x ? d.x : 0} cy={d.y ? d.y : 0} r="10" fill="steelblue"></circle>);
       let brushedRegion = null;
-      if (this.state.low && this.state.high) {
+      let brushedData = null;
+      if (this.state.xlow && this.state.ylow && this.state.xhigh && this.state.yhigh) {
         //MAKE A FILTER THAT ONLY KEEPS DATA POINTS BETWEEN THE LOW AND HIGH XS AT THE TIME OF BRUSH RELEASE
-
-        brushedRegion = lineMapping(data.filter((d) => ((d.x < this.state.high) && (d.x > this.state.low))));
+        brushedData = data.filter((d) => ((d.x > this.state.xlow) && (d.x < this.state.xhigh) && (d.y > this.state.ylow) && (d.y < this.state.yhigh)));
+        brushedRegion = brushedData.map((d) => <circle cx={d.x ? d.x : 0} cy={d.y ? d.y : 0} r="10" fill="red"></circle>);
+        //brushedRegion = lineMapping(data.filter((d) => ((d.x < this.state.high) && (d.x > this.state.low))));
       }
       let removeBrushPixelsAlias = this.removeBrushPixels;
       // let update = this.updateBrushState;
       // let clearLockInterval = this.props.clearLockInterval;
-      let brush = d3.brushX()
+      let brush = d3.brush()
         .extent([[0, 0], [innerWidth, innerHeight]])
         .on("start", function() {
           // say that the brush has started, and the data should NOT render
@@ -128,7 +136,7 @@ export default class ScatterPlot extends React.Component<ScatterPlotProps, Scatt
             brushEndItx();
           }
           // [[x0, y0]
-          const s = d3.brushSelection(this) as [number, number];
+          const s = d3.brushSelection(this) as [[number, number],[number, number]];
           console.log("source event", d3.event.sourceEvent);
           if (s === null) {
             // only reset if it's user initated
@@ -136,17 +144,16 @@ export default class ScatterPlot extends React.Component<ScatterPlotProps, Scatt
               removeBrush();
             }
           } else {
-            let sx = s.map(x.invert);
-            console.log("brushed", d3.brushSelection(this), "mapped", sx);
-            brushItx(sx[0], sx[1], s[0] / innerWidth, s[1] / innerWidth, itxFixType);
+            // console.log("brushed", d3.brushSelection(this), "mapped", sx);
+            scatterBrushItx(x.invert(s[0][0]), y.invert(s[0][1]), x.invert(s[1][0]), y.invert(s[1][1]), itxFixType);
           }
         });
 
       this.brush = brush;
 
       vis = <g>
-        <path stroke="steelblue" fill="none" stroke-wdith="1.5" d={line}></path>
-        <path stroke="red" fill="none" stroke-wdith="1.5" d={brushedLine}></path>
+        {/* <path stroke="steelblue" fill="none" stroke-wdith="1.5" d={line}></path>
+        <path stroke="red" fill="none" stroke-wdith="1.5" d={brushedLine}></path> */}
         <g ref={ g => {
             this.brushG = g;
             // (window as any).brushG = g;

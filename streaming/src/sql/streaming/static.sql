@@ -24,6 +24,5 @@ create table user (
 create table scatterdata (
   ts INTEGER,
   id TEXT,
-  xval INTEGER,
-  yval INTEGER
+  val INTEGER
 );

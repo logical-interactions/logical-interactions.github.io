@@ -20,6 +20,18 @@ create table itxBlockingHelper (
   eType TEXT NOT NULL
 );
 
+create table scatterItx (
+  sn INTEGER PRIMARY KEY,
+  tx INTEGER NOT NULL,
+  xlow INTEGER NOT NULL,
+  ylow INTEGER NOT NULL,
+  xhigh INTEGER NOT NULL,
+  yhigh INTEGER NOT NULL,
+  itxType TEXT NOT NULL,
+  itxFixType TEXT
+);
+
+
 -- create table itxTracking (
 --   ts INTEGER NOT NULL,
 --   -- "enter" or "exit"

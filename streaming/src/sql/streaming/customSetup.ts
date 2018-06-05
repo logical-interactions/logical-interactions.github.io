@@ -3,6 +3,7 @@ import { db, executeFile } from "../setup";
 import { QueryResults } from "sql.js";
 import BarChart from "../../components/BarChart";
 import LineChart from "../../components/LineChart";
+import ScatterPlot from "../../components/ScatterPlot";
 import Timeline from "../../components/Timeline";
 import { brush } from "d3";
 import TableView from "../../components/TableView";
@@ -85,17 +86,25 @@ function _getTwoNums(s: string) {
   return [null, null];
 }
 
-export function setScatterPlotStateHelper(c: ScatterPlot) {
-  let r = db.exec(`select * from chartTimeData`);
+function _getFourNums(s: string) {
+  let r = db.exec(s);
   if (r.length > 0) {
-    let dataRaw = r[0].values as number[][];
-    if (dataRaw) {
-      c.setScatterPlotDataState(dataRaw.map((d) => ({x: d[0], y: d[1]})));
-    }
+    return r[0].values[0] as number[];
   }
-  let r2 = _getTwoNums(`select low, high from currentBrush`);
-  c.setScatterPlotFilter(r2[0], r2[1]);
+  return [null, null, null, null];
 }
+
+ export function setScatterPlotStateHelper(c: ScatterPlot) {
+   let r = db.exec(`select * from chartTimeData`);
+   if (r.length > 0) {
+     let dataRaw = r[0].values as number[][];
+     if (dataRaw) {
+       c.setScatterPlotDataState(dataRaw.map((d) => ({x: d[0], y: d[1]})));
+     }
+   }
+   let r4 = _getFourNums(`select low, high from currentScatterBrush`);
+   c.setScatterPlotFilter(r4[0], r4[1], r4[2], r4[3]);
+ }
 
 export function setLineChartStateHelper(c: LineChart) {
   let r = db.exec(`select * from chartTimeData`);
@@ -158,6 +167,10 @@ export function removeBrush(itxType = "userBrush") {
 
 export function brushItx(low: number, high: number, relativeLow: number, relativeHigh: number, itxFixType: string) {
   db.run(`insert into itx (ts, low, high, relativeLow, relativeHigh, itxType, itxFixType) values (${+Date.now()}, ${low}, ${high}, ${relativeLow}, ${relativeHigh}, \'userBrush\', \'${itxFixType}\')`);
+}
+
+export function scatterBrushItx(xlow: number, ylow: number, xhigh: number, yhigh: number, itxFixType: string) {
+  db.run(`insert into scatterItx (ts, xlow, ylow, xhigh, yhigh, itxType, itxFixType) values (${+Date.now()}, ${xlow}, ${ylow}, ${xhigh}, ${yhigh}, \'userBrush\', \'${itxFixType}\')`);
 }
 
 export function brushStartItx() {
