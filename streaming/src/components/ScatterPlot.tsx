@@ -9,7 +9,6 @@ import { SvgSpinner } from "./SvgSpinner";
 
 
 interface ScatterPlotProps {
-  design: SelectionDesign;
   label: string;
   height?: number;
   spinnerRadius?: number;
@@ -175,7 +174,7 @@ export default class ScatterPlot extends React.Component<ScatterPlotProps, Scatt
       </g>;
     }
 
-    return (<svg  width={width} height={height + spinnerRadius * 3}>
+    return (<svg  width={width} height={height + spinnerRadius * 4  }>
       <g transform={"translate(" + marginLeft + "," + marginTop + ")"}>
         {vis}
       </g>

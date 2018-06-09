@@ -95,14 +95,14 @@ function _getFourNums(s: string) {
 }
 
  export function setScatterPlotStateHelper(c: ScatterPlot) {
-   let r = db.exec(`select * from chartTimeData`);
+   let r = db.exec(`select * from filteredScatterDataView`);
    if (r.length > 0) {
      let dataRaw = r[0].values as number[][];
      if (dataRaw) {
        c.setScatterPlotDataState(dataRaw.map((d) => ({x: d[0], y: d[1]})));
      }
    }
-   let r4 = _getFourNums(`select low, high from currentScatterBrush`);
+   let r4 = _getFourNums(`select xlow, ylow, xhigh, yhigh from filteredScatterDataView`);
    c.setScatterPlotFilter(r4[0], r4[1], r4[2], r4[3]);
  }
 

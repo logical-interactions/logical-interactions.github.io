@@ -15,6 +15,11 @@ begin
   select refreshAllCharts();
 end;
 
+create trigger scatterItxTrigger after insert on scatterItx
+begin
+  select refreshAllCharts();
+end;
+
 -- TODO: create a trigger that checks that the user brush must be within bounds
 
 create trigger dataTrigger after insert on events
@@ -38,3 +43,5 @@ create trigger userDataTrigger after insert on user
 begin
   select refreshAllCharts();
 end;
+
+--add scatteritx

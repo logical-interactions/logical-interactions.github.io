@@ -7,8 +7,9 @@ import LineChart from "./LineChart";
 import BarChart from "./Barchart";
 import Timeline from "./Timeline";
 import TableView from "./TableView";
+import ScatterPlot from "./ScatterPlot";
 
-import { aSeries, bSeries, chartAName, chartBName, chartScatterName, setWindow, setBarChartStateHelper, setLineChartStateHelper, setTimelineStateHelper, setTableViewHelper, setupDial } from "../sql/streaming/customSetup";
+import { aSeries, bSeries, chartAName, chartBName, chartScatterName, setWindow, setBarChartStateHelper, setLineChartStateHelper, setTimelineStateHelper, setScatterPlotStateHelper, setTableViewHelper, setupDial } from "../sql/streaming/customSetup";
 
 interface VisContainerProps {
   interval?: number;
@@ -27,6 +28,7 @@ export default class VisContainer extends React.Component<VisContainerProps, Vis
   chartB: BarChart;
   timeline: Timeline;
   tableView: TableView;
+  scatterPlot: ScatterPlot;
 
   static defaultProps = {
     interval: 100
@@ -59,6 +61,8 @@ export default class VisContainer extends React.Component<VisContainerProps, Vis
     setBarChartStateHelper("chartBData", this.chartB);
     setTimelineStateHelper(this.timeline);
     setTableViewHelper(this.tableView);
+    setScatterPlotStateHelper(this.scatterPlot)
+    
   }
 
   // newWindow() {
@@ -85,6 +89,7 @@ export default class VisContainer extends React.Component<VisContainerProps, Vis
   }
 
   render() {
+    let r = db.exec(`select * from filteredScatterDataView`);
     // see if there are new data
     let newDataDisabled = false;
     // if (this.state.maxTime < this.state.start + this.props.interval) {
@@ -141,6 +146,13 @@ export default class VisContainer extends React.Component<VisContainerProps, Vis
         ref={t => this.tableView = t}
         headers={["time", "sales", "id", "demographic", "gender"]}
       />
+      <ScatterPlot
+        ref={s => this.scatterPlot = s}
+        label={"Scatter Plot"}
+        />
+      <ul>
+        <li>{r}</li>
+      </ul>
     </>);
   }
 }

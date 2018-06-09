@@ -8,10 +8,6 @@ create view currentBrush AS
   where sn = (select max(sn) from itx where itxType != 'window')
   and low > -1 and high > -1;
 
-create view currentScatterBrush AS
-  select * from scatterItx
-  where sn = (select max(sn) from scatterItx where itxType != 'window')
-  and xlow > -1 and ylow > -1 and xhigh > -1 and yhigh > -1;
 
 -- this window is user clipped
 -- user can also chose to unclip
@@ -19,11 +15,6 @@ create view currentWindowUser AS
   select * from itx
   where sn = (select max(sn) from itx where itxType = 'window')
   and low > -1 and high > -1;
-
-create view currentScatterWindowUser AS
-  select * from scatterItx
-  where sn = (select max(sn) from scatterItx where itxType = 'window')
-  and xlow > -1 and ylow > -1 and xhigh > -1 and yhigh > -1;
 
 -- the past 10 secon data
 create view currentWindow AS
@@ -33,23 +24,12 @@ create view currentWindow AS
   from events e
   left outer join currentWindowUser u;
 
-create view currentScatterWindow AS
-  select
-    coalesce(u.xlow, max(s.ts) - 240*1000) as xlow,
-    coalesce(u.ylow, min(s.value)
-    coalesce(u.xhigh, max(s.ts)) as xhigh
-  from scatterdata s
-  left outer join currentScatterWindowUser u;
 
 create view visibleBrush AS
   select b.low, b.high
   from currentBrush b join currentWindow w
     on b.high > w.low;
-  
-create view visibleScatterBrush AS
-  select b.xlow, b.ylow, b.xhigh, b.yhigh
-  from currentScatterBrush b join currentScatterWindow w
-    on b.xhigh > w.xlow and b.yhigh > w.ylow
+
 
 -- take most recent itx
 -- unless there is currently a brush in view
@@ -61,12 +41,10 @@ create view currentFilter AS
     left outer join visibleBrush b;
 
 create view currentScatterFilter AS
-  select
-    coalesce(b.xlow, w.xlow) as xlow,
-    coalesce(b.ylow, w.ylow) as ylow,
-    coalesce(b.xhigh, w.xhigh) as xhigh,
-    coalesce(b.yhigh, w.yhigh) as yhigh
-  from currentScatterWindow w left outer join visibleScatterBrush b
+  select * from scatterItx
+  where sn = (select max(sn) from scatterItx)
+  and xlow > -1 and ylow > -1 and xhigh > -1 and yhigh > -1
+    
 
 -- data should be filtering others
 create view filteredDataView AS

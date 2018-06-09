@@ -27,8 +27,6 @@ create table scatterItx (
   ylow INTEGER NOT NULL,
   xhigh INTEGER NOT NULL,
   yhigh INTEGER NOT NULL,
-  itxType TEXT NOT NULL,
-  itxFixType TEXT
 );
 
 
