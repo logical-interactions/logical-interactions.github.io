@@ -89,7 +89,7 @@ export default class VisContainer extends React.Component<VisContainerProps, Vis
   }
 
   render() {
-    let r = db.exec(`select * from filteredScatterDataView`);
+    // let r = db.exec(`select * from filteredScatterDataView`);
     // see if there are new data
     let newDataDisabled = false;
     // if (this.state.maxTime < this.state.start + this.props.interval) {
@@ -150,9 +150,9 @@ export default class VisContainer extends React.Component<VisContainerProps, Vis
         ref={s => this.scatterPlot = s}
         label={"Scatter Plot"}
         />
-      <ul>
+      {/* <ul>
         <li>{r}</li>
-      </ul>
+      </ul> */}
     </>);
   }
 }

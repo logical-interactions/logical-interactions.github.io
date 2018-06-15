@@ -23,6 +23,6 @@ create table user (
 
 create table scatterdata (
   ts INTEGER,
-  id TEXT,
+  id TEXT PRIMARY KEY,
   val INTEGER
 );

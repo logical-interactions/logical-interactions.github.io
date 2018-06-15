@@ -26,6 +26,7 @@ export function setupDial() {
      executeFile("streaming", f);
   });
   const inserEventStmt = db.prepare(`INSERT INTO events (ts, val, id, a, b) VALUES (?, ?, ?, ?, ?)`);
+  const scatterDataStmt = db.prepare(`REPLACE INTO scatterdata (ts, id, val) VALUES (?, ?, ?)`);
   const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   // generate data to populate, preprocessing step
   // logic needs fixing
@@ -37,6 +38,7 @@ export function setupDial() {
     let b = bSeries[Math.floor(Math.random() * 3)];
     setTimeout(() => {
       inserEventStmt.run([+new Date() - timeOffset, val, id, a, b]);
+      scatterDataStmt.run([+new Date() - timeOffset, id, val]);
     }, Math.random() * delay);
   }
 
