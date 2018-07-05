@@ -1,0 +1,178 @@
+/**
+ * Viz UI styles
+ */
+
+html {
+  font-family: sans-serif;
+  background: white;
+}
+
+.inline-block {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.answer-slider-text {
+    float: left;
+    margin-right: 10px;
+}
+
+.widget-wrapper {
+  border: 1px solid #ccc;
+  border-bottom: none;
+  margin-right: 20px;
+  margin-top:60px;
+}
+
+.button-widgets {
+  list-style-type: none;
+  border-bottom: 1px #ccc solid;
+  padding: 5px 35px 5px 10px;
+  font-size: 13px;
+  background: #f9f9f9;
+}
+.button-widgets.selected {
+  background: #e0e0e0;
+}
+
+.brush .extent {
+  stroke: #000;
+  fill-opacity: .125;
+}
+
+.radio-button-wrapper > span
+{
+  white-space: nowrap;
+  display: block;
+}
+
+.indicator {
+  border: 3px solid #ccc;
+  border-top: 3px solid #3498db;
+  border-radius: 50%;
+  width: 15px;
+  height: 15px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.multiples-wrapper {
+  width: 700px;
+}
+
+.indicator-wrapper {
+  width: 175px;
+  height: 134px;
+}
+
+.chart-label {
+  font-size: 14px;
+}
+
+/**
+ * Experiment UI styles
+ */
+
+ html {
+   color: #333;
+ }
+
+ p {
+   line-height: 1.2em;
+ }
+
+ label {
+   display: block;
+   margin-bottom: 5px;
+ }
+
+ hr {
+   margin: 20px 0;
+ }
+
+.content-wrapper {
+  width: 800px;
+  margin: 0 auto 30px auto;
+}
+
+.button-wrapper {
+  margin: 30px 0 0 100px;
+}
+
+.button-wrapper button {
+  margin-right: 5px;
+}
+
+.question-wrapper {
+  margin-bottom: 20px;
+}
+
+.radio-button-wrapper label {
+  margin-right: 15px;
+}
+
+.task-answer-wrapper label {
+  display: inline;
+}
+
+.reward-box {
+  font-size: 0.85em;
+  border: 1px solid #333;
+  display: inline-block;
+  padding: 6px;
+  color: #333;
+}
+
+.task-input {
+  padding-left: 20px;
+  margin-top: 20px;
+  display: inline-block;
+}
+
+.correct {
+  color: green;
+}
+
+.invalid {
+  color: red;
+}
+
+textarea {
+  width: 600px;
+  height: 100px;
+}
+
+.glyph-wrapper {
+  padding: 4px;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.glyph-wrapper.disabled {
+  cursor: auto;
+}
+
+.glyph-wrapper.selected {
+  background: steelblue;
+}
+
+.glyph-wrapper.answer {
+  background: green;
+}
+
+.glyph-wrapper svg {
+  display: block;
+}
+
+video {
+  border: 1px solid #999;
+}
+
+.answer-slider {
+  width: 200px;
+  margin-right: 10px;
+}
