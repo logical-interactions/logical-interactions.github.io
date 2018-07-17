@@ -8,6 +8,7 @@ import Timeline from "../../components/Timeline";
 import { brush } from "d3";
 import TableView from "../../components/TableView";
 import { getFormattedTime } from "../../lib/helper";
+import {d} from "../setup";
 
 export const chartAName = "chartA";
 export const chartBName = "chartB";
@@ -104,7 +105,7 @@ function _getFourNums(s: string) {
        c.setScatterPlotDataState(dataRaw.map((d) => ({x: d[0], y: d[1]})));
      }
    }
-   let r4 = _getFourNums(`select xlow, ylow, xhigh, yhigh from filteredScatterDataView`);
+   let r4 = _getFourNums(`select xlow, ylow, xhigh, yhigh from currentScatterFilter`);
    c.setScatterPlotFilter(r4[0], r4[1], r4[2], r4[3]);
  }
 
@@ -172,6 +173,8 @@ export function brushItx(low: number, high: number, relativeLow: number, relativ
 }
 
 export function scatterBrushItx(xlow: number, ylow: number, xhigh: number, yhigh: number, itxFixType: string) {
+  console.log("executing scatterBrushItx");
+  d(`insert into scatterItx (ts, xlow, ylow, xhigh, yhigh, itxType, itxFixType) values (${+Date.now()}, ${xlow}, ${ylow}, ${xhigh}, ${yhigh}, \'userBrush\', \'${itxFixType}\')`);
   db.run(`insert into scatterItx (ts, xlow, ylow, xhigh, yhigh, itxType, itxFixType) values (${+Date.now()}, ${xlow}, ${ylow}, ${xhigh}, ${yhigh}, \'userBrush\', \'${itxFixType}\')`);
 }
 

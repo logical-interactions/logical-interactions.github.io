@@ -22,11 +22,11 @@ create table itxBlockingHelper (
 
 create table scatterItx (
   sn INTEGER PRIMARY KEY,
-  tx INTEGER NOT NULL,
+  ts INTEGER NOT NULL,
   xlow INTEGER NOT NULL,
   ylow INTEGER NOT NULL,
   xhigh INTEGER NOT NULL,
-  yhigh INTEGER NOT NULL,
+  yhigh INTEGER NOT NULL
 );
 
 

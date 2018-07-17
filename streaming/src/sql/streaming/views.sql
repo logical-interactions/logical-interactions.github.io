@@ -43,7 +43,7 @@ create view currentFilter AS
 create view currentScatterFilter AS
   select * from scatterItx
   where sn = (select max(sn) from scatterItx)
-  and xlow > -1 and ylow > -1 and xhigh > -1 and yhigh > -1
+  and xlow > -1 and ylow > -1 and xhigh > -1 and yhigh > -1;
     
 
 -- data should be filtering others
@@ -89,13 +89,13 @@ create view chartTimeDataBase AS
 create view scatterDatabase AS
   select s.ts, s.id, s.val
   from scatterdata s join currentScatterWindow c
-  on s.ts <= c.xhigh and s.ts >= c.xlow and s.val <= c.yhigh and s.val >= c.ylow 
+  on s.ts <= c.xhigh and s.ts >= c.xlow and s.val <= c.yhigh and s.val >= c.ylow; 
 
 --unsure on this
 create view chartScatterData2 AS
-  select 
+  select *
   from filteredScatterDataView
-  group by ts
+  group by ts;
 
 
 create view chartTimeData AS

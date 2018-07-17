@@ -3,7 +3,7 @@ import * as d3 from "d3";
 import { Database } from "sql.js";
 import { readFileSync } from "../lib/helper";
 
-const ISPROD = true;
+const ISPROD = false;
 
 console.log("DB setup file executing");
 
@@ -27,7 +27,7 @@ export function tryDB(query: string) {
 }
 
 // for console debugging
-function d(sql: string) {
+export function d(sql: string) {
   let r = db.exec(sql);
   if (r.length > 0) {
     r[0].values.map((v) => {

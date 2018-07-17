@@ -1,7 +1,7 @@
 import * as React from "react";
 
 
-import { db } from "../sql/setup";
+import { db,d } from "../sql/setup";
 import { SelectionDesign } from "../lib/helper";
 import LineChart from "./LineChart";
 import BarChart from "./Barchart";
