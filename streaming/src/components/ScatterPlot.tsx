@@ -149,8 +149,9 @@ export default class ScatterPlot extends React.Component<ScatterPlotProps, Scatt
       this.brush = brush;
 
       vis = <g>
-        {/* <path stroke="steelblue" fill="none" stroke-wdith="1.5" d={line}></path>
-        <path stroke="red" fill="none" stroke-wdith="1.5" d={brushedLine}></path> */}
+        {/* <path stroke="steelblue" fill="none" stroke-wdith="1.5" d="{points}"></path>
+        <path stroke="red" fill="none" stroke-wdith="1.5" d="{brushedRegion}"></path>  */}
+        {points}
         <g ref={ g => {
             this.brushG = g;
             // (window as any).brushG = g;

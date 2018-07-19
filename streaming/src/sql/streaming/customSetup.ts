@@ -113,7 +113,7 @@ function _getFourNums(s: string) {
 
 export function setLineChartStateHelper(c: LineChart) {
   let r = db.exec(`select * from chartTimeData`);
-  d(`select * from chartTimeData`);
+  // d(`select * from chartTimeData`);
   if (r.length > 0) {
     let dataRaw = r[0].values as number[][];
     if (dataRaw) {
