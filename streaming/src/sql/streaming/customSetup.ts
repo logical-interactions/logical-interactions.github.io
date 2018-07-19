@@ -27,7 +27,7 @@ export function setupDial() {
      executeFile("streaming", f);
   });
   const inserEventStmt = db.prepare(`INSERT INTO events (ts, val, id, a, b) VALUES (?, ?, ?, ?, ?)`);
-  const scatterDataStmt = db.prepare(`REPLACE INTO scatterdata (ts, id, val) VALUES (?, ?, ?)`);
+  const scatterDataStmt = db.prepare(`INSERT INTO scatterdata (ts, id, val) VALUES (?, ?, ?)`);
   const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   // generate data to populate, preprocessing step
   // logic needs fixing
@@ -52,16 +52,16 @@ export function setupDial() {
     let r = db.exec(`SELECT id FROM events ORDER BY RANDOM() LIMIT 1`);
     if (r.length > 0) {
       let c = normal();
-      let d = c + Math.random();
+      let d2 = c + Math.random();
       // try inserting
       let id = r[0].values[0][0];
       let r2 = db.exec(`select c, d from user where id = \'${id}\'`);
       if (r2.length > 0) {
         c = r2[0].values[0][0] as number + Math.random();
-        d = r2[0].values[0][1] as number + Math.random();
+        d2 = r2[0].values[0][1] as number + Math.random();
       }
       setTimeout(() => {
-        insertUserStmt.run([+new Date(), id, c, d]);
+        insertUserStmt.run([+new Date(), id, c, d2]);
       }, Math.random() * delay);
     } else {
       // debugger;
@@ -98,7 +98,9 @@ function _getFourNums(s: string) {
 }
 
  export function setScatterPlotStateHelper(c: ScatterPlot) {
-   let r = db.exec(`select * from filteredScatterDataView`);
+  //  let r = db.exec(`select * from filteredScatterDataView`);
+   let r = db.exec(`select ts, val from scatterdata`);
+  //  d(`select ts, val from scatterdata`);
    if (r.length > 0) {
      let dataRaw = r[0].values as number[][];
      if (dataRaw) {
@@ -111,6 +113,7 @@ function _getFourNums(s: string) {
 
 export function setLineChartStateHelper(c: LineChart) {
   let r = db.exec(`select * from chartTimeData`);
+  d(`select * from chartTimeData`);
   if (r.length > 0) {
     let dataRaw = r[0].values as number[][];
     if (dataRaw) {
