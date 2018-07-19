@@ -104,8 +104,6 @@ export default class ScatterPlot extends React.Component<ScatterPlotProps, Scatt
                 .domain(d3.extent(data, (d) => d.x));
       this.x = x;
       this.y = y;
-      //download typescript
-      //svg circle
       let points = data.map((d) => <circle cx={d.x ? d.x : 0} cy={d.y ? d.y : 0} r="10" fill="steelblue"></circle>);
       let brushedRegion = null;
       let brushedData = null;
