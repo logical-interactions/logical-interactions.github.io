@@ -1,5 +1,5 @@
 import { readFileSync } from "../../lib/helper";
-import { db } from "../setup";
+import { db, ISPROD } from "../setup";
 
 let worker: Worker = null;
 // for debugging
@@ -40,13 +40,29 @@ export function xFilterWorker(): Promise<Worker> {
               throw new Error("Should not open worker DB twice");
             }
             opened = true;
-            // /src/records/XFilter/workerViews.sql
-            let setupSql = readFileSync(`./dist/sql/XFilter/workerViews.sql`);
+            let fN = ISPROD ? "./dist/sql/XFilter/workerViews.sql" : "/src/records/XFilter/workerViews.sql";
+            let setupSql = readFileSync(fN);
             worker.postMessage({
               id: "setup",
               action: "exec",
               sql: setupSql
             });
+            break;
+          }
+          case "print": {
+            let r = event.data.results;
+            if (r && r.length > 0) {
+              r[0].values.map((v: any) => {
+                v.map((c: any, i: any) => {
+                  if (r[0].columns[i] === "ts") {
+                    c = new Date(c as number).toDateString();
+                  }
+                });
+              });
+              console.log("Printing results");
+              console.log(r[0].columns.join("\t"));
+              console.log(JSON.stringify(r[0].values).replace(/\],\[/g, "\n").replace("[[", "").replace("]]", "").replace(/,/g, "\t"));
+            }
             break;
           }
           case "setup": {
@@ -63,6 +79,11 @@ export function xFilterWorker(): Promise<Worker> {
             }
             let requestId = args[1];
             let skipTable = args[2];
+            worker.postMessage({
+              id: "print",
+              action: "exec",
+              sql: `select * from sqlite_master;`
+            });
             console.log(`[Worker: insertThenShare] querying db to share data for requestId ${requestId}, except ${skipTable}`);
             ["hour", "delay", "distance"].map((n) => {
               if (n !== skipTable) {
