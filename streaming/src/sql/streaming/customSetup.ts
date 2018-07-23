@@ -7,6 +7,7 @@ import ScatterPlot from "../../components/ScatterPlot";
 import Timeline from "../../components/Timeline";
 import { brush } from "d3";
 import TableView from "../../components/TableView";
+import ScatterTable from "../../components/ScatterTable";
 import { getFormattedTime } from "../../lib/helper";
 import {d} from "../setup";
 
@@ -144,8 +145,17 @@ export function setTableViewHelper(c: TableView) {
   // get visible tables
   // not very fancy and screen aware yet...
   let r = db.exec(`select * from filteredDataTableView`);
+  // d(`select * from filteredDataTableView`);
   if (r.length > 0) {
     c.setTableViewValues(r[0].values);
+  }
+}
+
+export function setScatterTableHelper(t: ScatterTable) {
+  let r = db.exec(`select * from filteredScatterDataView v order by v.ts desc`);
+  // d(`select * from filteredScatterDataView v order by v.ts desc`);
+  if (r.length > 0) {
+    t.setScatterTableValues(r[0].values);
   }
 }
 
@@ -176,15 +186,14 @@ export function brushItx(low: number, high: number, relativeLow: number, relativ
 }
 
 export function scatterBrushItx(xlow: number, ylow: number, xhigh: number, yhigh: number) {
-  console.log("executing scatterBrushItx");
+  // console.log("executing scatterBrushItx");
   // d(`insert into scatterItx (ts, xlow, ylow, xhigh, yhigh) values (${+Date.now()}, ${xlow}, ${ylow}, ${xhigh}, ${yhigh}`);
-  console.log("ts: ", +Date.now());
-  console.log("xlow: ", xlow);
-  console.log("ylow: ", ylow);
-  console.log("xhigh: ", xhigh);
-  console.log("yhigh: ", yhigh);
-  d(`select * from scatterItx`);  
+  // console.log("scatterItx");
+ 
   db.run(`insert into scatterItx (ts, xlow, ylow, xhigh, yhigh) values (${+Date.now()}, ${xlow}, ${ylow}, ${xhigh}, ${yhigh})`);
+  // d(`select * from scatterItx`);
+  // console.log("filteredScatterDataView");
+  // d(`select * from filteredScatterDataView`);
 }
 
 export function brushStartItx() {

@@ -143,7 +143,7 @@ export default class ScatterPlot extends React.Component<ScatterPlotProps, Scatt
             }
           } else {
             // console.log("brushed", d3.brushSelection(this), "mapped", sx);
-            scatterBrushItx(x.invert(s[1][0]), y.invert(s[1][1]), x.invert(s[0][0]), y.invert(s[0][1]));
+            scatterBrushItx(x.invert(s[0][0]), y.invert(s[1][1]), x.invert(s[1][0]), y.invert(s[0][1]));
           }
         });
 

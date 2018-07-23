@@ -8,8 +8,9 @@ import BarChart from "./Barchart";
 import Timeline from "./Timeline";
 import TableView from "./TableView";
 import ScatterPlot from "./ScatterPlot";
+import ScatterTable from "./ScatterTable";
 
-import { aSeries, bSeries, chartAName, chartBName, chartScatterName, setWindow, setBarChartStateHelper, setLineChartStateHelper, setTimelineStateHelper, setScatterPlotStateHelper, setTableViewHelper, setupDial } from "../sql/streaming/customSetup";
+import { aSeries, bSeries, chartAName, chartBName, chartScatterName, setWindow, setBarChartStateHelper, setLineChartStateHelper, setTimelineStateHelper, setScatterPlotStateHelper, setTableViewHelper, setScatterTableHelper, setupDial } from "../sql/streaming/customSetup";
 
 interface VisContainerProps {
   interval?: number;
@@ -29,6 +30,7 @@ export default class VisContainer extends React.Component<VisContainerProps, Vis
   timeline: Timeline;
   tableView: TableView;
   scatterPlot: ScatterPlot;
+  scatterTable: ScatterTable
 
   static defaultProps = {
     interval: 100
@@ -61,6 +63,7 @@ export default class VisContainer extends React.Component<VisContainerProps, Vis
     setBarChartStateHelper("chartBData", this.chartB);
     setTimelineStateHelper(this.timeline);
     setScatterPlotStateHelper(this.scatterPlot);
+    setScatterTableHelper(this.scatterTable);
     setTableViewHelper(this.tableView);
     
     
@@ -146,6 +149,10 @@ export default class VisContainer extends React.Component<VisContainerProps, Vis
       <ScatterPlot
         ref={s => this.scatterPlot = s}
         label={"Scatter Plot"}
+        />
+      <ScatterTable
+        ref={t=> this.scatterTable = t}
+        headers={["time", "id", "value"]}
         />
       <TableView
         ref={t => this.tableView = t}
