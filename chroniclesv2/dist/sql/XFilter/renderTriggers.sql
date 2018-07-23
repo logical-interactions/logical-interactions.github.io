@@ -1,6 +1,6 @@
 CREATE TRIGGER xFilterRenderTriggerResponse AFTER INSERT ON chartDataAtomic
 BEGIN
-  SELECT refreshXFilter(), log(r.itxId, 'render after response')
+  SELECT refreshXFilter(), log(r.itxId || ' ' || NEW.chart, 'render after response')
   from xFilterRequest r where r.requestId = NEW.requestId;
 END;
 
