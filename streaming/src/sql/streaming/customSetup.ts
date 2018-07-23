@@ -27,7 +27,7 @@ export function setupDial() {
      executeFile("streaming", f);
   });
   const inserEventStmt = db.prepare(`INSERT INTO events (ts, val, id, a, b) VALUES (?, ?, ?, ?, ?)`);
-  const scatterDataStmt = db.prepare(`INSERT INTO scatterdata (ts, id, val) VALUES (?, ?, ?)`);
+  const scatterDataStmt = db.prepare(`INSERT OR REPLACE INTO scatterdata (ts, id, val) VALUES (?, ?, ?)`);
   const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   // generate data to populate, preprocessing step
   // logic needs fixing
@@ -175,10 +175,16 @@ export function brushItx(low: number, high: number, relativeLow: number, relativ
   db.run(`insert into itx (ts, low, high, relativeLow, relativeHigh, itxType, itxFixType) values (${+Date.now()}, ${low}, ${high}, ${relativeLow}, ${relativeHigh}, \'userBrush\', \'${itxFixType}\')`);
 }
 
-export function scatterBrushItx(xlow: number, ylow: number, xhigh: number, yhigh: number, itxFixType: string) {
+export function scatterBrushItx(xlow: number, ylow: number, xhigh: number, yhigh: number) {
   console.log("executing scatterBrushItx");
-  d(`insert into scatterItx (ts, xlow, ylow, xhigh, yhigh, itxType, itxFixType) values (${+Date.now()}, ${xlow}, ${ylow}, ${xhigh}, ${yhigh}, \'userBrush\', \'${itxFixType}\')`);
-  db.run(`insert into scatterItx (ts, xlow, ylow, xhigh, yhigh, itxType, itxFixType) values (${+Date.now()}, ${xlow}, ${ylow}, ${xhigh}, ${yhigh}, \'userBrush\', \'${itxFixType}\')`);
+  // d(`insert into scatterItx (ts, xlow, ylow, xhigh, yhigh) values (${+Date.now()}, ${xlow}, ${ylow}, ${xhigh}, ${yhigh}`);
+  console.log("ts: ", +Date.now());
+  console.log("xlow: ", xlow);
+  console.log("ylow: ", ylow);
+  console.log("xhigh: ", xhigh);
+  console.log("yhigh: ", yhigh);
+  d(`select * from scatterItx`);  
+  db.run(`insert into scatterItx (ts, xlow, ylow, xhigh, yhigh) values (${+Date.now()}, ${xlow}, ${ylow}, ${xhigh}, ${yhigh})`);
 }
 
 export function brushStartItx() {

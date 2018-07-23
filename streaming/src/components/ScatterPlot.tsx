@@ -104,7 +104,8 @@ export default class ScatterPlot extends React.Component<ScatterPlotProps, Scatt
                 .domain(d3.extent(data, (d) => d.x));
       this.x = x;
       this.y = y;
-      let points = data.map((d) => <circle cx={d.x ? d.x : 0} cy={d.y ? d.y : 0} r="10" fill="steelblue"></circle>);
+      // let points = data.map((d) => <circle cx={d.x ? d.x : 0} cy={d.y ? d.y : 0} r="10" fill="steelblue"></circle>);
+      let points = data.map((d) => <circle cx={d.x ? x(d.x) : 0} cy={d.y ? y(d.y) : 0} r="2" stroke="black" fill="steelblue"></circle>);
       let brushedRegion = null;
       let brushedData = null;
       if (this.state.xlow && this.state.ylow && this.state.xhigh && this.state.yhigh) {
@@ -142,7 +143,7 @@ export default class ScatterPlot extends React.Component<ScatterPlotProps, Scatt
             }
           } else {
             // console.log("brushed", d3.brushSelection(this), "mapped", sx);
-            scatterBrushItx(x.invert(s[0][0]), y.invert(s[0][1]), x.invert(s[1][0]), y.invert(s[1][1]), itxFixType);
+            scatterBrushItx(x.invert(s[1][0]), y.invert(s[1][1]), x.invert(s[0][0]), y.invert(s[0][1]));
           }
         });
 

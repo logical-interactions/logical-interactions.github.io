@@ -60,8 +60,9 @@ export default class VisContainer extends React.Component<VisContainerProps, Vis
     setBarChartStateHelper("chartAData", this.chartA);
     setBarChartStateHelper("chartBData", this.chartB);
     setTimelineStateHelper(this.timeline);
+    setScatterPlotStateHelper(this.scatterPlot);
     setTableViewHelper(this.tableView);
-    setScatterPlotStateHelper(this.scatterPlot)
+    
     
   }
 
@@ -142,14 +143,15 @@ export default class VisContainer extends React.Component<VisContainerProps, Vis
       <Timeline
         ref={t => this.timeline = t}
       />
-      <TableView
-        ref={t => this.tableView = t}
-        headers={["time", "sales", "id", "demographic", "gender"]}
-      />
       <ScatterPlot
         ref={s => this.scatterPlot = s}
         label={"Scatter Plot"}
         />
+      <TableView
+        ref={t => this.tableView = t}
+        headers={["time", "sales", "id", "demographic", "gender"]}
+      />
+      
       {/* <ul>
         <li>{r}</li>
       </ul> */}
