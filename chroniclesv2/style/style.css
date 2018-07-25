@@ -20,7 +20,7 @@ h2 {
 
 #wrapper {
   padding: 50px 20px;
-  max-width: 850px;
+  max-width: 1000px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -187,9 +187,20 @@ colgroup {
 
 /* chart styling */
 
-.rotated text {
-  transform: rotate(-45deg);
-  text-anchor: end;
+.rotate90x text {
+  /* some serious hard coding here.... */
+  transform: translate(15px, -11px) rotate(-90deg) !important;
+}
+.rotate90x line {
+  transform: translate(7px);
+}
+
+.rotate90y text {
+  transform: translate(-11px, 12px) rotate(-90deg) !important;
+}
+
+.chart-layout-wrapper {
+  float: left;
 }
 
 .chart-container {
@@ -220,7 +231,15 @@ colgroup {
   border-style: solid;
   border-width: thin;
   margin-left: 10px;
+  margin-bottom: 10px;
   cursor: pointer;
+}
+
+/* overrids film-strip if active */
+.film-strip-active {
+  border-color: #4CAF50 !important;
+  border-width: medium !important;
+  cursor: auto;
 }
 
 .progress-bar {
