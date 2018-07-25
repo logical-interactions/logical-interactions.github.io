@@ -232,13 +232,13 @@ colgroup {
   border-width: thin;
   margin-left: 10px;
   margin-bottom: 10px;
+  border-color: lightgrey;
   cursor: pointer;
 }
 
 /* overrids film-strip if active */
 .film-strip-active {
   border-color: #4CAF50 !important;
-  border-width: medium !important;
   cursor: auto;
 }
 
