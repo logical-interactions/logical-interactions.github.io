@@ -2,7 +2,7 @@ import * as React from "react";
 import * as d3 from "d3";
 
 import { db } from "../sql/setup";
-import { scatterBrushItx, removeBrush, brushStartItx, brushEndItx } from "../sql/streaming/customSetup";
+import { scatterBrushItx, removeScatterBrush, brushStartItx, brushEndItx } from "../sql/streaming/customSetup";
 import { Datum } from "../lib/data";
 import { getFormattedTime, SelectionDesign } from "../lib/helper";
 import { SvgSpinner } from "./SvgSpinner";
@@ -109,9 +109,10 @@ export default class ScatterPlot extends React.Component<ScatterPlotProps, Scatt
       let brushedRegion = null;
       let brushedData = null;
       if (this.state.xlow && this.state.ylow && this.state.xhigh && this.state.yhigh) {
+        
         //MAKE A FILTER THAT ONLY KEEPS DATA POINTS BETWEEN THE LOW AND HIGH XS AT THE TIME OF BRUSH RELEASE
         brushedData = data.filter((d) => ((d.x > this.state.xlow) && (d.x < this.state.xhigh) && (d.y > this.state.ylow) && (d.y < this.state.yhigh)));
-        brushedRegion = brushedData.map((d) => <circle cx={d.x ? d.x : 0} cy={d.y ? d.y : 0} r="10" fill="red"></circle>);
+        brushedRegion = brushedData.map((d) => <circle cx={d.x ? x(d.x) : 0} cy={d.y ? y(d.y) : 0} r="2" stroke="black" fill="red"></circle>);
         //brushedRegion = lineMapping(data.filter((d) => ((d.x < this.state.high) && (d.x > this.state.low))));
       }
       let removeBrushPixelsAlias = this.removeBrushPixels;
@@ -139,7 +140,8 @@ export default class ScatterPlot extends React.Component<ScatterPlotProps, Scatt
           if (s === null) {
             // only reset if it's user initated
             if ((d3.event.sourceEvent) && (d3.event.sourceEvent.type === "mouseup")) {
-              removeBrush();
+              console.log("removing brush");
+              removeScatterBrush();
             }
           } else {
             // console.log("brushed", d3.brushSelection(this), "mapped", sx);
@@ -153,6 +155,7 @@ export default class ScatterPlot extends React.Component<ScatterPlotProps, Scatt
         {/* <path stroke="steelblue" fill="none" stroke-wdith="1.5" d="{points}"></path>
         <path stroke="red" fill="none" stroke-wdith="1.5" d="{brushedRegion}"></path>  */}
         {points}
+        {brushedRegion}
         <g ref={ g => {
             this.brushG = g;
             // (window as any).brushG = g;

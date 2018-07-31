@@ -181,6 +181,10 @@ export function removeBrush(itxType = "userBrush") {
   db.run(`insert into itx (ts, low, high, itxType) values (${+Date.now()}, -1, -1, \'${itxType}\')`);
 }
 
+export function removeScatterBrush() {
+  db.run(`insert into scatterItx (ts, xlow, ylow, xhigh, yhigh) values (${+Date.now()}, -1, -1, -1, -1)`);
+}
+
 export function brushItx(low: number, high: number, relativeLow: number, relativeHigh: number, itxFixType: string) {
   db.run(`insert into itx (ts, low, high, relativeLow, relativeHigh, itxType, itxFixType) values (${+Date.now()}, ${low}, ${high}, ${relativeLow}, ${relativeHigh}, \'userBrush\', \'${itxFixType}\')`);
 }
