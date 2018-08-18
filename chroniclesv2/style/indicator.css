@@ -60,3 +60,37 @@
   }
 }
 
+.zoomOnHover {
+  transition: transform .2s; /* Animation */
+}
+
+.zoomOnHover:hover {
+    transform: scale(1.5);
+}
+/* this is for button feedback */
+
+.flash {
+  -moz-animation: disappearAnimation 0s ease-in 5s forwards;
+  /* Firefox */
+  -webkit-animation: disappearAnimation 0s ease-in 5s forwards;
+  /* Safari and Chrome */
+  -o-animation: disappearAnimation 0s ease-in 5s forwards;
+  /* Opera */
+  animation: disappearAnimation 0s ease-in 5s forwards;
+  -webkit-animation-fill-mode: forwards;
+  animation-fill-mode: forwards;
+}
+@keyframes disappearAnimation {
+  to {
+      width:0;
+      height:0;
+      overflow:hidden;
+  }
+}
+@-webkit-keyframes disappearAnimation {
+  to {
+      width:0;
+      height:0;
+      visibility:hidden;
+  }
+}
