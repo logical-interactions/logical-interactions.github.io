@@ -1,0 +1,49 @@
+body {
+  font-family: Avenir;
+}
+
+.container {
+  width: 1000px;
+}
+
+.query {
+  width: 400px;
+  float: left;
+}
+
+.summary {
+  width: 400px;
+}
+
+th, td {
+  border: 1px solid lightgray;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+.floatingWidget {
+  position:fixed;
+  overflow: auto;
+  left:10px;
+  top:10%;
+  background-color: lightgray;
+  opacity: 0.9;
+}
+
+.controls {
+  position:fixed;
+  overflow: auto;
+  left: 10px;
+  top: 10px;
+  background-color: white;
+}
+
+.portal {
+  padding-top: 30px;
+}
+
+.clickable {
+  cursor: pointer;
+}
