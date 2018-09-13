@@ -247,7 +247,7 @@ p {
 }
 
 .vis-portal {
-  width: 760px;
+  width: 1080px;
   float: left;
 }
 
@@ -256,12 +256,16 @@ p {
 }
 
 .task-container {
-  width: 260px;
-  float: left;
+  width: 400px;
+  height: 300px;
+  overflow: scroll;
+  /* float: left; */
+  position: absolute;
   border: 2px solid gray;
   padding-left: 5px;
   padding-right: 5px;
   margin-top: 5px;
+  margin-left: 40%;
   margin-bottom: 5px;
   border-radius: 5px;
 }
@@ -278,6 +282,10 @@ p {
 .footnote {
   font-size: 70%;
   color: gray;
+}
+
+#all-charts {
+  width: 570px;
 }
 
 .correct {
@@ -530,18 +538,42 @@ colgroup {
 }
 
 .chron {
-  padding: 10px;
-  margin: 10px;
-  border:2px solid lightgreen;
   overflow: auto;
   float: left;
   cursor: pointer;
+}
+
+.chronContainer {
+  overflow: auto;
+}
+
+.chronInner {
+  padding: 10px;
+  overflow: auto;
+  margin: 10px;
+  border: 2px solid lightgray;
+}
+
+.chronSelected {
+  border: 2px solid lightgreen !important;
 }
 .chron .bar-chart{
   pointer-events: none;
 }
 .chronTimeline {
   clear: both;
+}
+
+.chronContainer .hide {
+  visibility: hidden;
+}
+
+.chronArrow {
+  font-size: 40px;
+  float: left;
+  cursor: pointer;
+  margin-top: 50px;
+  color: rgba(76, 120, 168, 0.5);
 }        </style>
     </head>
     <body>
