@@ -135,86 +135,6 @@
 .popup-inner .description {
   padding-left: 10px;
   padding-right: 10px;
-}
-/* copied from https://www.w3schools.com/howto/howto_js_rangeslider.asp */
-
-
-/* bully the browser into showing the scroll bar */
-
-::-webkit-scrollbar {
-  -webkit-appearance: none;
-}
-
-::-webkit-scrollbar:horizontal {
-  height: 6px;
-}
-
-::-webkit-scrollbar-thumb {
-  border-radius: 8px;
-  border: 0px solid white;
-  background-color: rgba(0, 0, 0, .5);
-}
-
-::-webkit-scrollbar:vertical {
-  width: 0px;
-}
-
-.slider-simple {
-  width: 100%;
-}
-
-.slider {
-  -webkit-appearance: none;
-  width: 100%;
-  height: 15px;
-  border-radius: 2px;   
-  background: #d3d3d3;
-  opacity: 0.4;
-  -webkit-transition: .2s;
-  transition: opacity .2s;
-}
-
-.slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 25px;
-    height: 25px;
-    border-radius: 50%; 
-    background: #4CAF50;
-    cursor: pointer;
-}
-
-.slider::-moz-range-thumb {
-    width: 25px;
-    height: 25px;
-    border-radius: 50%;
-    background: #4CAF50;
-    cursor: pointer;
-}
-
-
-.small-multiples-itxId {
-  font-size: 20px;
-  float: left;
-  padding-left: 10px;
-  padding-right: 10px;
-}
-
-.film-strip {
-  float: left;
-  border-style: solid;
-  border-width: thin;
-  border-color: lightgray;
-  margin-left: 10px;
-  margin-bottom: 10px;
-  cursor: pointer;
-}
-
-
-/* overrids film-strip if active */
-.film-strip-active {
-  border-color: #4CAF50 !important;
-  cursor: auto;
 }body {
   font-family: Avenir;
 }
@@ -231,7 +151,7 @@ p {
 .introjs-donebutton {
   visibility: visible !important;
   color: red !important;;
-  font-style: bold !important;;
+  font-weight: bold !important;;
 }
 
 .introjs-showElement {
@@ -265,10 +185,21 @@ p {
   padding-left: 5px;
   padding-right: 5px;
   margin-top: 5px;
-  margin-left: 40%;
+  margin-left: 600px;
   margin-bottom: 5px;
   border-radius: 5px;
 }
+
+::-webkit-scrollbar {
+  -webkit-appearance: none;
+  width: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 5px;
+  background-color: rgba(0,0,0,.5);
+}
+
 
 .question-wrapper {
   margin-bottom: 20px;
@@ -290,7 +221,7 @@ p {
 
 .correct {
   color: green;
-  font-style: bold;
+  font-weight: bold;
   animation: fadein 1s;
 }
 
@@ -307,7 +238,7 @@ p {
 
 .warning {
   color: red;
-  font-style: bold;
+  font-weight: bold;
   animation: fadein 1s;
 }
 
@@ -344,7 +275,7 @@ h2 {
 #wrapper {
   padding: 10px;
   width: 1080px;
-  margin-left: auto;
+  margin-left: 10px;
   margin-right: auto;
   overflow: scroll;
 }
@@ -538,14 +469,14 @@ colgroup {
 }
 
 .chron {
-  overflow: auto;
+  /* overflow: auto; */
   float: left;
   cursor: pointer;
 }
 
-.chronContainer {
-  overflow: auto;
-}
+/* .chronContainer {
+   overflow: auto; 
+} */
 
 .chronInner {
   padding: 10px;
@@ -574,6 +505,18 @@ colgroup {
   cursor: pointer;
   margin-top: 50px;
   color: rgba(76, 120, 168, 0.5);
+}
+
+.chron .label-chart {
+  color: gray;
+}
+
+.chron .label-value {
+  font-weight: bold;
+}
+
+.chron tr {
+  line-height: 10px; 
 }        </style>
     </head>
     <body>
