@@ -3,13 +3,22 @@
   margin: 20px;
 }
 
+.dashboard-content {
+  padding-left: 15px;
+  display: flex;
+}
+
+.dashboard-inner {
+  overflow-x: scroll;
+}
+
 .step-no {
-  margin-left: -15px;
+  margin-left: -30px;
   flex-shrink: 0;
   font-size: 20px;
   color: teal;    
   background-color: yellow;
-  display: inline-block;
+  /* display: inline-block; */
   text-align: center;
   width: 30px;
   height: 30px;

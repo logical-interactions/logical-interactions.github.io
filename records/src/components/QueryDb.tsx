@@ -87,7 +87,15 @@ export default class QueryDb extends React.Component<QueryDbProps, QueryDbState>
     }
     let queryEle = <>
       <div style={{float: "left"}}>
+      <pre className="code-editor">
+        <code className="language-sql">
+        </code>
         <textarea value={query} onChange={this.handleChange} rows={query.split("\n").length + 1} cols={80} style={{fontFamily: "courier"}} />
+    </pre>
+      <pre>
+        <code>
+        </code>
+      </pre>
       </div>
       <div style={{float: "left", paddingLeft: 10}}>
         <button className="btn" onClick={this.executeQuery}>{buttonTxt}</button>
