@@ -1,0 +1,77 @@
+.dashboard {
+  border: 2px solid steelblue !important;
+  margin: 20px;
+}
+
+.step-no {
+  margin-left: -15px;
+  flex-shrink: 0;
+  font-size: 20px;
+  color: teal;    
+  background-color: yellow;
+  display: inline-block;
+  text-align: center;
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  border-radius: 50%;
+}
+
+.row {
+  display: flex;
+}
+
+.Year-chart {
+  float: left;
+}
+
+.State-chart {
+  float: left;
+}
+
+.Cause-chart {
+  float: left;
+}
+
+
+.Year-chart-holder {
+  width:568px;
+  height:259px;
+  float: left;
+}
+
+.State-chart-holder {
+  width: 1078px;
+  height:258px;
+  float: left;
+}
+
+.Cause-chart-holder {
+  width:346px;
+  height:259px;
+  float: left;
+}
+
+.startyear-chart-holder {
+  width: 696px;
+  height:267px; 
+  float: left;
+}
+
+.protesterviolence-chart-holder {
+  width: 177px;
+  height:250px;
+  float: left;
+}
+
+.participants_category-chart-holder {
+  width: 236px;
+  height:295px;
+  float: left;
+}
+
+.geo-chart-holder {
+  width: 600px;
+  height:344px;
+  float: left;
+}
