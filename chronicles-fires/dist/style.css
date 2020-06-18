@@ -1,6 +1,37 @@
 .dashboard {
-  border: 2px solid steelblue !important;
+  border: 2px solid steelblue;
   margin: 20px;
+}
+
+.selected {
+  border: 2px solid orange !important;
+}
+
+h2 {
+  font-size: 20px;
+} 
+
+.chart-container {
+  display: flex;
+}
+
+.thumbnail-primary {
+  zoom: 0.5;
+  -moz-transform: scale(0.5);
+}
+
+.thumbnail-secondary {
+  zoom: 0.2;
+  display: flex;
+  -moz-transform: scale(0.1);
+  overflow-x: scroll;
+}
+
+.thumbnail-secondary .dashboard {
+  max-width: 1000px;
+}
+.thumbnail-secondary .dashboard-inner {
+  overflow-x: hidden !important;
 }
 
 .dashboard-content {
@@ -30,7 +61,7 @@
   display: flex;
 }
 
-.Year-chart {
+/* .Year-chart {
   float: left;
 }
 
@@ -40,7 +71,7 @@
 
 .Cause-chart {
   float: left;
-}
+} */
 
 
 .Year-chart-holder {
@@ -80,7 +111,11 @@
 }
 
 .geo-chart-holder {
-  width: 600px;
-  height:344px;
+  width: 601px;
+  height:314px;
   float: left;
+}
+
+.geo-chart {
+  /* width: 601px; */
 }
