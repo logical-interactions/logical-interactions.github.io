@@ -1,0 +1,18 @@
+#content {
+  padding: 20px;  
+}
+
+table, th, td  {
+  border-collapse: collapse;
+  border: 1px solid black;
+}
+
+.answer-slider-text {
+  float: left;
+  margin-right: 10px;
+}
+
+.answer-slider {
+  width: 200px;
+  margin-right: 10px;
+}
