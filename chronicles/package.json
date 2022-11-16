@@ -33,7 +33,7 @@
   "devDependencies": {
     "@types/node": "^8.5.1",
     "awesome-typescript-loader": "^3.4.1",
-    "source-map-loader": "^0.2.3",
+    "source-map-loader": "^0.2.4",
     "tslint": "^5.8.0",
     "tslint-loader": "^3.5.3",
     "typescript": "^2.6.2",
